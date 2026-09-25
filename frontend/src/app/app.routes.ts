@@ -11,5 +11,9 @@ export const routes: Routes = [
     path: 'formateur/tableau/:promotionId',
     loadComponent: () => import('./features/formateur/tableau.component').then(m => m.TableauComponent),
   },
+  {
+    path: 'etudiant',
+    loadComponent: () => import('./features/etudiant/etudiant.component').then(m => m.EtudiantComponent),
+  },
   { path: '**', redirectTo: '' },
 ];
