@@ -1,0 +1,5 @@
+<nav [attr.aria-label]="libelle()">
+  @for (e of entrees(); track e.chemin) {
+    <app-bouton-navigation [chemin]="e.chemin" [parametres]="e.parametres">{{ e.libelle }}</app-bouton-navigation>
+  }
+</nav>
