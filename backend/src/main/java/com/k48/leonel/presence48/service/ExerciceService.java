@@ -1,6 +1,14 @@
 package com.k48.leonel.presence48.service;
 
+import com.k48.leonel.presence48.dto.response.ExerciceAuteurReponse;
 import com.k48.leonel.presence48.dto.response.ExerciceDeposeReponse;
+import com.k48.leonel.presence48.entity.Relecture;
+import com.k48.leonel.presence48.entity.Role;
+import com.k48.leonel.presence48.entity.StatutExercice;
+import com.k48.leonel.presence48.repository.RelectureRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 import com.k48.leonel.presence48.entity.Exercice;
 import com.k48.leonel.presence48.exception.MetierException;
 import com.k48.leonel.presence48.repository.EtudiantRepository;
@@ -29,19 +37,22 @@ public class ExerciceService {
   private static final Logger LOG = LoggerFactory.getLogger(ExerciceService.class);
   private static final Set<String> SCHEMAS = Set.of("http", "https");
   private static final int LONGUEUR_MAX_LIEN = 2048;
+  private static final int DECIMALES_NOTE = 2;
 
   private final ExerciceRepository exercices;
   private final SessionCoursRepository sessions;
   private final EtudiantRepository etudiants;
+  private final RelectureRepository relectures;
   private final TirageRelecteur tirage;
   private final ControleAcces acces;
   private final Clock horloge;
 
-  public ExerciceService(ExerciceRepository exercices, SessionCoursRepository sessions,
-      EtudiantRepository etudiants, TirageRelecteur tirage, ControleAcces acces, Clock horloge) {
+  public ExerciceService(ExerciceRepository exercices, SessionCoursRepository sessions, EtudiantRepository etudiants,
+      RelectureRepository relectures, TirageRelecteur tirage, ControleAcces acces, Clock horloge) {
     this.exercices = exercices;
     this.sessions = sessions;
     this.etudiants = etudiants;
+    this.relectures = relectures;
     this.tirage = tirage;
     this.acces = acces;
     this.horloge = horloge;
@@ -73,6 +84,41 @@ public class ExerciceService {
     var exercice = exercices.save(new Exercice(sessionId, etudiantId, lienNettoye, horloge.instant()));
     tirage.assigner(exercice);
     return new ExerciceDeposeReponse(exercice.getId(), exercice.getStatut());
+  }
+
+  /**
+   * SF-14 (route protégée) : exercices de l'auteur avec la note retenue (moyenne des notes rendues, RG16 v3),
+   * provisoire tant que les deux relecteurs n'ont pas rendu (RG31), sans leur identité (RG8).
+   */
+  @Transactional(readOnly = true)
+  public List<ExerciceAuteurReponse> exercicesDe(Long etudiantId) {
+    var etudiant = etudiants.findById(etudiantId).orElseThrow(() ->
+        new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
+    acces.connecte().ifPresent(u -> {
+      if (u.role() == Role.ETUDIANT) {
+        acces.verifierIdentite(etudiantId);
+      } else {
+        acces.verifierGestionPromotion(etudiant.getPromotionId());
+      }
+    });
+    return exercices.findByAuteurIdOrderByDeposeAtDesc(etudiantId).stream().map(x -> {
+      var rendues = relectures.findByExerciceIdOrderByIdAsc(x.getId()).stream()
+          .filter(Relecture::estRendue).toList();
+      var titre = sessions.getReferenceById(x.getSessionId()).getTitre();
+      var note = noteRetenue(rendues.stream().map(Relecture::getNote).toList());
+      return new ExerciceAuteurReponse(x.getId(), x.getSessionId(), titre, x.getLien(), x.getStatut(), note,
+          !rendues.isEmpty() && x.getStatut() != StatutExercice.RELU,
+          rendues.stream().map(Relecture::getCommentaire).toList());
+    }).toList();
+  }
+
+  /** RG16 v3 : moyenne des notes rendues, 2 décimales ; null sans note. */
+  static BigDecimal noteRetenue(List<Integer> notes) {
+    if (notes.isEmpty()) {
+      return null;
+    }
+    var somme = notes.stream().mapToInt(Integer::intValue).sum();
+    return BigDecimal.valueOf(somme).divide(BigDecimal.valueOf(notes.size()), DECIMALES_NOTE, RoundingMode.HALF_UP);
   }
 
   /** RG17 : URL absolue http(s) avec un hôte. */
