@@ -15,50 +15,8 @@ import { RelecturesComponent } from './relectures.component';
   selector: 'app-etudiant',
   standalone: true,
   imports: [FormsModule, ErreurComponent, MesNotesComponent, RelecturesComponent],
-  styles: [':host main { max-width: 36rem; }'],
-  template: `
-    <main>
-      @if (etudiantId(); as moi) {
-        <section class="carte">
-          <h2>Présence</h2>
-          <form class="ligne" (ngSubmit)="marquer(moi)">
-            <label>Code affiché en salle
-              <input name="code" [(ngModel)]="code" required autocomplete="off" autocapitalize="characters"
-                     maxlength="12" placeholder="K7MX4Q" />
-            </label>
-            <button type="submit" [disabled]="!code.trim()">Valider</button>
-          </form>
-          @if (presenceOk()) { <p class="succes" role="status">Présence enregistrée.</p> }
-          <app-erreur [erreur]="erreurPresence()" />
-        </section>
-
-        <section class="carte">
-          <h2>Déposer mon exercice</h2>
-          <form class="ligne" (ngSubmit)="deposer(moi)">
-            <label>Session
-              <select name="session" [(ngModel)]="sessionId" required>
-                <option [ngValue]="null" disabled>Choisir…</option>
-                @for (s of sessionsOuvertes(); track s.id) { <option [ngValue]="s.id">{{ s.titre }}</option> }
-              </select>
-            </label>
-            <label>Lien
-              <input name="lien" type="url" [(ngModel)]="lien" required placeholder="https://github.com/…" />
-            </label>
-            <button type="submit" [disabled]="!sessionId || !lien.trim()">Déposer</button>
-          </form>
-          @if (depot(); as d) {
-            <p class="succes" role="status">Exercice déposé — statut <span class="badge" [class]="d.statut">{{ d.statut }}</span></p>
-          }
-          <app-erreur [erreur]="erreurDepot()" />
-        </section>
-
-        <app-mes-notes [etudiantId]="moi" />
-        <app-relectures [etudiantId]="moi" />
-      } @else {
-        <p class="alerte">Ce compte n'est lié à aucune fiche étudiant.</p>
-      }
-    </main>
-  `,
+  templateUrl: './etudiant.component.html',
+  styleUrl: './etudiant.component.scss',
 })
 export class EtudiantComponent implements OnInit {
   private readonly api = inject(ApiService);

@@ -1,0 +1,16 @@
+<main>
+  <section class="carte">
+    <h2>Connexion</h2>
+    <form (ngSubmit)="connecter()" class="formulaire">
+      <label>Identifiant <input name="login" [(ngModel)]="login" required autocomplete="username" /></label>
+      <label>Mot de passe
+        <input name="mdp" type="password" [(ngModel)]="motDePasse" required autocomplete="current-password" />
+      </label>
+      <button type="submit" [disabled]="enCours() || !login || !motDePasse">
+        {{ enCours() ? 'Connexion…' : 'Se connecter' }}
+      </button>
+    </form>
+    <app-erreur [erreur]="erreur()" />
+    <p class="discret">Comptes de démonstration : voir le README.</p>
+  </section>
+</main>

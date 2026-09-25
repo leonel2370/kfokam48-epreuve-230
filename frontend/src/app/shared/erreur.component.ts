@@ -5,9 +5,7 @@ import { ErreurApi } from '../core/api/api.models';
 @Component({
   selector: 'app-erreur',
   standalone: true,
-  template: `@if (erreur(); as e) {
-    <p class="alerte" role="alert">{{ e.message }} <small>({{ e.code }})</small></p>
-  }`,
+  templateUrl: './erreur.component.html',
 })
 export class ErreurComponent {
   readonly erreur = input<ErreurApi | null>(null);

@@ -10,25 +10,8 @@ import { ErreurComponent } from '../../shared/erreur.component';
   selector: 'app-connexion',
   standalone: true,
   imports: [FormsModule, ErreurComponent],
-  styles: [':host main { max-width: 24rem; }'],
-  template: `
-    <main>
-      <section class="carte">
-        <h2>Connexion</h2>
-        <form (ngSubmit)="connecter()" style="display:grid; gap:.75rem">
-          <label>Identifiant <input name="login" [(ngModel)]="login" required autocomplete="username" /></label>
-          <label>Mot de passe
-            <input name="mdp" type="password" [(ngModel)]="motDePasse" required autocomplete="current-password" />
-          </label>
-          <button type="submit" [disabled]="enCours() || !login || !motDePasse">
-            {{ enCours() ? 'Connexion…' : 'Se connecter' }}
-          </button>
-        </form>
-        <app-erreur [erreur]="erreur()" />
-        <p class="discret">Comptes de démonstration : voir le README.</p>
-      </section>
-    </main>
-  `,
+  templateUrl: './connexion.component.html',
+  styleUrl: './connexion.component.scss',
 })
 export class ConnexionComponent {
   private readonly auth = inject(AuthService);

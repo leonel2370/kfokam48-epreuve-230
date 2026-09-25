@@ -1,0 +1,55 @@
+<main>
+  <section class="carte">
+    <h2>Ouvrir une session</h2>
+    <form class="ligne" (ngSubmit)="ouvrir()">
+      <label>Promotion
+        <select name="promotion" [ngModel]="promotionId" (ngModelChange)="choisir($event)" required>
+          @for (p of promotions(); track p.id) { <option [ngValue]="p.id">{{ p.nom }}</option> }
+        </select>
+      </label>
+      <label>Titre
+        <input name="titre" [(ngModel)]="titre" required maxlength="200" placeholder="TP Spring JPA" />
+      </label>
+      <button type="submit" [disabled]="enCours() || !titre.trim() || !promotionId">
+        {{ enCours() ? 'Ouverture…' : 'Ouvrir' }}
+      </button>
+      @if (promotionId) { <a [routerLink]="['/formateur/tableau', promotionId]">Voir le tableau</a> }
+    </form>
+    @if (promotions().length === 0 && !erreur()) {
+      <p class="discret">Vous n'êtes rattaché à aucune promotion.</p>
+    }
+    <app-erreur [erreur]="erreur()" />
+  </section>
+
+  @if (session(); as s) {
+    <section class="carte" aria-live="polite">
+      <h2>Code de présence</h2>
+      <p class="code">{{ s.code }}</p>
+      <p class="discret">
+        Expire à {{ s.expirationAt | date: 'HH:mm' }}
+        @if (restant() > 0) { — encore {{ minutes() }} min {{ secondes() }} s }
+        @else { — expiré : ajoutez les retardataires manuellement }
+      </p>
+    </section>
+  }
+
+  <section class="carte">
+    <h2>Sessions de la promotion</h2>
+    @if (sessions().length === 0) { <p class="discret">Aucune session.</p> }
+    @else {
+      <table>
+        <thead><tr><th>Titre</th><th>Ouverte le</th><th>Code</th><th>Statut</th></tr></thead>
+        <tbody>
+          @for (s of sessions(); track s.id) {
+            <tr>
+              <td>{{ s.titre }}</td>
+              <td>{{ s.ouvertureAt | date: 'dd/MM HH:mm' }}</td>
+              <td><code>{{ s.code }}</code></td>
+              <td><span class="badge">{{ s.statut }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+</main>
