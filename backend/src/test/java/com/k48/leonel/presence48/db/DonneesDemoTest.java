@@ -11,6 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @SpringBootTest
 class DonneesDemoTest {
 
+  /** Session de démonstration : la base H2 est partagée, on ne compte que ses données. */
+  private static final String DEMO = "(SELECT id FROM session WHERE code = 'DEMO01')";
+
   @Autowired
   private JdbcTemplate jdbc;
 
@@ -21,12 +24,16 @@ class DonneesDemoTest {
 
   @Test
   void testDonneesDemoChargees() {
-    assertThat(compter("SELECT COUNT(*) FROM promotion")).as("deux promotions").isEqualTo(2);
+    // La base H2 est partagée avec les autres tests : on ne compte que les données de démonstration.
+    assertThat(compter("SELECT COUNT(*) FROM promotion WHERE nom IN ('P1-2026', 'P2-2026')"))
+        .as("deux promotions").isEqualTo(2);
     assertThat(compter("SELECT COUNT(*) FROM etudiant")).as("douze étudiants").isEqualTo(12);
-    assertThat(compter("SELECT COUNT(*) FROM presence")).as("six présences").isEqualTo(6);
-    assertThat(compter("SELECT COUNT(*) FROM presence WHERE source = 'FORMATEUR'"))
+    assertThat(compter("SELECT COUNT(*) FROM presence WHERE session_id = " + DEMO))
+        .as("six présences").isEqualTo(6);
+    assertThat(compter("SELECT COUNT(*) FROM presence WHERE source = 'FORMATEUR' AND session_id = " + DEMO))
         .as("une présence ajoutée par le formateur (Q14)").isEqualTo(1);
-    assertThat(compter("SELECT COUNT(*) FROM relecture WHERE rendue_at IS NULL"))
+    assertThat(compter("SELECT COUNT(*) FROM relecture r JOIN exercice e ON e.id = r.exercice_id "
+        + "WHERE r.rendue_at IS NULL AND e.session_id = " + DEMO))
         .as("deux relectures en attente (Q11)").isEqualTo(2);
   }
 
