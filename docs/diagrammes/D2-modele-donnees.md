@@ -1,6 +1,6 @@
 # D2 — Modèle de données
 
-**Doit correspondre exactement à `backend/src/main/resources/db/migration/V1__init.sql`.** Toute migration qui change le schéma met ce diagramme à jour dans la même PR. Dictionnaire complet : [CAHIER_DES_CHARGES.md](../CAHIER_DES_CHARGES.md), annexe B.
+**Doit correspondre exactement aux migrations Flyway** (`V1__init.sql`, puis **v2** : `V3__securite.sql` pour `UTILISATEUR`, `FORMATEUR_PROMOTION` et `etudiant.actif`, `V4__piece_jointe.sql` pour les colonnes `fichier_*`). Toute migration qui change le schéma met ce diagramme à jour dans la même PR. Dictionnaire complet : [CAHIER_DES_CHARGES.md](../CAHIER_DES_CHARGES.md), annexe B.
 
 ```mermaid
 erDiagram
@@ -13,6 +13,9 @@ erDiagram
     ETUDIANT ||--o{ EXERCICE : "est auteur de"
     EXERCICE ||--o| RELECTURE : "a au plus une (RG6)"
     ETUDIANT ||--o{ RELECTURE : "est relecteur de"
+    ETUDIANT |o--o| UTILISATEUR : "a un compte (v2)"
+    UTILISATEUR ||--o{ FORMATEUR_PROMOTION : "est rattaché (v2)"
+    PROMOTION ||--o{ FORMATEUR_PROMOTION : "a pour formateurs (v2)"
 
     PROMOTION {
         bigint id PK
@@ -22,6 +25,24 @@ erDiagram
         bigint id PK
         varchar nom "NOT NULL"
         bigint promotion_id FK "NOT NULL"
+        boolean actif "v2, défaut TRUE (RG28)"
+    }
+    UTILISATEUR {
+        bigint id PK "v2"
+        varchar login UK "RG27"
+        varchar mot_de_passe_hash "BCrypt (ENF10)"
+        varchar role "ADMIN | FORMATEUR | ETUDIANT"
+        varchar nom_affiche "NOT NULL"
+        bigint etudiant_id FK, UK "NULL, obligatoire si ETUDIANT"
+        boolean actif "RG28"
+        boolean doit_changer_mot_de_passe "RG23"
+        int echecs_connexion "RG24"
+        timestamptz bloque_jusqu_a "NULL"
+        timestamptz cree_at "NOT NULL"
+    }
+    FORMATEUR_PROMOTION {
+        bigint utilisateur_id PK, FK "v2 (RG26)"
+        bigint promotion_id PK, FK
     }
     SESSION {
         bigint id PK
@@ -53,6 +74,11 @@ erDiagram
         varchar statut "DEPOSE | EN_ATTENTE_RELECTURE | RELU"
         timestamptz depose_at "NOT NULL"
         timestamptz modifie_at "NULL"
+        varchar fichier_nom "v2, NULL (RG30)"
+        varchar fichier_type "v2, NULL"
+        bigint fichier_taille "v2, NULL, <= 10 Mo"
+        varchar fichier_chemin "v2, NULL, relatif à UPLOAD_DIR"
+        timestamptz fichier_depose_at "v2, NULL"
     }
     RELECTURE {
         bigint id PK
