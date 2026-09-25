@@ -1,5 +1,6 @@
 package com.k48.leonel.presence48.exception;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,9 +27,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** ENF3 / B4 : toute erreur renvoie {code, message}, jamais de stack trace ni de page Spring. */
+/**
+ * ENF3 / B4 : toute erreur renvoie {code, message}, jamais de stack trace ni de page Spring.
+ * Exécuté connecté (v2) : on teste ici le handler d'erreurs, pas le contrôle d'accès (voir AuthIntegrationTest).
+ */
 @WebMvcTest(controllers = GlobalExceptionHandlerTest.ControleurDeTest.class)
 @Import(GlobalExceptionHandlerTest.ControleurDeTest.class)
+@WithMockUser
 class GlobalExceptionHandlerTest {
 
   @Autowired
@@ -40,13 +46,13 @@ class GlobalExceptionHandlerTest {
 
   @Test
   void testChampManquantRenvoie400() throws Exception {
-    erreur(mvc.perform(post("/test/valide").contentType(MediaType.APPLICATION_JSON).content("{}")),
+    erreur(mvc.perform(post("/test/valide").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{}")),
         400, "CHAMP_MANQUANT");
   }
 
   @Test
   void testJsonMalFormeRenvoie400() throws Exception {
-    erreur(mvc.perform(post("/test/valide").contentType(MediaType.APPLICATION_JSON).content("{pas du json")),
+    erreur(mvc.perform(post("/test/valide").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{pas du json")),
         400, "CHAMP_MANQUANT");
   }
 
@@ -64,12 +70,12 @@ class GlobalExceptionHandlerTest {
 
   @Test
   void testMethodeNonAutoriseeRenvoie405() throws Exception {
-    erreur(mvc.perform(delete("/test/metier")), 405, "METHODE_NON_AUTORISEE");
+    erreur(mvc.perform(delete("/test/metier").with(csrf())), 405, "METHODE_NON_AUTORISEE");
   }
 
   @Test
   void testCorpsNonJsonRenvoie415() throws Exception {
-    erreur(mvc.perform(post("/test/valide").contentType(MediaType.TEXT_PLAIN).content("x")),
+    erreur(mvc.perform(post("/test/valide").with(csrf()).contentType(MediaType.TEXT_PLAIN).content("x")),
         415, "FORMAT_NON_SUPPORTE");
   }
 
