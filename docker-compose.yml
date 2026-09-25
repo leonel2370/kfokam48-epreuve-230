@@ -16,7 +16,9 @@ services:
       retries: 20
 
   backend:
-    build: ./backend
+    build:
+      context: .                       # racine : embarque api/contrat.yaml pour Swagger UI (#96)
+      dockerfile: backend/Dockerfile
     environment:
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-presence48}
       DB_USERNAME: ${POSTGRES_USER:-presence48}
