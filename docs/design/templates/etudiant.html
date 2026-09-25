@@ -33,6 +33,9 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
       <a href="tableau.html" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</a>
       <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
       <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
+      <a href="admin-utilisateurs.html" class="px-3 py-2 rounded-md hover:bg-accent">Admin</a>
+      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Awa · ETUDIANT</a>
+      <a href="login.html" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</a>
       <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
     </nav>
   </div>
@@ -53,6 +56,9 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
     <select id="sess" class="h-12 w-full rounded-md border border-input bg-background px-3 text-base"><option>TP Spring JPA — 25/09</option></select>
     <label class="text-sm font-medium" for="lien">Lien (http ou https)</label>
     <input id="lien" type="url" class="h-12 w-full rounded-md border border-input bg-background px-3 text-base" placeholder="https://github.com/…">
+    <label class="text-sm font-medium" for="piece">Pièce jointe (facultative) — fichier ou dossier compressé en .zip, 10 Mo max</label>
+    <input id="piece" type="file" accept=".pdf,.zip,.txt,.md,.java,.ts,.png,.jpg" class="block w-full text-sm file:mr-3 file:h-10 file:rounded-md file:border file:border-input file:bg-background file:px-3">
+    <p class="text-xs text-muted-foreground">Joint après le dépôt du lien ; remplaçable tant que l'exercice n'est pas relu (RG30).</p>
     <button class="h-12 w-full rounded-md bg-primary text-primary-foreground font-medium">Déposer</button>
   </form>
   <section class="rounded-lg border border-border p-5 space-y-2">

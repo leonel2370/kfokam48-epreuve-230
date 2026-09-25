@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PRESENCE48 — Tableau (template visuel)</title>
+<title>PRESENCE48 — Profil (template visuel)</title>
 <!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -34,23 +34,32 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
       <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
       <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
       <a href="admin-utilisateurs.html" class="px-3 py-2 rounded-md hover:bg-accent">Admin</a>
-      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Jean Fokam · FORMATEUR</a>
+      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Awa · ETUDIANT</a>
       <a href="login.html" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</a>
       <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
     </nav>
   </div>
 </header>
-<main class="mx-auto max-w-5xl px-4 py-8 space-y-6">
-  <div class="flex flex-wrap items-end justify-between gap-3"><div><h1 class="text-2xl font-semibold">Tableau de la promotion</h1><p class="text-sm text-muted-foreground">P1-2026 · 12 étudiants · valeurs calculées par l'API</p></div>
-    <select class="h-10 rounded-md border border-input bg-background px-3"><option>P1-2026</option></select></div>
-  <div class="overflow-x-auto rounded-lg border border-border"><table class="w-full text-sm">
-    <thead class="bg-muted/50 text-left"><tr><th class="p-3">Étudiant</th><th class="p-3 text-right">Présences</th><th class="p-3 text-right">Exercices déposés</th><th class="p-3 text-right">Moyenne reçue</th><th class="p-3 text-right">Relectures en attente</th></tr></thead>
-    <tbody class="divide-y divide-border">
-      <tr><td class="p-3">Awa Ndiaye</td><td class="p-3 text-right">3</td><td class="p-3 text-right">2</td><td class="p-3 text-right">13,5</td><td class="p-3 text-right">0</td></tr>
-      <tr class="bg-attente/5"><td class="p-3">Paul Mbarga</td><td class="p-3 text-right">2</td><td class="p-3 text-right">1</td><td class="p-3 text-right text-muted-foreground" title="Aucune note reçue">—</td><td class="p-3 text-right"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">1 en retard</span></td></tr>
-      <tr><td class="p-3">Marc Tchoua</td><td class="p-3 text-right">1</td><td class="p-3 text-right">0</td><td class="p-3 text-right text-muted-foreground">—</td><td class="p-3 text-right">0</td></tr>
-    </tbody></table></div>
-  <p class="text-xs text-muted-foreground">« — » : aucune note reçue (moyenne null). La moyenne n'est jamais recalculée par l'interface (F3).</p>
+<main class="mx-auto max-w-md px-4 py-8 space-y-6">
+  <section class="rounded-lg border border-border p-6 space-y-2">
+    <h1 class="text-2xl font-semibold">Mon profil</h1>
+    <dl class="grid grid-cols-[8rem_1fr] gap-y-2 text-sm">
+      <dt class="text-muted-foreground">Nom</dt><dd>Awa Ndiaye</dd>
+      <dt class="text-muted-foreground">Identifiant</dt><dd class="font-mono">awa</dd>
+      <dt class="text-muted-foreground">Rôle</dt><dd><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-muted">ETUDIANT</span></dd>
+      <dt class="text-muted-foreground">Promotion</dt><dd>P1-2026</dd>
+    </dl>
+  </section>
+  <form class="rounded-lg border border-border p-6 space-y-3">
+    <h2 class="font-semibold">Changer mon mot de passe</h2>
+    <div role="status" class="rounded-md border border-attente/50 bg-attente/10 p-3 text-sm">Première connexion : vous devez changer votre mot de passe avant de continuer (RG23).</div>
+    <label for="a" class="text-sm font-medium">Mot de passe actuel</label>
+    <input id="a" type="password" autocomplete="current-password" class="h-11 w-full rounded-md border border-input bg-background px-3 text-base">
+    <label for="n" class="text-sm font-medium">Nouveau mot de passe</label>
+    <input id="n" type="password" autocomplete="new-password" aria-describedby="n-aide" class="h-11 w-full rounded-md border border-input bg-background px-3 text-base">
+    <p id="n-aide" class="text-xs text-muted-foreground">8 caractères minimum (RG24).</p>
+    <button class="h-11 w-full rounded-md bg-primary text-primary-foreground font-medium">Enregistrer</button>
+  </form>
 </main>
 <section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
   <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>
