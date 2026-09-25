@@ -65,8 +65,8 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 - **Dans l'éditeur :** l'extension VS Code *SonarQube for IDE* est liée au projet par `.vscode/settings.json` (versionné, sans secret) : `connectionId` `http-10-0-102-40-9000-`, `projectKey` `kfokam48-epreuve-230`. Chaque développeur voit les règles du serveur en direct. La connexion elle-même, avec son jeton, est configurée une fois par poste dans VS Code (*SonarQube Setup › Add SonarQube Server Connection*) et reste dans le trousseau de VS Code.
 - **Analyse complète, avant chaque PR** (obligatoire, le serveur étant sur le réseau privé, la CI GitHub ne peut pas l'atteindre) :
   - backend : `set -a; . ./.env; set +a; ./mvnw -f backend verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY` (couverture JaCoCo) ;
-  - frontend : `npx sonar-scanner -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN` avec `frontend/sonar-project.properties` (couverture `coverage/lcov.info`).
-  Les deux analyses publient dans le **même projet** (sources `backend/src/main`, `frontend/src`) ; le lien du tableau de bord et le statut de la Quality Gate vont dans la section Preuves de la PR.
+  - frontend (#103) : `cd frontend && npx ng test --watch=false --browsers=ChromeHeadless --code-coverage && npx @sonar/scan -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN` avec `frontend/sonar-project.properties` (couverture `coverage/lcov.info`, rapport lcov ajouté par `frontend/karma.conf.js`).
+  **Deux projets Sonar** : `kfokam48-epreuve-230` (backend) et `kfokam48-epreuve-230-frontend` (TypeScript et templates HTML). Un seul projet ne convient pas : chaque analyse remplace la précédente, la seconde effacerait la première. La même Quality Gate s'applique aux deux ; le lien du tableau de bord et le statut vont dans la section Preuves de la PR.
 - **Quality Gate appliquée : « TEFO CBS »** (Quality Gate par défaut du serveur, lue par l'API le 25/09) — bloquante pour la fusion :
 
   | Condition sur le nouveau code | Seuil |
