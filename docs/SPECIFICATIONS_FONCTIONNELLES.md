@@ -204,7 +204,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 ### SF-16 — Se déconnecter · EF15 · Must *(v2)*
 
-- `POST /api/auth/logout` → session invalidée côté serveur, cookies effacés → `204`. Toute requête suivante avec l'ancien cookie → `401 NON_AUTHENTIFIE`.
+- `POST /api/auth/logout` (jeton CSRF exigé) → session invalidée côté serveur, cookie effacé → `204`, y compris si aucune session n'existait (idempotent). Toute requête suivante avec l'ancien cookie → `401 NON_AUTHENTIFIE`.
 
 ### SF-17 — Voir son profil · EF16 · Must *(v2)*
 
@@ -645,7 +645,7 @@ Scénario: tiers non autorisé
 | RELECTEUR_NON_ASSIGNE | 403 | Cette relecture ne vous est pas assignée. | relectures |
 | RELECTURE_INTROUVABLE | 404 | Cette relecture n'existe pas. | relectures |
 | RELECTURE_DEJA_RENDUE | 409 | Cette relecture a déjà été rendue. | relectures |
-| RESSOURCE_INTROUVABLE | 404 | Adresse inconnue. | route inexistante |
+| RESSOURCE_INTROUVABLE | 404 | Adresse inconnue. | route inexistante, **utilisateur connecté** *(v2 : sans session, une route non publique renvoie 401 NON_AUTHENTIFIE, sans révéler si elle existe)* |
 | METHODE_NON_AUTORISEE | 405 | Cette opération n'est pas autorisée sur cette adresse. | verbe non prévu sur une route existante |
 | FORMAT_NON_SUPPORTE | 415 | Le corps de la requête doit être au format JSON. | corps non JSON |
 | CONFLIT | 409 | L'opération entre en conflit avec des données existantes. | filet de sécurité des contraintes UNIQUE (double clic, requêtes simultanées) ; les services renvoient d'abord leur code précis |
