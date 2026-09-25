@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * Régression #83 (enveloppe, étape 3) : deux étudiants tapent le code en même temps alors qu'un exercice
  * de la session attend son relecteur (HYP-3). Les deux présences doivent être enregistrées (RG21) et
- * l'exercice ne doit recevoir qu'un seul relecteur (RG6).
+ * l'exercice reçoit exactement deux relecteurs différents, jamais en double (RG6 v3, #85).
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -88,7 +88,7 @@ class PresencesSimulteesIntegrationTest {
             .as("essai %d : Hugo, Paul et Lina présents", essai).isEqualTo(3);
         assertThat(jdbc.queryForObject("""
             SELECT COUNT(*) FROM relecture r JOIN exercice e ON e.id = r.exercice_id WHERE e.session_id = ?""",
-            Integer.class, session[0])).as("essai %d : un seul relecteur (RG6)", essai).isEqualTo(1);
+            Integer.class, session[0])).as("essai %d : deux relecteurs (RG6 v3)", essai).isEqualTo(2);
       }
     }
   }

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * SF-10 : tableau de la promotion, calculé par le serveur uniquement (F3). Une seule requête agrégée,
  * aucune boucle par étudiant (ENF2) ; les étudiants sans activité ont une ligne à zéro.
+ * v3 (#85) : la moyenne porte sur la note retenue de chaque exercice (moyenne de ses deux relectures, RG16).
  */
 @Service
 public class TableauService {
@@ -26,8 +27,9 @@ public class TableauService {
         (SELECT COUNT(*) FROM presence p JOIN session s ON s.id = p.session_id
           WHERE p.etudiant_id = e.id AND s.promotion_id = e.promotion_id) AS presences,
         (SELECT COUNT(*) FROM exercice x WHERE x.auteur_id = e.id) AS exercices,
-        (SELECT AVG(CAST(r.note AS NUMERIC(5, 2))) FROM relecture r JOIN exercice x ON x.id = r.exercice_id
-          WHERE x.auteur_id = e.id AND r.rendue_at IS NOT NULL) AS moyenne,
+        (SELECT AVG((SELECT AVG(CAST(r.note AS NUMERIC(5, 2))) FROM relecture r
+            WHERE r.exercice_id = x.id AND r.rendue_at IS NOT NULL))
+          FROM exercice x WHERE x.auteur_id = e.id) AS moyenne,
         (SELECT COUNT(*) FROM relecture r WHERE r.relecteur_id = e.id AND r.rendue_at IS NULL) AS en_attente
       FROM etudiant e
       WHERE e.promotion_id = ?

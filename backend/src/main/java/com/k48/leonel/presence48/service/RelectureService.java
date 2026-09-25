@@ -1,6 +1,7 @@
 package com.k48.leonel.presence48.service;
 
 import com.k48.leonel.presence48.dto.response.RelectureRelecteurReponse;
+import com.k48.leonel.presence48.entity.Relecture;
 import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.exception.MetierException;
 import com.k48.leonel.presence48.repository.EtudiantRepository;
@@ -86,7 +87,11 @@ public class RelectureService {
       throw new MetierException(HttpStatus.CONFLICT, "RELECTURE_DEJA_RENDUE", "Cette relecture est déjà rendue.");
     }
     relecture.rendre(note.intValueExact(), commentaire.strip(), horloge.instant());
-    exercice.marquerRelu();
+    // RG6 v3, RG31 : RELU seulement quand les deux relecteurs ont rendu ; sinon la note reste provisoire.
+    var toutes = relectures.findByExerciceIdOrderByIdAsc(exercice.getId());
+    if (toutes.size() >= TirageRelecteur.RELECTEURS_PAR_EXERCICE && toutes.stream().allMatch(Relecture::estRendue)) {
+      exercice.marquerRelu();
+    }
   }
 
   /** RG9 : entier de 0 à 20 inclus. */
