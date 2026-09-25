@@ -108,7 +108,11 @@ class AuthIntegrationTest {
         .andExpect(status().isNoContent());
     mvc.perform(get("/api/utilisateurs").session(session))
         .andExpect(status().isNotFound());   // la route n'existe pas encore (#60) : le filtre RG23 ne bloque plus
-    connecter("admin", "Admin-2026!");
+    // Reconnexion depuis un navigateur ayant déjà une session : le jeton CSRF est exigé (et fourni par Angular)
+    mvc.perform(post("/api/auth/login").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+            .content(corps("admin", "Admin-2026!")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.doitChangerMotDePasse").value(false));
   }
 
   @Test
@@ -128,6 +132,15 @@ class AuthIntegrationTest {
   void testEcritureProtegeeSansJetonCsrfRefusee() throws Exception {
     mvc.perform(put("/api/moi/mot-de-passe").session(connecter("awa", "Etudiant48"))
             .contentType(MediaType.APPLICATION_JSON).content("{\"ancien\":\"Etudiant48\",\"nouveau\":\"NouveauMdp48\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("ACCES_REFUSE"));
+  }
+
+  @Test
+  void testOperationImposeeAvecSessionExigeLeJetonCsrf() throws Exception {
+    // Un site tiers ne peut pas utiliser le cookie de session de la victime sur une route publique
+    mvc.perform(post("/api/presences").session(connecter("awa", "Etudiant48"))
+            .contentType(MediaType.APPLICATION_JSON).content("{}"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.code").value("ACCES_REFUSE"));
   }
