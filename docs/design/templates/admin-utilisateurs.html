@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PRESENCE48 — Tableau (template visuel)</title>
+<title>PRESENCE48 — Administration des comptes (template visuel)</title>
 <!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -34,23 +34,35 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
       <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
       <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
       <a href="admin-utilisateurs.html" class="px-3 py-2 rounded-md hover:bg-accent">Admin</a>
-      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Jean Fokam · FORMATEUR</a>
+      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Administrateur · ADMIN</a>
       <a href="login.html" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</a>
       <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
     </nav>
   </div>
 </header>
 <main class="mx-auto max-w-5xl px-4 py-8 space-y-6">
-  <div class="flex flex-wrap items-end justify-between gap-3"><div><h1 class="text-2xl font-semibold">Tableau de la promotion</h1><p class="text-sm text-muted-foreground">P1-2026 · 12 étudiants · valeurs calculées par l'API</p></div>
-    <select class="h-10 rounded-md border border-input bg-background px-3"><option>P1-2026</option></select></div>
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div><h1 class="text-2xl font-semibold">Comptes utilisateurs</h1><p class="text-sm text-muted-foreground">Réservé à l'administrateur</p></div>
+    <button class="h-10 rounded-md bg-primary px-4 text-primary-foreground font-medium">Nouveau compte</button>
+  </div>
   <div class="overflow-x-auto rounded-lg border border-border"><table class="w-full text-sm">
-    <thead class="bg-muted/50 text-left"><tr><th class="p-3">Étudiant</th><th class="p-3 text-right">Présences</th><th class="p-3 text-right">Exercices déposés</th><th class="p-3 text-right">Moyenne reçue</th><th class="p-3 text-right">Relectures en attente</th></tr></thead>
+    <thead class="bg-muted/50 text-left"><tr><th class="p-3">Identifiant</th><th class="p-3">Nom</th><th class="p-3">Rôle</th><th class="p-3">État</th><th class="p-3 text-right">Actions</th></tr></thead>
     <tbody class="divide-y divide-border">
-      <tr><td class="p-3">Awa Ndiaye</td><td class="p-3 text-right">3</td><td class="p-3 text-right">2</td><td class="p-3 text-right">13,5</td><td class="p-3 text-right">0</td></tr>
-      <tr class="bg-attente/5"><td class="p-3">Paul Mbarga</td><td class="p-3 text-right">2</td><td class="p-3 text-right">1</td><td class="p-3 text-right text-muted-foreground" title="Aucune note reçue">—</td><td class="p-3 text-right"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">1 en retard</span></td></tr>
-      <tr><td class="p-3">Marc Tchoua</td><td class="p-3 text-right">1</td><td class="p-3 text-right">0</td><td class="p-3 text-right text-muted-foreground">—</td><td class="p-3 text-right">0</td></tr>
+      <tr><td class="p-3 font-mono">admin</td><td class="p-3">Administrateur</td><td class="p-3"><span class="rounded-md px-2 py-0.5 text-xs bg-primary text-primary-foreground">ADMIN</span></td><td class="p-3">Actif</td><td class="p-3 text-right"><button class="h-9 rounded-md border border-input px-3">Modifier</button></td></tr>
+      <tr><td class="p-3 font-mono">formateur</td><td class="p-3">Jean Fokam</td><td class="p-3"><span class="rounded-md px-2 py-0.5 text-xs border border-border">FORMATEUR</span></td><td class="p-3">Actif · P1-2026</td><td class="p-3 text-right space-x-1"><button class="h-9 rounded-md border border-input px-3">Modifier</button><button class="h-9 rounded-md border border-input px-3">Mot de passe</button></td></tr>
+      <tr class="text-muted-foreground"><td class="p-3 font-mono">paul</td><td class="p-3">Paul Mbarga</td><td class="p-3"><span class="rounded-md px-2 py-0.5 text-xs bg-muted">ETUDIANT</span></td><td class="p-3">Désactivé</td><td class="p-3 text-right"><button class="h-9 rounded-md border border-input px-3">Réactiver</button></td></tr>
     </tbody></table></div>
-  <p class="text-xs text-muted-foreground">« — » : aucune note reçue (moyenne null). La moyenne n'est jamais recalculée par l'interface (F3).</p>
+  <div role="dialog" aria-labelledby="dlg" class="rounded-lg border border-border p-6 shadow-lg space-y-3 max-w-md">
+    <h2 id="dlg" class="font-semibold">Nouveau compte</h2>
+    <label class="text-sm font-medium" for="l">Identifiant</label><input id="l" class="h-10 w-full rounded-md border border-destructive bg-background px-3" value="awa" aria-describedby="l-err">
+    <p id="l-err" role="alert" class="text-sm text-destructive">Cet identifiant est déjà utilisé.</p>
+    <label class="text-sm font-medium" for="r">Rôle</label><select id="r" class="h-10 w-full rounded-md border border-input bg-background px-3"><option>ETUDIANT</option><option>FORMATEUR</option><option>ADMIN</option></select>
+    <label class="text-sm font-medium" for="e">Fiche étudiant (obligatoire pour un étudiant)</label><select id="e" class="h-10 w-full rounded-md border border-input bg-background px-3"><option>Awa Ndiaye — P1-2026</option></select>
+    <label class="text-sm font-medium" for="p">Mot de passe provisoire</label><input id="p" type="password" class="h-10 w-full rounded-md border border-input bg-background px-3">
+    <p class="text-xs text-muted-foreground">L'utilisateur devra le changer à sa première connexion.</p>
+    <div class="flex justify-end gap-2"><button class="h-10 rounded-md border border-input px-4">Annuler</button><button class="h-10 rounded-md bg-primary px-4 text-primary-foreground">Créer</button></div>
+  </div>
+  <p class="text-xs text-muted-foreground">Désactiver plutôt que supprimer : l'historique (présences, notes) est conservé (RG28).</p>
 </main>
 <section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
   <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>

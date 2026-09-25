@@ -71,6 +71,11 @@ Couleurs **métier** (ajout PRESENCE48, pour les badges de statut) : succès `14
 | [etudiant.html](templates/etudiant.html) | Étudiant (mobile 360 px) | Identité, saisie du code, dépôt, note reçue |
 | [relecteur.html](templates/relecteur.html) | Relecteur | Relectures à faire, formulaire de note, confirmation « définitif » |
 | [tableau.html](templates/tableau.html) | Formateur | Tableau de la promotion, moyenne « — », retards signalés |
+| [login.html](templates/login.html) *(v2)* | Connexion | Identifiant, mot de passe, erreur 401, blocage (RG24) |
+| [profil.html](templates/profil.html) *(v2)* | Tous | Qui suis-je (nom, identifiant, rôle, promotion), changement de mot de passe, bandeau « changement obligatoire » (RG23) |
+| [admin-utilisateurs.html](templates/admin-utilisateurs.html) *(v2)* | Administrateur | Liste des comptes, rôles, désactivation, dialogue de création avec erreur 409 |
+
+**En-tête v2 :** nom et rôle de l'utilisateur connecté (lien vers le profil) et bouton « Se déconnecter ». Dans les templates, la barre de navigation liste **tous** les écrans pour faciliter la revue ; l'application réelle n'affiche **que les menus du rôle** (§2 bis du cahier). L'écran Étudiant gagne un champ **pièce jointe** (fichier ou .zip, 10 Mo, RG30).
 
 Chaque template montre ses états chargement / erreur / vide dans une section « États ». Ouvrir le fichier dans un navigateur ; Tailwind est chargé par CDN **pour la maquette uniquement**. Le frontend l'installe par npm.
 

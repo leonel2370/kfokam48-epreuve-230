@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRESENCE48 — Connexion (template visuel)</title>
+<!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: {
+  fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+  borderRadius: { lg: 'var(--radius)', md: 'calc(var(--radius) - 2px)', sm: 'calc(var(--radius) - 4px)' },
+  colors: Object.fromEntries(['background','foreground','card','primary','primary-foreground','secondary','muted','muted-foreground','accent','destructive','destructive-foreground','border','input','ring','succes','attente']
+    .map(k => [k, 'hsl(var(--' + k + '))'])) } } };
+</script>
+<style>
+  :root { --background:0 0% 100%; --foreground:240 10% 3.9%; --card:0 0% 100%; --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+    --secondary:240 4.8% 95.9%; --muted:240 4.8% 95.9%; --muted-foreground:240 3.8% 46.1%; --accent:240 4.8% 95.9%;
+    --destructive:0 84.2% 60.2%; --destructive-foreground:0 0% 98%; --border:240 5.9% 90%; --input:240 5.9% 90%; --ring:240 5.9% 10%;
+    --succes:142 71% 45%; --attente:38 92% 50%; --radius:0.5rem; }
+  .dark { --background:240 10% 3.9%; --foreground:0 0% 98%; --card:240 10% 3.9%; --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --secondary:240 3.7% 15.9%; --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%; --accent:240 3.7% 15.9%;
+    --destructive:0 62.8% 30.6%; --border:240 3.7% 15.9%; --input:240 3.7% 15.9%; --ring:240 4.9% 83.9%; }
+  body { background:hsl(var(--background)); color:hsl(var(--foreground)); }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<main class="min-h-screen flex items-center justify-center px-4">
+  <form class="w-full max-w-sm rounded-lg border border-border p-6 space-y-4 shadow-sm" aria-labelledby="t">
+    <div class="space-y-1 text-center"><h1 id="t" class="text-2xl font-semibold">PRESENCE48</h1>
+      <p class="text-sm text-muted-foreground">Connectez-vous avec votre compte</p></div>
+    <div role="alert" class="rounded-md border border-destructive/50 p-3 text-sm text-destructive">Identifiant ou mot de passe incorrect.</div>
+    <div class="space-y-2"><label for="login" class="text-sm font-medium">Identifiant</label>
+      <input id="login" autocomplete="username" class="h-11 w-full rounded-md border border-input bg-background px-3 text-base" value="awa"></div>
+    <div class="space-y-2"><label for="mdp" class="text-sm font-medium">Mot de passe</label>
+      <input id="mdp" type="password" autocomplete="current-password" class="h-11 w-full rounded-md border border-input bg-background px-3 text-base"></div>
+    <button class="h-11 w-full rounded-md bg-primary text-primary-foreground font-medium">Se connecter</button>
+    <p class="text-xs text-muted-foreground text-center">Après 5 échecs, le compte est bloqué 2 minutes (RG24).</p>
+  </form>
+</main>
+<section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
+  <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-lg border border-border p-4 space-y-2"><p class="text-sm text-muted-foreground">Chargement</p>
+      <div class="h-4 w-3/4 rounded bg-muted animate-pulse"></div><div class="h-4 w-1/2 rounded bg-muted animate-pulse"></div><div class="h-4 w-2/3 rounded bg-muted animate-pulse"></div></div>
+    <div role="alert" class="rounded-lg border border-destructive/50 p-4 text-destructive"><p class="font-medium">Le code de présence a expiré.</p>
+      <p class="text-xs opacity-80 mt-1">CODE_EXPIRE · message affiché tel que renvoyé par l'API</p></div>
+    <div class="rounded-lg border border-dashed border-border p-4 text-center"><p class="font-medium">Rien à afficher</p>
+      <p class="text-sm text-muted-foreground">Texte d'état vide + action suivante.</p></div>
+  </div>
+</section>
+</body>
+</html>
