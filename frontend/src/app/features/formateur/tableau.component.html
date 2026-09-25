@@ -1,0 +1,35 @@
+<main>
+  <section class="carte">
+    <h2>Tableau de la promotion</h2>
+    <app-erreur [erreur]="erreur()" />
+    @if (chargement()) {
+      <p class="discret">Chargement…</p>
+    } @else if (lignes().length === 0 && !erreur()) {
+      <p class="discret">Aucun étudiant dans cette promotion.</p>
+    } @else if (lignes().length > 0) {
+      <table>
+        <thead>
+          <tr>
+            <th>Étudiant</th><th class="nombre">Présences</th><th class="nombre">Exercices</th>
+            <th class="nombre">Moyenne</th><th class="nombre">Relectures en attente</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of lignes(); track l.etudiantId) {
+            <tr>
+              <td>{{ l.nom }}</td>
+              <td class="nombre">{{ l.presences }}</td>
+              <td class="nombre">{{ l.exercicesDeposes }}</td>
+              <td class="nombre">{{ l.moyenne === null ? '—' : (l.moyenne | number: '1.2-2') }}</td>
+              <td class="nombre">
+                @if (l.relecturesEnAttente > 0) { <span class="badge EN_ATTENTE_RELECTURE">{{ l.relecturesEnAttente }}</span> }
+                @else { 0 }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    <p><a routerLink="/formateur">← Retour aux sessions</a></p>
+  </section>
+</main>

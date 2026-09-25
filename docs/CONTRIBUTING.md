@@ -103,6 +103,8 @@ Passer le ticket en `statut :: in progress` au démarrage, puis `statut :: revie
 
 - Tout appel HTTP passe par `core/api`. Aucune règle métier côté client : la moyenne vient de l'API.
 - Chaque écran gère les états chargement / erreur / vide.
+- **Un composant = quatre fichiers** : `x.component.ts` (logique), `x.component.html` (template), `x.component.scss` (styles propres au composant, créé seulement s'il y en a), `x.component.spec.ts`. Jamais de `template:` ni de `styles:` en ligne, jamais d'attribut `style="…"` : une classe dans `styles.scss` si elle sert à plusieurs écrans, sinon dans le `.scss` du composant (#103).
+- **Composants réutilisables d'abord** : ce qui se répète entre écrans (bouton, badge, état vide, erreur…) va dans `shared/` ; les écrans de `features/` assemblent ces composants.
 - `npm run build` vert avant la PR.
 
 ## 8. Qualité SonarQube
