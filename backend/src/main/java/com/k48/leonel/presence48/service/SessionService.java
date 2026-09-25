@@ -69,12 +69,15 @@ public class SessionService {
         acces.verifierGestionPromotion(promotionId);
       }
     });
-    return sessions.findByPromotionIdOrderByOuvertureAtDesc(promotionId).stream().map(SessionService::versReponse)
-        .toList();
+    // #98 : le code ne sort que vers le formateur et l'admin ; un étudiant le reçoit en salle (RG2).
+    var codeVisible = acces.connecte().map(u -> u.role() != Role.ETUDIANT).orElse(true);
+    return sessions.findByPromotionIdOrderByOuvertureAtDesc(promotionId).stream()
+        .map(s -> versReponse(s, codeVisible)).toList();
   }
 
-  static SessionReponse versReponse(SessionCours s) {
-    return new SessionReponse(s.getId(), s.getTitre(), s.getPromotionId(), s.getCode(), s.getOuvertureAt(),
+  static SessionReponse versReponse(SessionCours s, boolean codeVisible) {
+    return new SessionReponse(s.getId(), s.getTitre(), s.getPromotionId(), codeVisible ? s.getCode() : null,
+        s.getOuvertureAt(),
         s.getExpirationAt(), s.getStatut(), s.getClotureAt());
   }
 
