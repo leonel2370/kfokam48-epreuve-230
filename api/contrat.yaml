@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.0"
+  version: "2.1"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,10 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.1 (enveloppe, étape 3, #85) — DOUBLE RELECTURE
+      - Deux relecteurs par exercice ; la note retenue est la moyenne des notes rendues, provisoire
+        tant qu'un seul a rendu. Vue auteur (ExerciceAuteur) : noteRetenue, provisoire, commentaires.
+      - Les cinq opérations imposées sont inchangées (même chemin, mêmes corps, mêmes codes).
     v2.0 (changement de besoin #54) — SÉCURITÉ
       - Session serveur : cookie JSESSIONID (HttpOnly, SameSite=Strict) obtenu par POST /api/auth/login.
       - Routes PUBLIQUES (security: []) : les 5 opérations imposées, /api/auth/login et les deux listes
@@ -922,8 +926,19 @@ components:
         sessionTitre: { type: string }
         lien: { type: string }
         statut: { $ref: "#/components/schemas/StatutExercice" }
-        note: { type: integer, nullable: true }
-        commentaire: { type: string, nullable: true }
+        note: { type: integer, nullable: true, deprecated: true, description: "v2.1 — remplacé par noteRetenue (double relecture)" }
+        commentaire: { type: string, nullable: true, deprecated: true, description: "v2.1 — remplacé par commentaires" }
+        noteRetenue:
+          type: number
+          nullable: true
+          description: v2.1 (enveloppe, #85) — moyenne des notes rendues par les deux relecteurs (RG16) ; null si aucune
+        provisoire:
+          type: boolean
+          description: v2.1 — true si un seul des deux relecteurs a rendu (RG31)
+        commentaires:
+          type: array
+          description: v2.1 — commentaires rendus, sans l'identité des relecteurs (RG8)
+          items: { type: string }
         fichier: { $ref: "#/components/schemas/PieceJointe" }
     PieceJointe:
       description: v2 — pièce jointe optionnelle (RG30) ; absente si aucun fichier

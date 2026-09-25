@@ -11,7 +11,7 @@ erDiagram
     ETUDIANT ||--o| TENTATIVE_CODE : "compteur RG4"
     SESSION ||--o{ EXERCICE : "reçoit"
     ETUDIANT ||--o{ EXERCICE : "est auteur de"
-    EXERCICE ||--o| RELECTURE : "a au plus une (RG6)"
+    EXERCICE ||--o{ RELECTURE : "a deux au plus, pairs différents (RG6 v3)"
     ETUDIANT ||--o{ RELECTURE : "est relecteur de"
     ETUDIANT |o--o| UTILISATEUR : "a un compte (v2)"
     UTILISATEUR ||--o{ FORMATEUR_PROMOTION : "est rattaché (v2)"
@@ -82,7 +82,7 @@ erDiagram
     }
     RELECTURE {
         bigint id PK
-        bigint exercice_id FK, UK "RG6"
+        bigint exercice_id FK "UK (exercice_id, relecteur_id) — V4, RG6 v3"
         bigint relecteur_id FK "différent de l'auteur (RG5, service)"
         int note "NULL, CHECK 0..20 (RG9)"
         text commentaire "NULL"
@@ -90,5 +90,7 @@ erDiagram
         timestamptz rendue_at "NULL = à faire ; non NULL = définitive (RG10)"
     }
 ```
+
+**v3 (enveloppe, #85)** : migration `V4__double_relecture.sql` remplace `UNIQUE(exercice_id)` par `UNIQUE(exercice_id, relecteur_id)` ; le plafond de deux relectures par exercice est garanti par `TirageRelecteur` (ligne de l'exercice verrouillée, #83).
 
 Contrainte non exprimable en SQL simple : `relecture.relecteur_id ≠ exercice.auteur_id` et relecteur présent à la session (RG5, RG7). Elle est garantie par `RelectureService` et couverte par un test unitaire.
