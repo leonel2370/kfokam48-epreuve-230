@@ -20,7 +20,7 @@ describe('TableauComponent (SF-10)', () => {
     ]);
     fixture.detectChanges();
     const lignes = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
-    expect(lignes.length).toBe(2);
+    expect(lignes).toHaveSize(2);
     expect(lignes[0].querySelectorAll('td')[3].textContent?.trim()).toBe('14.00');
     expect(lignes[1].querySelectorAll('td')[3].textContent?.trim()).toBe('—');
     expect(lignes[1].querySelectorAll('td')[4].textContent?.trim()).toBe('2');

@@ -9,6 +9,11 @@ export const RAFRAICHISSEMENT_MS = 15_000;
 const NOTE_MIN = 0;
 const NOTE_MAX = 20;
 
+/** Note entière de 0 à 20 ; un champ number vidé vaut null (Angular). */
+function noteSaisieValide(note: number | null | undefined): note is number {
+  return typeof note === 'number' && Number.isInteger(note) && note >= NOTE_MIN && note <= NOTE_MAX;
+}
+
 /**
  * SF-8 / SF-9 : le relecteur est un étudiant (cahier §2) ; ses relectures à faire et rendues sont dans son espace.
  * Envoi définitif après confirmation (RG10) ; l'auteur n'est jamais affiché (HYP-10).
@@ -44,9 +49,7 @@ export class RelecturesComponent implements OnInit, OnDestroy {
 
   /** Aide à la saisie seulement : la règle RG9 est vérifiée par le serveur (NOTE_INVALIDE). */
   peutEnvoyer(id: number): boolean {
-    const note = this.notes[id];
-    return typeof note === 'number' && Number.isInteger(note) && note >= NOTE_MIN && note <= NOTE_MAX
-      && (this.commentaires[id] ?? '').trim().length > 0;
+    return noteSaisieValide(this.notes[id]) && (this.commentaires[id] ?? '').trim().length > 0;
   }
 
   rendre(r: RelectureRelecteur): void {

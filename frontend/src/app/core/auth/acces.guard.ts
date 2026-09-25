@@ -4,6 +4,8 @@ import { map } from 'rxjs';
 import { Role } from '../api/api.models';
 import { AuthService } from './auth.service';
 
+const CONNEXION = '/connexion';
+
 /**
  * SF-19 côté écran : non connecté → /connexion ; mot de passe à changer → /profil (RG23) ;
  * rôle non autorisé → l'espace de son propre rôle. Le serveur reste seul juge (401/403).
@@ -14,7 +16,7 @@ export function accesGuard(...roles: Role[]): CanActivateFn {
     const router = inject(Router);
     return auth.charger().pipe(map(p => {
       if (!p) {
-        return router.createUrlTree(['/connexion']);
+        return router.createUrlTree([CONNEXION]);
       }
       if (p.doitChangerMotDePasse && state.url !== '/profil') {
         return router.createUrlTree(['/profil']);
@@ -35,6 +37,6 @@ export const redirectionGuard: CanActivateFn = (_route, state) => {
     if (p) {
       return router.createUrlTree([AuthService.espace(p)]);
     }
-    return state.url === '/connexion' ? true : router.createUrlTree(['/connexion']);
+    return state.url === CONNEXION ? true : router.createUrlTree([CONNEXION]);
   }));
 };
