@@ -4,6 +4,23 @@ Chaque ligne est une issue GitHub : `Bxx · #n` donne l'identifiant de backlog e
 
 Priorités : **Must** = `priority :: high` (milestone `v0.1`) · **Should** = `priority :: medium` (`v1.0`) · **Could** = `priority :: low`.
 
+## Backlog restant après v1.0 — trié (25/09, 19h30)
+
+Ordre de reprise, du plus utile au correcteur et au client au moins utile. Les tickets livrés sont fermés sur GitHub.
+
+| Rang | Issue | Pourquoi à ce rang |
+|---|---|---|
+| 1 | #30 Présence ajoutée par le formateur | Demandée explicitement (Q14) ; seul scénario de recette non couvert (R3) |
+| 2 | #32 Clôture de session | Fige la session (RG18) ; aujourd'hui seule la session de démonstration est clôturée |
+| 3 | #59 Connexion et menus par rôle (frontend) | L'API v2 est prête et testée ; seuls les écrans manquent |
+| 4 | #31 Exercices en attente d'une session | Visibilité du formateur sur RG11 (Q11) |
+| 5 | #33 Remplacement du lien avant relecture | Confort (Q13, RG14) |
+| 6 | #35 CI : lint du contrat | Backend et frontend déjà vérifiés en CI ; reste `redocly lint` |
+| 7 | #36 Collection Bruno | Les codes d'erreur sont déjà couverts par les tests d'intégration |
+| 8 | #62, #61, #60 CRUD sessions, promotions/étudiants, comptes | Sacrifiés pour la double relecture (cahier §7.2 ter) ; les données de démonstration suffisent |
+| 9 | #63 Pièce jointe | Sacrifiée (§7.2 ter) ; demandera une migration **V5** |
+| 10 | #37, #38 | Could, hors engagement |
+
 ## Cadre et analyse (étape 1)
 
 | Id | Titre | Équipe | Type | Prio | Réf. | Critères d'acceptation |
