@@ -1,6 +1,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../core/auth/auth.service';
+import { PARAM_PROMOTION } from '../../core/navigation/chemins';
 import { FOURNISSEURS_TEST, PROFILS } from '../../testing';
 import { FormateurComponent } from './formateur.component';
 
@@ -48,6 +49,17 @@ describe('FormateurComponent (SF-2, RG26)', () => {
       { status: 403, statusText: 'Forbidden' });
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('.alerte')?.textContent).toContain('ACCES_REFUSE');
+    fixture.destroy();
+  });
+
+  it('présélectionne la promotion demandée par l’adresse (bouton « Sessions » de l’admin, #104)', () => {
+    TestBed.inject(AuthService).profil.set({ ...PROFILS.admin, doitChangerMotDePasse: false });
+    const fixture = TestBed.createComponent(FormateurComponent);
+    fixture.componentRef.setInput(PARAM_PROMOTION, '2');
+    fixture.detectChanges();
+    http.expectOne('/api/promotions').flush([P1, P2]);
+    http.expectOne('/api/sessions?promotionId=2').flush([]);
+    expect(fixture.componentInstance.promotionId).toBe(2);
     fixture.destroy();
   });
 });

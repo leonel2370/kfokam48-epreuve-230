@@ -1,7 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
+import { PROFILS } from '../../testing';
 import { TableauComponent } from './tableau.component';
 
 describe('TableauComponent (SF-10)', () => {
@@ -24,5 +26,34 @@ describe('TableauComponent (SF-10)', () => {
     expect(lignes[0].querySelectorAll('td')[3].textContent?.trim()).toBe('14.00');
     expect(lignes[1].querySelectorAll('td')[3].textContent?.trim()).toBe('—');
     expect(lignes[1].querySelectorAll('td')[4].textContent?.trim()).toBe('2');
+  });
+
+  function retour(profil: typeof PROFILS.admin): { texte: string; navigate: jasmine.Spy } {
+    TestBed.configureTestingModule({
+      imports: [TableauComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    TestBed.inject(AuthService).profil.set(profil);
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const fixture = TestBed.createComponent(TableauComponent);
+    fixture.componentRef.setInput('promotionId', '2');
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/tableau?promotionId=2').flush([]);
+    fixture.detectChanges();
+    const bouton = (fixture.nativeElement as HTMLElement).querySelector('button') as HTMLButtonElement;
+    bouton.click();
+    return { texte: bouton.textContent?.trim() ?? '', navigate };
+  }
+
+  it('ramène le formateur aux sessions de cette promotion (#104)', () => {
+    const { texte, navigate } = retour(PROFILS.formateur);
+    expect(texte).toBe('← Retour aux sessions');
+    expect(navigate).toHaveBeenCalledWith(['/formateur'], { queryParams: { promotionId: '2' } });
+  });
+
+  it("ramène l'admin à l'administration (#104)", () => {
+    const { texte, navigate } = retour({ ...PROFILS.admin, doitChangerMotDePasse: false });
+    expect(texte).toBe("← Retour à l'administration");
+    expect(navigate).toHaveBeenCalledWith(['/admin'], { queryParams: undefined });
   });
 });

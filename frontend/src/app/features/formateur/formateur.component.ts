@@ -1,10 +1,11 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { ErreurApi, Promotion, Session, SessionOuverte } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { cheminTableau } from '../../core/navigation/chemins';
+import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 const SECONDE = 1000;
@@ -17,13 +18,20 @@ const MINUTE = 60;
 @Component({
   selector: 'app-formateur',
   standalone: true,
-  imports: [FormsModule, DatePipe, RouterLink, ErreurComponent],
+  imports: [FormsModule, DatePipe, ErreurComponent, BoutonNavigationComponent],
   templateUrl: './formateur.component.html',
 })
 export class FormateurComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private minuterie?: ReturnType<typeof setInterval>;
+
+  /**
+   * ?promotionId=… (bouton « Sessions » de l'admin, « Retour » du tableau) : promotion à présélectionner.
+   * Angular exige un alias littéral : il doit rester égal à PARAM_PROMOTION (vérifié par le test).
+   */
+  readonly promotionDemandee = input<string | undefined>(undefined, { alias: 'promotionId' });
+  readonly cheminTableau = cheminTableau;
 
   readonly promotions = signal<Promotion[]>([]);
   readonly sessions = signal<Session[]>([]);
@@ -50,8 +58,10 @@ export class FormateurComponent implements OnInit, OnDestroy {
         // Le formateur ne voit que ses promotions (RG26) ; l'admin les voit toutes.
         const visibles = moi?.role === 'FORMATEUR' ? toutes.filter(p => moi.promotionIds.includes(p.id)) : toutes;
         this.promotions.set(visibles);
-        if (visibles.length > 0) {
-          this.choisir(visibles[0].id);
+        const demandee = visibles.find(p => p.id === Number(this.promotionDemandee()));
+        const initiale = demandee ?? visibles[0];
+        if (initiale) {
+          this.choisir(initiale.id);
         }
       },
       error: (e: ErreurApi) => this.erreur.set(e),
