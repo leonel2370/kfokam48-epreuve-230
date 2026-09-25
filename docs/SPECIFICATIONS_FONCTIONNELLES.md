@@ -474,22 +474,22 @@ Scénario: promotion inconnue
 
 | EF | US | RG | Endpoint | Fiche | Test prévu (le nom cite la RG) |
 |---|---|---|---|---|---|
-| EF1 | US-01 | RG19 | GET /promotions, /promotions/{id}/etudiants | SF-1 | IT `listeEtudiants_promotionInconnue_404` |
-| EF2 | US-02 | RG1, RG20 | POST /sessions | SF-2 | UT `RG1_expirationEgaleOuverturePlus15min` · IT `ouvrirSession_titreManquant_400` |
-| EF3 | US-03 | RG1, RG2, RG3, RG19 | POST /presences | SF-3 | IT `RG1_codeExpire_410` · `RG3_dejaPresent_409` · `codeInconnu_400` |
-| EF4 | US-04 | RG4 | POST /presences | SF-4 | UT `RG4_cinqEchecs_bloqueDeuxMinutes` |
-| EF5 | US-05 | RG15 | POST /sessions/{id}/presences | SF-5 | IT `RG15_presenceManuelle_sourceFormateur` |
-| EF6 | US-06 | RG12, RG13, RG17 | POST /exercices | SF-6 | IT `RG13_doubleDepot_409` · `RG17_lienInvalide_400` |
-| EF7 | US-07 | RG5, RG6, RG7 | (interne) | SF-7 | UT `RG7_relecteurParmiPresents_jamaisAuteur` |
-| EF8 | US-08 | — | GET /etudiants/{id}/relectures | SF-8 | IT `relecturesAFaire_sansAuteur` |
-| EF9 | US-09 | RG5, RG9, RG10, RG18 | POST /relectures/{id} | SF-9 | UT `RG5_autoRelecture_refusee` · IT `RG9_note21_400` · `RG10_secondEnvoi_409` |
-| EF10 | US-10 | RG11, RG16 | GET /tableau | SF-10 | IT `RG16_moyenneNullSansNote` |
+| EF1 | US-01 | RG19 | GET /promotions, /promotions/{id}/etudiants | SF-1 | IT `testListeEtudiantsPromotionInconnue404` |
+| EF2 | US-02 | RG1, RG20 | POST /sessions | SF-2 | UT `testRg1ExpirationEgaleOuverturePlus15min` · IT `testOuvrirSessionTitreManquant400` |
+| EF3 | US-03 | RG1, RG2, RG3, RG19 | POST /presences | SF-3 | IT `testRg1CodeExpire410` · `testRg3DejaPresent409` · `testCodeInconnu400` |
+| EF4 | US-04 | RG4 | POST /presences | SF-4 | UT `testRg4CinqEchecsBloqueDeuxMinutes` |
+| EF5 | US-05 | RG15 | POST /sessions/{id}/presences | SF-5 | IT `testRg15PresenceManuelleSourceFormateur` |
+| EF6 | US-06 | RG12, RG13, RG17 | POST /exercices | SF-6 | IT `testRg13DoubleDepot409` · `testRg17LienInvalide400` |
+| EF7 | US-07 | RG5, RG6, RG7 | (interne) | SF-7 | UT `testRg7RelecteurParmiPresentsJamaisAuteur` |
+| EF8 | US-08 | — | GET /etudiants/{id}/relectures | SF-8 | IT `testRelecturesAFaireSansAuteur` |
+| EF9 | US-09 | RG5, RG9, RG10, RG18 | POST /relectures/{id} | SF-9 | UT `testRg5AutoRelectureRefusee` · IT `testRg9Note21Renvoie400` · `testRg10SecondEnvoi409` |
+| EF10 | US-10 | RG11, RG16 | GET /tableau | SF-10 | IT `testRg16MoyenneNullSansNote` |
 | EF11 | US-11 | RG11 | GET /sessions/{id}/exercices | SF-11 | IT |
-| EF12 | US-12 | RG18 | POST /sessions/{id}/cloture | SF-12 | IT `RG18_depotApresCloture_409` |
-| EF13 | US-13 | RG14 | PUT /exercices/{id} | SF-13 | IT `RG14_remplacementApresRelecture_409` |
-| EF14 | US-14 | RG8 | GET /etudiants/{id}/exercices | SF-14 | IT `RG8_reponseSansRelecteur` |
+| EF12 | US-12 | RG18 | POST /sessions/{id}/cloture | SF-12 | IT `testRg18DepotApresCloture409` |
+| EF13 | US-13 | RG14 | PUT /exercices/{id} | SF-13 | IT `testRg14RemplacementApresRelecture409` |
+| EF14 | US-14 | RG8 | GET /etudiants/{id}/exercices | SF-14 | IT `testRg8ReponseSansRelecteur` |
 
-Tests minimaux exigés (B6) : **UT `RG5_autoRelecture_refusee`** (règle métier réelle) et **IT `POST /api/presences` 201/409/410** (endpoint).
+Tests minimaux exigés (B6) : **UT `testRg5AutoRelectureRefusee`** (règle métier réelle) et **IT `POST /api/presences` 201/409/410** (endpoint).
 
 ## 7. Scénarios de recette
 

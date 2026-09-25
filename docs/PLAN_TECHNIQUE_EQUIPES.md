@@ -32,9 +32,9 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 | Couche | Choix | Version | Pourquoi | Alternative écartée |
 |---|---|---|---|---|
 | Langage backend | **Java** | 21 LTS | Imposé ≥ 17 (B1) ; 21 est la LTS disponible sur les postes (`java -version` = 21.0.11) ; records et pattern matching allègent les DTO | Java 17 : possible mais moins expressif |
-| Framework backend | **Spring Boot** | 3.3.x | Imposé ; auto-configuration, écosystème de test (MockMvc) | — |
+| Framework backend | **Spring Boot** | 4.1.1 | Imposé ; dernière version stable proposée par Spring Initializr le 25/09 (la 3.3 prévue n'y figure plus) ; starters modulaires (`webmvc`, `flyway`), Hibernate 7 | Spring Boot 3.x : fin de support en cours |
 | Build | **Maven + wrapper `mvnw`** | 3.9 | Imposé (B1) ; build identique partout | Gradle : hors contrainte |
-| Persistance | **Spring Data JPA / Hibernate** | 6.x | Repositories déclaratifs, requêtes agrégées JPQL pour le tableau | JDBC Template : plus verbeux |
+| Persistance | **Spring Data JPA / Hibernate** | 7.x | Repositories déclaratifs, requêtes agrégées JPQL pour le tableau | JDBC Template : plus verbeux |
 | Validation | **Jakarta Bean Validation** | 3 | `@Valid` sur les DTO, erreurs 400 homogènes (B4) | Validation manuelle : dupliquée |
 | Migrations | **Flyway** | 10 | SQL lisible et diffable, versions ordonnées (B5), relu en revue | Liquibase : XML/YAML plus lourd à relire |
 | Base de données | **PostgreSQL** | 16 | Contraintes UNIQUE et CHECK fiables, `timestamptz` pour les expirations (RG1) | MySQL : fuseaux horaires moins stricts |
@@ -81,7 +81,7 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 
 | Équipe | Cible | Règle |
 |---|---|---|
-| Backend | Services métier (Mockito, horloge `Clock` fixe) | un test par RG, nommé `RGx_…` ; cas nominal + chaque erreur |
+| Backend | Services métier (Mockito, horloge `Clock` fixe) | un test par RG, nommé `testRgX…` (profil qualité : `^test[A-Z][a-zA-Z0-9]*$`) ; cas nominal + chaque erreur |
 | Frontend | Services `core/api` (`HttpTestingController`) et composants de page | vérifier URL, verbe, corps, et l'affichage des états chargement / erreur / vide |
 
 **Tests d'intégration** : backend `@SpringBootTest` + MockMvc, un test par endpoint et par code HTTP du contrat.
@@ -89,7 +89,7 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 **Tests de régression**
 
 - La suite complète (unitaires + intégration, backend et frontend) tourne en CI sur **chaque PR** et bloque la fusion si elle échoue.
-- Chaque bug corrigé laisse un test de régression nommé `REG_<n°issue>_<comportement>` (ex. `REG_45_noteNullNeCassePasLaMoyenne`), commité **rouge** avant le correctif.
+- Chaque bug corrigé laisse un test de régression nommé `testReg<n°issue><Comportement>` (ex. `testReg45NoteNullNeCassePasLaMoyenne`), commité **rouge** avant le correctif.
 - Collection Bruno `api/bruno/` rejouée en CI (`bru run --env local`) : un appel par code d'erreur du catalogue, qui vérifie le format `{code, message}`.
 - Recette R1–R9 ([spécifications §7](SPECIFICATIONS_FONCTIONNELLES.md#7-scénarios-de-recette)) rejouée à la main avant chaque jalon, avec les preuves jointes à la PR du jalon.
 
@@ -199,7 +199,7 @@ flowchart LR
 | Concurrence | contraintes UNIQUE en base comme dernier rempart (double clic, courses) ; `DataIntegrityViolationException` traduite en 409 | PostgreSQL |
 | Contrat | chaque PR qui touche une route vérifie le contrat ; Swagger UI pour comparer visuellement | springdoc-openapi |
 | **Migrations** | `V{n}__{verbe}_{objet}.sql` ; **jamais** modifier une migration poussée ; une migration par changement de schéma, dans la PR de la fonctionnalité ; D2 mis à jour dans la même PR ; données de démonstration dans une migration séparée (`V2__donnees_demo.sql`) ; `ddl-auto=validate` | **Flyway** : schéma reproductible (B5) |
-| Tests | unitaires : services avec Mockito, un test par RG nommé `RGx_…` ; intégration : `@SpringBootTest` + MockMvc sur H2 en mode PostgreSQL (tourne sur un poste vierge, B6) ; option Testcontainers | JUnit 5, Mockito, AssertJ, JaCoCo |
+| Tests | unitaires : services avec Mockito, un test par RG nommé `testRgX…` (profil qualité : `^test[A-Z][a-zA-Z0-9]*$`) ; intégration : `@SpringBootTest` + MockMvc sur H2 en mode PostgreSQL (tourne sur un poste vierge, B6) ; option Testcontainers | JUnit 5, Mockito, AssertJ, JaCoCo |
 
 ### 6.2 Frontend
 

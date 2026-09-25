@@ -1,0 +1,9 @@
+# Tests : base H2 en mémoire en mode PostgreSQL, créée par les mêmes migrations Flyway (B6 : aucun besoin de base locale).
+spring:
+  datasource:
+    url: jdbc:h2:mem:presence48;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: validate
