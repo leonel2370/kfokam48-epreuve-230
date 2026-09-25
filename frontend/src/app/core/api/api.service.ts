@@ -77,4 +77,14 @@ export class ApiService {
   mesExercices(etudiantId: number): Observable<ExerciceAuteur[]> {
     return this.http.get<ExerciceAuteur[]>(`${this.url}/etudiants/${etudiantId}/exercices`);
   }
+
+  /** v2 (SF-17) : utilisateur connecté ; 401 sans session. */
+  moi(): Observable<Profil> {
+    return this.http.get<Profil>(`${this.url}/moi`);
+  }
+
+  /** v2 (SF-18) : obligatoire au premier login de l'admin par défaut (RG23). */
+  changerMotDePasse(ancien: string, nouveau: string): Observable<void> {
+    return this.http.put<void>(`${this.url}/moi/mot-de-passe`, { ancien, nouveau });
+  }
 }

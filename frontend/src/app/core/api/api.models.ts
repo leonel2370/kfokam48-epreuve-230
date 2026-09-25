@@ -20,10 +20,13 @@ export type StatutSession = 'OUVERTE' | 'CLOTUREE';
 export interface Session {
   id: number;
   titre: string;
-  code: string;
+  promotionId: number;
+  /** null pour un étudiant (contrat 2.2, #98) : le code se lit en salle. */
+  code: string | null;
   ouvertureAt: string;
   expirationAt: string;
   statut: StatutSession;
+  clotureAt: string | null;
 }
 
 export interface SessionOuverte {
