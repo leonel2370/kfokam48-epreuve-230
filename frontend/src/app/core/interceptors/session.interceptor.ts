@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { CHEMINS } from '../navigation/chemins';
 
 /** Session expirée ou déconnectée ailleurs : tout 401 renvoie à l'écran de connexion (SF-16). */
 export const sessionInterceptor: HttpInterceptorFn = (req, next) => {
@@ -12,7 +13,7 @@ export const sessionInterceptor: HttpInterceptorFn = (req, next) => {
     const verificationSilencieuse = req.url.endsWith('/moi') || req.url.endsWith('/auth/login');
     if (e.status === HttpStatusCode.Unauthorized && !verificationSilencieuse) {
       auth.oublier();
-      void router.navigate(['/connexion']);
+      void router.navigate([CHEMINS.connexion]);
     }
     return throwError(() => e);
   }));

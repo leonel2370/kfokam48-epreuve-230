@@ -1,27 +1,27 @@
-import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ErreurApi, ExerciceDepose, Session } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { ErreurComponent } from '../../shared/erreur.component';
-import { MesNotesComponent } from './mes-notes.component';
-import { RelecturesComponent } from './relectures.component';
+import { CHEMINS } from '../../core/navigation/chemins';
+import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /**
- * Espace étudiant, mobile d'abord (ENF1). Une seule connexion : l'identité vient du compte (HYP-15),
- * plus de choix du nom dans une liste. Présence (SF-3), dépôt (SF-6), notes (SF-14), relectures (SF-8, SF-9).
+ * Écran ÉTUDIANT (F2), mobile d'abord (ENF1) : présence par code (SF-3) et dépôt de l'exercice (SF-6).
+ * L'identité vient du compte (HYP-15), plus de choix du nom dans une liste. Notes et relectures ont leurs
+ * propres écrans (#104).
  */
 @Component({
-  selector: 'app-etudiant',
+  selector: 'app-presence',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, MesNotesComponent, RelecturesComponent],
-  templateUrl: './etudiant.component.html',
-  styleUrl: './etudiant.component.scss',
+  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent],
+  templateUrl: './presence.component.html',
 })
-export class EtudiantComponent implements OnInit {
+export class PresenceComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
-  private readonly notes = viewChild(MesNotesComponent);
+  readonly chemins = CHEMINS;
 
   readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
   private readonly promotionId = computed(() => this.auth.profil()?.promotionIds[0] ?? null);
@@ -64,7 +64,7 @@ export class EtudiantComponent implements OnInit {
     this.depot.set(null);
     this.erreurDepot.set(null);
     this.api.deposerExercice(this.sessionId, etudiantId, this.lien.trim()).subscribe({
-      next: d => { this.depot.set(d); this.lien = ''; this.notes()?.charger(); },
+      next: d => { this.depot.set(d); this.lien = ''; },
       error: (e: ErreurApi) => this.erreurDepot.set(e),
     });
   }

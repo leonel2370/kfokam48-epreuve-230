@@ -3,7 +3,7 @@ import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ErreurApi, LigneTableau } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /** SF-10 / EF10 : affichage brut du tableau calculé par le serveur, aucun recalcul (F3). */
 @Component({

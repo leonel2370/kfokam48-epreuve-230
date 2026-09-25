@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ErreurApi, Promotion } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /**
  * Espace ADMIN (cahier §2 bis) : toutes les promotions, leur tableau et l'ouverture de session.
