@@ -80,3 +80,15 @@ export interface Profil {
   promotionIds: number[];
   doitChangerMotDePasse: boolean;
 }
+
+/** Contrat 2.1 (enveloppe, #85) : vue de l'auteur, sans les relecteurs (RG8). */
+export interface ExerciceAuteur {
+  id: number;
+  sessionId: number;
+  sessionTitre: string;
+  lien: string;
+  statut: StatutExercice;
+  noteRetenue: number | null;
+  provisoire: boolean;
+  commentaires: string[];
+}
