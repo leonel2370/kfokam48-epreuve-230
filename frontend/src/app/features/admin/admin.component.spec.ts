@@ -21,7 +21,7 @@ describe('AdminComponent — promotions et boutons de navigation (#104)', () => 
 
   it('présente chaque promotion avec des boutons, sans aucun lien', () => {
     const { page } = ouvrir();
-    expect(page.querySelectorAll('button').length).toBe(4);
+    expect(page.querySelectorAll('button')).toHaveSize(4);
     expect(page.querySelector('a')).toBeNull();
   });
 

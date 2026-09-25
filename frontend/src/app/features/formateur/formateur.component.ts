@@ -28,9 +28,9 @@ export class FormateurComponent implements OnInit, OnDestroy {
 
   /**
    * ?promotionId=… (bouton « Sessions » de l'admin, « Retour » du tableau) : promotion à présélectionner.
-   * Angular exige un alias littéral : il doit rester égal à PARAM_PROMOTION (vérifié par le test).
+   * Même nom que PARAM_PROMOTION, lié par withComponentInputBinding (vérifié par le test).
    */
-  readonly promotionDemandee = input<string | undefined>(undefined, { alias: 'promotionId' });
+  readonly promotionId = input<string | undefined>(undefined);
   readonly cheminTableau = cheminTableau;
 
   readonly promotions = signal<Promotion[]>([]);
@@ -48,7 +48,7 @@ export class FormateurComponent implements OnInit, OnDestroy {
   readonly minutes = computed(() => Math.floor(this.restant() / MINUTE));
   readonly secondes = computed(() => this.restant() % MINUTE);
 
-  promotionId: number | null = null;
+  promotionChoisie: number | null = null;
   titre = '';
 
   ngOnInit(): void {
@@ -58,7 +58,7 @@ export class FormateurComponent implements OnInit, OnDestroy {
         // Le formateur ne voit que ses promotions (RG26) ; l'admin les voit toutes.
         const visibles = moi?.role === 'FORMATEUR' ? toutes.filter(p => moi.promotionIds.includes(p.id)) : toutes;
         this.promotions.set(visibles);
-        const demandee = visibles.find(p => p.id === Number(this.promotionDemandee()));
+        const demandee = visibles.find(p => p.id === Number(this.promotionId()));
         const initiale = demandee ?? visibles[0];
         if (initiale) {
           this.choisir(initiale.id);
@@ -74,27 +74,27 @@ export class FormateurComponent implements OnInit, OnDestroy {
   }
 
   choisir(promotionId: number): void {
-    this.promotionId = promotionId;
+    this.promotionChoisie = promotionId;
     this.chargerSessions();
   }
 
   ouvrir(): void {
-    if (!this.promotionId) {
+    if (!this.promotionChoisie) {
       return;
     }
     this.enCours.set(true);
     this.erreur.set(null);
-    this.api.ouvrirSession(this.titre.trim(), this.promotionId).subscribe({
+    this.api.ouvrirSession(this.titre.trim(), this.promotionChoisie).subscribe({
       next: s => { this.session.set(s); this.titre = ''; this.enCours.set(false); this.chargerSessions(); },
       error: (e: ErreurApi) => { this.erreur.set(e); this.enCours.set(false); },
     });
   }
 
   private chargerSessions(): void {
-    if (!this.promotionId) {
+    if (!this.promotionChoisie) {
       return;
     }
-    this.api.sessions(this.promotionId).subscribe({
+    this.api.sessions(this.promotionChoisie).subscribe({
       next: s => this.sessions.set(s),
       error: (e: ErreurApi) => this.erreur.set(e),
     });
