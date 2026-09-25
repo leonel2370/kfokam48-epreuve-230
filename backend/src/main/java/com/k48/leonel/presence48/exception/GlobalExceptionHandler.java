@@ -6,6 +6,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,6 +46,17 @@ public class GlobalExceptionHandler {
   ResponseEntity<ErreurReponse> entreeInvalide(Exception e) {
     LOG.debug("Entrée invalide : {}", e.getMessage());
     return reponse(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT", CHAMP_MANQUANT);
+  }
+
+  /** @PreAuthorize refusé dans un contrôleur (RG25) : ne doit pas tomber dans le filet 500. */
+  @ExceptionHandler(AccessDeniedException.class)
+  ResponseEntity<ErreurReponse> accesRefuse(AccessDeniedException e) {
+    return reponse(HttpStatus.FORBIDDEN, "ACCES_REFUSE", "Vous n'avez pas les droits pour cette action.");
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  ResponseEntity<ErreurReponse> nonAuthentifie(AuthenticationException e) {
+    return reponse(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", "Vous devez être connecté.");
   }
 
   @ExceptionHandler(NoResourceFoundException.class)
