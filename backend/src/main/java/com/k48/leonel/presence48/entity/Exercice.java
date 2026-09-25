@@ -55,6 +55,11 @@ public class Exercice {
     statut = StatutExercice.EN_ATTENTE_RELECTURE;
   }
 
+  /** SF-9 : la relecture est rendue, le statut est définitif (RG10). */
+  public void marquerRelu() {
+    statut = StatutExercice.RELU;
+  }
+
   public Long getId() {
     return id;
   }
