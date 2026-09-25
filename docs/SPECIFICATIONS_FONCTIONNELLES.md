@@ -34,21 +34,28 @@
 
 > **v2 :** toutes les routes exigent une session **sauf les 5 opérations imposées** (RG22). Matrice des droits : [cahier §2 bis](CAHIER_DES_CHARGES.md#2-bis-matrice-des-droits-par-rôle-v2). Arborescence v2 : `/connexion` (public) → redirection selon le rôle vers `/admin`, `/formateur` ou `/etudiant` ; `/profil` pour tous ; en-tête avec le nom connecté et « Se déconnecter ».
 
-### 1.2 Arborescence
+### 1.2 Arborescence *(v2, livrée par #59)*
+
+Remplace l'arborescence v1 (accueil « Je suis formateur / étudiant » et choix du nom dans une liste, Q1) : depuis la v2, chacun se connecte et ne voit que l'espace de son rôle (SF-15, SF-19, HYP-15).
 
 ```text
-/                           Accueil : « Je suis formateur » | « Je suis étudiant »
-├── /formateur              Choix de la promotion
-│   ├── /formateur/:promotionId/sessions        Liste + « Ouvrir une session » (SF-2)
-│   │   └── /formateur/sessions/:id             Code affiché en grand + compte à rebours,
-│   │                                           exercices et statuts (SF-11), présence manuelle (SF-5),
-│   │                                           bouton « Clôturer » (SF-12)
-│   └── /formateur/:promotionId/tableau         Tableau (SF-10)
-└── /etudiant               Choix promotion puis nom (SF-1) — mémorisé dans le navigateur
-    ├── /etudiant/presence      Saisie du code (SF-3)
-    ├── /etudiant/exercices     Dépôt / remplacement (SF-6, SF-13), notes reçues (SF-14)
-    └── /relecteur              Relectures à faire / rendues (SF-8, SF-9)
+/connexion                  Seule page publique (SF-15) → redirection selon le rôle,
+                            ou vers /profil si le mot de passe doit être changé (RG23)
+/profil                     Tous : profil, changement de mot de passe (SF-17, SF-18)
+/formateur                  FORMATEUR (ses promotions, RG26), ADMIN (toutes) :
+│                           ouvrir une session, code en grand + compte à rebours (SF-2),
+│                           liste des sessions de la promotion
+└── /formateur/tableau/:id  Tableau de la promotion (SF-10)
+/etudiant                   ETUDIANT, une seule page (mobile d'abord) : identité = compte (HYP-15)
+                            · présence par code (SF-3)
+                            · dépôt, session choisie dans la liste des sessions ouvertes (SF-6)
+                            · mes notes : note retenue, provisoire ou définitive (SF-14, RG31)
+                            · mes relectures à faire : le relecteur est un étudiant (SF-8, SF-9)
+/admin                      ADMIN : promotions, accès aux tableaux ; gestion des comptes (SF-20 à SF-22)
+                            reportée (#60–#62, cahier §7.2 ter)
 ```
+
+En-tête : nom et rôle de la personne connectée, **menus de son rôle uniquement**, « Se déconnecter » (SF-16). Une adresse d'un autre rôle renvoie à son propre espace ; une session perdue (401) renvoie à `/connexion`.
 
 ### 1.3 Zoning des trois écrans imposés (F2)
 

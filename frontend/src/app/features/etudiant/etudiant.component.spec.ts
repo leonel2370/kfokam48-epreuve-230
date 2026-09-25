@@ -1,60 +1,57 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { erreurInterceptor } from '../../core/interceptors/erreur.interceptor';
-import { IdentiteService } from '../../core/identite/identite.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { FOURNISSEURS_TEST, PROFILS } from '../../testing';
 import { EtudiantComponent } from './etudiant.component';
 
-describe('EtudiantComponent (SF-1, SF-3, SF-6)', () => {
+const SESSION = { id: 9, titre: 'TP JPA', promotionId: 1, code: null, ouvertureAt: '2026-09-25T15:00:00Z',
+  expirationAt: '2026-09-25T15:15:00Z', statut: 'OUVERTE', clotureAt: null };
+const CLOTUREE = { ...SESSION, id: 4, titre: 'TP Flyway', statut: 'CLOTUREE' };
+
+describe('EtudiantComponent (HYP-15, SF-3, SF-6)', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    localStorage.clear();
-    TestBed.configureTestingModule({
-      imports: [EtudiantComponent],
-      providers: [provideHttpClient(withInterceptors([erreurInterceptor])), provideHttpClientTesting()],
-    });
+    TestBed.configureTestingModule({ imports: [EtudiantComponent], providers: FOURNISSEURS_TEST });
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).profil.set(PROFILS.awa);
   });
 
-  afterEach(() => localStorage.clear());
-
-  it("mémorise l'identité choisie dans la liste (SF-1)", () => {
+  function ouvrir() {
     const fixture = TestBed.createComponent(EtudiantComponent);
     fixture.detectChanges();
-    http.expectOne('/api/promotions').flush([{ id: 1, nom: 'P1-2026' }]);
-    fixture.componentInstance.choisirPromotion(1);
-    http.expectOne('/api/promotions/1/etudiants').flush([{ id: 3, nom: 'Awa Ndiaye' }]);
-    fixture.componentInstance.choisirEtudiant({ id: 3, nom: 'Awa Ndiaye' });
-    expect(TestBed.inject(IdentiteService).identite()).toEqual({ promotionId: 1, etudiantId: 3, nom: 'Awa Ndiaye' });
+    http.expectOne('/api/sessions?promotionId=1').flush([SESSION, CLOTUREE]);
+    http.expectOne('/api/etudiants/1/exercices').flush([]);
+    http.expectOne('/api/etudiants/1/relectures?statut=A_FAIRE').flush([]);
+    return fixture;
+  }
+
+  it("prend l'identité du compte connecté, sans liste de noms, et ne propose que les sessions ouvertes", () => {
+    const fixture = ouvrir();
+    expect(fixture.componentInstance.etudiantId()).toBe(1);
+    expect(fixture.componentInstance.sessionsOuvertes().map(s => s.id)).toEqual([9]);
+    expect((fixture.nativeElement as HTMLElement).querySelector('select[name="etudiant"]')).toBeNull();
   });
 
-  it('marque la présence puis dépose pour la session du code (SF-3, SF-6)', () => {
-    TestBed.inject(IdentiteService).choisir({ promotionId: 1, etudiantId: 3, nom: 'Awa Ndiaye' });
-    const fixture = TestBed.createComponent(EtudiantComponent);
-    fixture.detectChanges();
-    http.expectOne('/api/promotions').flush([]);
-    const c = fixture.componentInstance;
+  it('marque la présence puis dépose pour la session du code', () => {
+    const c = ouvrir().componentInstance;
     c.code = ' k7mx4q ';
-    c.marquer(3);
+    c.marquer(1);
     const presence = http.expectOne('/api/presences');
-    expect(presence.request.body).toEqual({ code: 'k7mx4q', etudiantId: 3 });
-    presence.flush({ id: 1, sessionId: 9, etudiantId: 3, source: 'ETUDIANT' });
-    expect(c.presenceOk()).toBeTrue();
+    expect(presence.request.body).toEqual({ code: 'k7mx4q', etudiantId: 1 });
+    presence.flush({ id: 1, sessionId: 9, etudiantId: 1, source: 'ETUDIANT' });
     expect(c.sessionId).toBe(9);
     c.lien = 'https://github.com/awa/tp';
-    c.deposer(3);
+    c.deposer(1);
     http.expectOne('/api/exercices').flush({ id: 4, statut: 'EN_ATTENTE_RELECTURE' });
+    http.expectOne('/api/etudiants/1/exercices').flush([]);
     expect(c.depot()?.statut).toBe('EN_ATTENTE_RELECTURE');
   });
 
   it('affiche le message du serveur pour un code expiré', () => {
-    TestBed.inject(IdentiteService).choisir({ promotionId: 1, etudiantId: 3, nom: 'Awa Ndiaye' });
-    const fixture = TestBed.createComponent(EtudiantComponent);
-    fixture.detectChanges();
-    http.expectOne('/api/promotions').flush([]);
+    const fixture = ouvrir();
     fixture.componentInstance.code = 'OLD001';
-    fixture.componentInstance.marquer(3);
+    fixture.componentInstance.marquer(1);
     http.expectOne('/api/presences').flush({ code: 'CODE_EXPIRE', message: 'Le code a expiré.' },
       { status: 410, statusText: 'Gone' });
     fixture.detectChanges();
