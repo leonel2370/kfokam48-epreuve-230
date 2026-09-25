@@ -143,7 +143,8 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 - **Acteur :** Système, déclenché par SF-6, SF-3 et SF-5.
 - **Algorithme :** candidats = étudiants **présents** à la session de l'exercice, **auteur exclu** (RG5, RG7). S'il y a au moins un candidat : tirage aléatoire uniforme (`SecureRandom`), création de la `relecture` (note NULL), exercice → `EN_ATTENTE_RELECTURE`. Sinon, l'exercice reste `DEPOSE` (RG11) et le tirage sera retenté à la prochaine présence enregistrée dans la session.
-- **Invariant :** au plus une relecture par exercice (RG6), garanti par la contrainte `UNIQUE(exercice_id)`.
+- **v3 (enveloppe, #85) :** jusqu'à **deux** relecteurs distincts par exercice (RG6 v3), tirés sans remise parmi les candidats ; s'il en manque, tirage retenté à chaque nouvelle présence (HYP-20). La ligne de l'exercice est verrouillée pendant le tirage (#83).
+- **Invariant :** au plus deux relectures par exercice, jamais deux fois le même relecteur : `UNIQUE(exercice_id, relecteur_id)` (V4) et contrôle du service.
 - **Non retenu :** l'équilibrage de charge entre relecteurs ; Q7 dit « au hasard », rien de plus. C'est une évolution possible, à valider avec le client.
 
 ### SF-8 — Consulter ses relectures · EF8 · Must
@@ -191,7 +192,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 ### SF-14 — Consulter sa note · EF14 · Should
 
-- **Acteur :** Étudiant. `GET /api/etudiants/{id}/exercices` → statut, note et commentaire, **sans relecteur** (RG8).
+- **Acteur :** Étudiant. `GET /api/etudiants/{id}/exercices` → statut, **note retenue** (moyenne des notes rendues, RG16 v3), `provisoire` (une seule note rendue, RG31) et commentaires reçus, **sans relecteur** (RG8).
 
 > **v2 — validation automatique de la présence (RG21, EF26) :** SF-3 enregistre la présence **dès** qu'un code valide est soumis. Il n'existe ni état « à valider » ni action du formateur ; la présence apparaît aussitôt dans le tableau.
 

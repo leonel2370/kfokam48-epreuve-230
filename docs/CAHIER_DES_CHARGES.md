@@ -107,9 +107,9 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | EF4 | Les tentatives de code erronées sont limitées | Quand je saisis 5 codes inconnus d'affilée, alors la 6ᵉ tentative dans les 2 minutes est refusée avec `429 TROP_DE_TENTATIVES`, même si le code est bon | Should | RG4 |
 | EF5 | Le formateur ajoute une présence à la main | Quand j'ajoute la présence d'un étudiant, alors elle apparaît avec `source = FORMATEUR`, même après expiration du code | Should | RG3, RG15 |
 | EF6 | L'étudiant dépose le lien de son exercice | Quand je dépose une URL http(s) valide pour une session non clôturée, alors je reçois `201` avec un `statut` | Must | RG12, RG13, RG17 |
-| EF7 | Le système assigne un relecteur au hasard | Quand un exercice est déposé et qu'au moins un autre étudiant est présent à la session, alors une relecture est créée pour un de ces étudiants et l'exercice passe à `EN_ATTENTE_RELECTURE` | Must | RG5, RG6, RG7 |
+| EF7 *(v3)* | Le système assigne **deux** relecteurs au hasard | Quand un exercice est déposé et qu'au moins un autre étudiant est présent, alors une relecture est créée par candidat tiré, **jusqu'à deux pairs différents**, et l'exercice passe à `EN_ATTENTE_RELECTURE` ; s'il manque un relecteur, le tirage est retenté à chaque nouvelle présence | Must | RG5, RG6, RG7 |
 | EF8 | Le relecteur voit les relectures qui lui sont assignées | Quand j'ouvre l'écran Relecteur, alors je vois pour chaque relecture en attente le lien de l'exercice, sans le nom de l'auteur ([HYP-10]) | Must | RG7 |
-| EF9 | Le relecteur rend une note et un commentaire | Quand j'envoie une note entière entre 0 et 20 et un commentaire, alors je reçois `200` et l'exercice passe à `RELU` | Must | RG5, RG9, RG10, RG18 |
+| EF9 *(v3)* | Le relecteur rend une note et un commentaire | Quand j'envoie une note entière entre 0 et 20 et un commentaire, alors je reçois `200` ; l'exercice passe à `RELU` quand **ses deux relecteurs** ont rendu | Must | RG5, RG9, RG10, RG18, RG31 |
 | EF10 | Le formateur consulte le tableau d'une promotion | Quand je demande le tableau de P1, alors je reçois une ligne par étudiant : présences, exercices déposés, moyenne reçue (`null` s'il n'a aucune note), relectures en attente | Must | RG11, RG16 |
 | EF11 | Le formateur voit les exercices d'une session et leur statut | Quand un exercice n'a pas été relu, alors il apparaît avec le statut « en attente » dans la vue de la session | Should | RG11 |
 | EF12 | Le formateur clôture une session | Quand je clôture une session, alors plus aucun dépôt, remplacement, relecture ni présence n'est accepté pour cette session (`409 SESSION_CLOTUREE`) | Should | RG12, RG18 |
@@ -155,7 +155,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG3 | Un étudiant a au plus une présence par session, quelle que soit la source → `409 DEJA_PRESENT` | CONTRAT, Q14 |
 | RG4 | Après 5 codes inconnus consécutifs, l'étudiant est bloqué 2 minutes → `429 TROP_DE_TENTATIVES`. Une tentative réussie remet le compteur à zéro | Q4, [HYP-5] |
 | RG5 | Un étudiant ne relit jamais son propre exercice → `403 AUTO_RELECTURE` | Q5, CONTRAT |
-| RG6 | Un exercice a au plus un relecteur | Q6 |
+| RG6 *(v3)* | ~~Un exercice a au plus un relecteur~~ → Un exercice est relu par **deux pairs différents** (au plus deux relectures, jamais deux fois le même relecteur) | ~~Q6~~ → client, enveloppe étape 3 (#85) |
 | RG7 | Le relecteur est tiré au hasard par le système parmi les étudiants **présents à la session de l'exercice**, auteur exclu | Q7, [HYP-3] |
 | RG8 | L'auteur voit la note et le commentaire, jamais l'identité du relecteur | Q8 |
 | RG9 | Une note est un entier de 0 à 20 inclus → sinon `400 NOTE_INVALIDE` | Q9, CONTRAT |
@@ -165,7 +165,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG13 | Un étudiant dépose au plus un exercice par session → `409 EXERCICE_DEJA_DEPOSE` | CONTRAT |
 | RG14 | Le lien d'un exercice peut être remplacé tant que l'exercice n'est pas `RELU` et que la session n'est pas clôturée | Q13, [HYP-4] |
 | RG15 | Une présence ajoutée par le formateur porte `source = FORMATEUR` ; elle est possible jusqu'à la clôture | Q14, CONTRAT |
-| RG16 | La moyenne d'un étudiant = moyenne arithmétique des notes reçues sur les exercices relus de sa promotion, arrondie à 2 décimales, `null` s'il n'a aucune note. Elle est calculée par l'API uniquement | Q16, F3 |
+| RG16 *(v3)* | La **note retenue** d'un exercice est la moyenne des notes rendues par ses relecteurs ; la moyenne d'un étudiant = moyenne arithmétique des notes retenues de ses exercices (provisoires comprises), arrondie à 2 décimales, `null` s'il n'a aucune note. Elle est calculée par l'API uniquement | Q16, F3, enveloppe (#85) |
 | RG17 | Un lien d'exercice est une URL absolue `http` ou `https` → sinon `400 LIEN_INVALIDE` | CONTRAT |
 | RG18 | Une session clôturée n'accepte plus aucune écriture (présence, dépôt, remplacement, relecture) → `409 SESSION_CLOTUREE` | Q10, Q12, [HYP-1] |
 | RG19 | Un étudiant ne peut agir que sur les sessions de sa promotion → `400 ETUDIANT_HORS_PROMOTION` | [HYP-7] |
@@ -180,6 +180,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG28 *(v2)* | Un compte ou un étudiant ayant un historique n'est jamais supprimé physiquement : il est désactivé ; un compte désactivé ne se connecte plus (403 COMPTE_DESACTIVE) | [HYP-16] |
 | RG29 *(v2)* | Une session ayant des présences ou des exercices ne peut pas être supprimée → 409 SUPPRESSION_IMPOSSIBLE | [HYP-16] |
 | RG30 *(v2)* | Une pièce jointe par exercice, 10 Mo maximum, types pdf, zip, txt, md, java, ts, png, jpg ; remplaçable tant que l'exercice n'est pas RELU ; téléchargeable par l'auteur, le relecteur assigné, le formateur de la promotion et l'administrateur | PO 25/09, [HYP-19] |
+| RG31 *(v3)* | Tant qu'un seul des deux relecteurs a rendu, sa note est affichée comme note retenue **marquée provisoire** ; elle devient définitive quand les deux ont rendu (exercice `RELU`) | client, enveloppe étape 3 (#85) |
 
 ## 7. Zones d'ombre, hypothèses et contradictions
 
@@ -221,6 +222,20 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RISQUE-1 | Les 5 routes imposées restent publiques : sans session, on peut usurper une identité (`etudiantId`, `X-Etudiant-Id`), ouvrir une session de cours ou lire le tableau d'une promotion | **Avec** une session, tous les contrôles s'appliquent (403 IDENTITE_DIFFERENTE, 403 ACCES_REFUSE) ; le frontend appelle toujours connecté ; à supprimer dès que la contrainte B2 disparaît (passer ces routes derrière la session) | Risque résiduel **accepté par le PO** pour garder B2 |
 | — | « Validation automatique des présences » | Déjà le comportement de la v1 (SF-3) ; rendu explicite par RG21 et EF26 | Aucun état « à valider » |
 | — | Journal d'audit | Retiré par le PO | Exclu (§3) |
+
+### 7.2 ter Changement de besoin v3 (enveloppe, 25/09, #85) — ce qui devient faux et ce qui est sacrifié
+
+| Élément | Avant | Après | Conséquence |
+|---|---|---|---|
+| Q6 / RG6 | un relecteur | deux pairs différents | la règle issue de Q6 est **remplacée** par la demande du client |
+| RG16 | moyenne des notes rendues | moyenne des notes retenues par exercice | un exercice noté 12 et 16 compte pour 14, pas pour deux notes |
+| D2 | `UNIQUE(exercice_id)` | `UNIQUE(exercice_id, relecteur_id)` | migration **V4** ajoutée ; V1 n'est pas modifiée |
+| D4 | RELU dès la première note | RELU quand les deux ont rendu | une note seule est **provisoire** (RG31) |
+
+- **Seul présent / un seul candidat (HYP-20)** : un relecteur est assigné tout de suite, le second est tiré à la présence suivante (même mécanisme que HYP-3).
+- **Données existantes (HYP-21)** : les exercices `RELU` avec une seule relecture (données v1) restent `RELU` avec cette note ; la règle s'applique aux dépôts postérieurs à V4. Aucune ligne n'est supprimée par la migration.
+- **Clôture (Q11)** : un exercice clôturé avec une seule note garde une note retenue provisoire, visible comme telle.
+- **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, #59 menus par rôle côté frontend, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs.
 
 ### 7.3 Questions du client peu utiles au développement
 
@@ -351,7 +366,7 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 | | depose_at, modifie_at | TIMESTAMP WITH TIME ZONE | | |
 | | | | UNIQUE (session_id, auteur_id) | RG13 |
 | relecture | id | BIGINT | PK | |
-| | exercice_id | BIGINT | FK → exercice, UNIQUE | RG6 |
+| | exercice_id | BIGINT | FK → exercice ; UNIQUE (exercice_id, relecteur_id) *(v3, V4)* | RG6 |
 | | relecteur_id | BIGINT | FK → etudiant, NOT NULL | RG7 ; ≠ auteur vérifié par le service (RG5) |
 | | note | INT | NULL, CHECK 0–20 | RG9 ; NULL = pas encore rendue |
 | | commentaire | TEXT | NULL | |
@@ -370,7 +385,7 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 | | cree_at | TIMESTAMP WITH TIME ZONE | NOT NULL | |
 | **formateur_promotion** *(v2, V3)* | utilisateur_id, promotion_id | BIGINT, BIGINT | PK composite, FK | RG26 |
 | **etudiant** *(v2, V3)* | actif | BOOLEAN | NOT NULL, défaut TRUE | RG28 |
-| **exercice** *(v2, V4)* | fichier_nom, fichier_type, fichier_taille, fichier_chemin, fichier_depose_at | VARCHAR(255), VARCHAR(100), BIGINT, VARCHAR(500), TIMESTAMP WITH TIME ZONE | NULL | RG30 ; chemin relatif à `UPLOAD_DIR` |
+| **exercice** *(v2, reporté : V5 si réintégré)* | fichier_nom, fichier_type, fichier_taille, fichier_chemin, fichier_depose_at | VARCHAR(255), VARCHAR(100), BIGINT, VARCHAR(500), TIMESTAMP WITH TIME ZONE | NULL | RG30 ; chemin relatif à `UPLOAD_DIR` |
 
 ## Journal des révisions
 
@@ -378,3 +393,4 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 |---|---|---|
 | 1 | 2026-09-25 13h | Version initiale (étape 1) |
 | 2 | 2026-09-25 15h | Changement de besoin du PO (#54) : authentification, rôles ADMIN/FORMATEUR/ETUDIANT, compte admin par défaut, CRUD par profil, pièce jointe, présence validée automatiquement rendue explicite. Ajouts : §2 bis, EF15–EF26, ENF10–ENF13, RG21–RG30, §7.2 bis, annexe B. Audit retiré. Q1 remplacée. |
+| 3 | 2026-09-25 19h | **Enveloppe, étape 3 (#85)** : double relecture. RG6 remplacée (Q6 caduque), RG16 précisée (note retenue), RG31 (note provisoire), EF7/EF9, §7.2 ter (HYP-20, HYP-21, sacrifice de périmètre), dictionnaire (V4). Bug #83 corrigé sans changement d'analyse. |
