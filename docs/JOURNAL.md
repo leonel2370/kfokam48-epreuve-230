@@ -24,11 +24,11 @@ Chaque entrée répond aux trois mêmes questions :
 
 ## Étape 2 — Première version
 
-**Fait :**
+**Fait :** backend complet sur le périmètre Must : les 5 opérations imposées (#16 session, #18 présence, #20 dépôt, #21 tirage du relecteur, #23 relecture, #25 tableau) plus la sécurité v2 (connexion, rôles, 401/403), soit 67 tests, avec le Quality Gate SonarQube vert et la CI verte à chaque PR. Frontend Angular (#13) : les 3 écrans imposés (formateur + tableau, étudiant, relecteur), 14 tests. La CI a maintenant deux jobs (backend, frontend).
 
-**Bloqué :**
+**Bloqué :** environ 25 min sur des tests qui dépendaient de l'ordre d'exécution (CI rouge sur #69). La base H2 était partagée entre contextes Spring, et le post-processeur `csrf()` des tests modifie le filtre partagé : corrigé par une base par contexte (`random.uuid`). Environ 10 min sur `NODE_ENV=production`, qui faisait sauter les dépendances de développement npm. Retard global sur le frontend : re-priorisation écrite à 16h25 (#13). La connexion frontend par rôle (#59), les CRUD, la pièce jointe et le démarrage Docker (#27) passent en v1.0.
 
-**IA :**
+**IA :** Claude a écrit le code et les tests à partir des fiches SF et du contrat. Vérifications : chaque code HTTP et chaque code d'erreur est couvert par un test d'intégration qui compare au contrat ; l'ordre des contrôles de SF-3 a été relu contre D3 ; Sonar a signalé 1 à 3 problèmes à la plupart des PR, tous corrigés avant fusion ; un défaut non vu par l'IA au premier jet a été trouvé et testé (Jackson tronquait la note `12.5` en `12`, contraire à RG9 : note lue en décimal).
 
 ---
 
