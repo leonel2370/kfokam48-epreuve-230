@@ -17,37 +17,7 @@ const NOTE_MAX = 20;
   selector: 'app-relectures',
   standalone: true,
   imports: [FormsModule, ErreurComponent],
-  template: `
-    <section class="carte">
-      <div class="ligne" style="justify-content: space-between">
-        <h2>Mes relectures à faire</h2>
-        <button type="button" class="secondaire" (click)="charger()">Actualiser</button>
-      </div>
-      @for (r of relectures(); track r.id) {
-        <form class="carte" (ngSubmit)="rendre(r)">
-          <p><strong>{{ r.sessionTitre }}</strong> — <a [href]="r.lien" target="_blank" rel="noopener">ouvrir l'exercice</a></p>
-          <div class="ligne">
-            <label>Note /20 <input name="note" type="number" min="0" max="20" step="1" [(ngModel)]="notes[r.id]" required /></label>
-            <label style="flex:1">Commentaire <textarea name="commentaire" [(ngModel)]="commentaires[r.id]" required></textarea></label>
-          </div>
-          <button type="submit" [disabled]="!peutEnvoyer(r.id)">Envoyer (définitif)</button>
-        </form>
-      } @empty { <p class="discret">Aucune relecture en attente.</p> }
-      @if (message()) { <p class="succes" role="status">{{ message() }}</p> }
-      <app-erreur [erreur]="erreur()" />
-    </section>
-
-    <section class="carte">
-      <h2>Relectures rendues</h2>
-      @for (r of rendues(); track r.id) {
-        <p class="ligne">
-          <strong>{{ r.sessionTitre }}</strong>
-          <span>{{ r.note }} / 20</span>
-          <span class="discret">« {{ r.commentaire }} »</span>
-        </p>
-      } @empty { <p class="discret">Aucune relecture rendue.</p> }
-    </section>
-  `,
+  templateUrl: './relectures.component.html',
 })
 export class RelecturesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);

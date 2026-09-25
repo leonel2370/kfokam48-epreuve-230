@@ -12,28 +12,7 @@ import { ErreurComponent } from '../../shared/erreur.component';
   selector: 'app-admin',
   standalone: true,
   imports: [RouterLink, ErreurComponent],
-  template: `
-    <main>
-      <section class="carte">
-        <h2>Promotions</h2>
-        @for (p of promotions(); track p.id) {
-          <p class="ligne">
-            <strong>{{ p.nom }}</strong>
-            <a [routerLink]="['/formateur/tableau', p.id]">Tableau</a>
-            <a routerLink="/formateur">Sessions</a>
-          </p>
-        } @empty { <p class="discret">Aucune promotion.</p> }
-        <app-erreur [erreur]="erreur()" />
-      </section>
-      <section class="carte">
-        <h2>Gestion des comptes, promotions et étudiants</h2>
-        <p class="discret">
-          Non livrée dans cette version : reportée au backlog (#60, #61, #62), voir le cahier des charges §7.2 ter.
-          Les comptes de démonstration sont créés au démarrage (README).
-        </p>
-      </section>
-    </main>
-  `,
+  templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
   private readonly api = inject(ApiService);
