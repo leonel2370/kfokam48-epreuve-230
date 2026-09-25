@@ -1,0 +1,8 @@
+<main>
+  @if (lie()) {
+    <app-barre-navigation libelle="Espace étudiant" [entrees]="onglets" />
+    <router-outlet />
+  } @else {
+    <p class="alerte">Ce compte n'est lié à aucune fiche étudiant.</p>
+  }
+</main>

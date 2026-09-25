@@ -2,12 +2,13 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { Profil, Role } from '../api/api.models';
 import { ApiService } from '../api/api.service';
+import { CHEMINS } from '../navigation/chemins';
 
-/** Espace d'arrivée de chaque rôle après connexion (spécifications §1.1, arborescence v2). */
+/** Espace d'arrivée de chaque rôle après connexion (spécifications §1.2). */
 const ESPACES: Record<Role, string> = {
-  ADMIN: '/admin',
-  FORMATEUR: '/formateur',
-  ETUDIANT: '/etudiant',
+  ADMIN: CHEMINS.admin,
+  FORMATEUR: CHEMINS.formateur,
+  ETUDIANT: CHEMINS.etudiant,
 };
 
 /**
@@ -58,6 +59,6 @@ export class AuthService {
 
   /** Où envoyer l'utilisateur : changement de mot de passe d'abord (RG23), puis l'espace de son rôle. */
   static espace(p: Profil): string {
-    return p.doitChangerMotDePasse ? '/profil' : ESPACES[p.role];
+    return p.doitChangerMotDePasse ? CHEMINS.profil : ESPACES[p.role];
   }
 }

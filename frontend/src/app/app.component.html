@@ -1,13 +1,13 @@
 <header>
-  <nav aria-label="Menus">
-    <a routerLink="/" class="marque">{{ titre }}</a>
+  <div class="entete">
+    <span class="marque">{{ titre }}</span>
     @if (auth.profil(); as moi) {
-      @for (m of menus(); track m.lien) {
-        <a [routerLink]="m.lien" routerLinkActive="actif">{{ m.libelle }}</a>
-      }
-      <a routerLink="/profil" routerLinkActive="actif" title="Mon profil">{{ moi.nomAffiche }} · {{ moi.role }}</a>
-      <button class="secondaire" (click)="deconnecter()">Se déconnecter</button>
+      <app-barre-navigation libelle="Menus" [entrees]="menus()" />
+      <app-bouton-navigation [chemin]="chemins.profil" titre="Mon profil">
+        {{ moi.nomAffiche }} · {{ moi.role }}
+      </app-bouton-navigation>
+      <button type="button" class="secondaire" (click)="deconnecter()">Se déconnecter</button>
     }
-  </nav>
+  </div>
 </header>
 <router-outlet />

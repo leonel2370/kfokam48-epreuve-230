@@ -1,6 +1,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, discardPeriodicTasks, fakeAsync, tick } from '@angular/core/testing';
-import { FOURNISSEURS_TEST } from '../../testing';
+import { AuthService } from '../../core/auth/auth.service';
+import { FOURNISSEURS_TEST, PROFILS } from '../../testing';
 import { RAFRAICHISSEMENT_MS, RelecturesComponent } from './relectures.component';
 
 const A_FAIRE = '/api/etudiants/2/relectures?statut=A_FAIRE';
@@ -16,11 +17,11 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [RelecturesComponent], providers: FOURNISSEURS_TEST });
     http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).profil.set({ ...PROFILS.awa, etudiantId: 2 });
   });
 
   function ouvrir(aFaire = [RELECTURE], rendues = [RENDUE]) {
     const fixture = TestBed.createComponent(RelecturesComponent);
-    fixture.componentRef.setInput('etudiantId', 2);
     fixture.detectChanges();
     http.expectOne(A_FAIRE).flush(aFaire);
     http.expectOne(RENDUES).flush(rendues);

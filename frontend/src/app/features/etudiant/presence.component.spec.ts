@@ -2,27 +2,25 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../core/auth/auth.service';
 import { FOURNISSEURS_TEST, PROFILS } from '../../testing';
-import { EtudiantComponent } from './etudiant.component';
+import { PresenceComponent } from './presence.component';
 
 const SESSION = { id: 9, titre: 'TP JPA', promotionId: 1, code: null, ouvertureAt: '2026-09-25T15:00:00Z',
   expirationAt: '2026-09-25T15:15:00Z', statut: 'OUVERTE', clotureAt: null };
 const CLOTUREE = { ...SESSION, id: 4, titre: 'TP Flyway', statut: 'CLOTUREE' };
 
-describe('EtudiantComponent (HYP-15, SF-3, SF-6)', () => {
+describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [EtudiantComponent], providers: FOURNISSEURS_TEST });
+    TestBed.configureTestingModule({ imports: [PresenceComponent], providers: FOURNISSEURS_TEST });
     http = TestBed.inject(HttpTestingController);
     TestBed.inject(AuthService).profil.set(PROFILS.awa);
   });
 
   function ouvrir() {
-    const fixture = TestBed.createComponent(EtudiantComponent);
+    const fixture = TestBed.createComponent(PresenceComponent);
     fixture.detectChanges();
     http.expectOne('/api/sessions?promotionId=1').flush([SESSION, CLOTUREE]);
-    http.expectOne('/api/etudiants/1/exercices').flush([]);
-    http.expectOne('/api/etudiants/1/relectures?statut=A_FAIRE').flush([]);
     return fixture;
   }
 
@@ -44,7 +42,6 @@ describe('EtudiantComponent (HYP-15, SF-3, SF-6)', () => {
     c.lien = 'https://github.com/awa/tp';
     c.deposer(1);
     http.expectOne('/api/exercices').flush({ id: 4, statut: 'EN_ATTENTE_RELECTURE' });
-    http.expectOne('/api/etudiants/1/exercices').flush([]);
     expect(c.depot()?.statut).toBe('EN_ATTENTE_RELECTURE');
   });
 
