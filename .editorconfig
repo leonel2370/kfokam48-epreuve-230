@@ -1,0 +1,10 @@
+# Aligné sur le profil qualité SonarQube de l'équipe (indentation 2 espaces, lignes <= 120)
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+max_line_length = 120
