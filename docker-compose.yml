@@ -1,0 +1,38 @@
+# Démarrage en une commande (ENF5) : docker compose up --build  →  http://localhost:4200
+# Les valeurs viennent de .env si présent (cp .env.example .env), sinon des défauts de démonstration ci-dessous.
+# .env n'est pas transmis aux conteneurs : seules les variables listées ici le sont.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-presence48}
+      POSTGRES_USER: ${POSTGRES_USER:-presence48}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-presence48}
+    volumes:
+      - donnees:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-presence48}
+      DB_USERNAME: ${POSTGRES_USER:-presence48}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-presence48}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
+    depends_on:
+      - backend
+
+volumes:
+  donnees:
