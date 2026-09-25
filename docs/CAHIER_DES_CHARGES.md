@@ -74,7 +74,7 @@ Les **5 opérations imposées** par le contrat restent **publiques** (décision 
 - relecture : assignation aléatoire, notation, consultation anonymisée par l'auteur ;
 - tableau récapitulatif par promotion ;
 - données de démonstration (1 formateur implicite, 2 promotions, ~12 étudiants) chargées au démarrage ;
-- un frontend avec trois écrans : Formateur, Étudiant, Relecteur (F2) ;
+- un frontend avec trois écrans : Formateur, Étudiant, Relecteur (F2) — v3.1 : Relecteur = `/etudiant/relectures`, écran distinct de l'espace étudiant (#104) ;
 - *(v2)* authentification par identifiant et mot de passe, déconnexion, profil connecté, changement de mot de passe ;
 - *(v2)* rôles ADMIN, FORMATEUR, ETUDIANT et matrice d'accès (§2 bis) ; compte administrateur par défaut ;
 - *(v2)* CRUD : comptes (admin), promotions et étudiants (admin, formateur sur ses promotions pour les étudiants), sessions (formateur), exercice et pièce jointe (étudiant) ;
@@ -394,3 +394,4 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 | 1 | 2026-09-25 13h | Version initiale (étape 1) |
 | 2 | 2026-09-25 15h | Changement de besoin du PO (#54) : authentification, rôles ADMIN/FORMATEUR/ETUDIANT, compte admin par défaut, CRUD par profil, pièce jointe, présence validée automatiquement rendue explicite. Ajouts : §2 bis, EF15–EF26, ENF10–ENF13, RG21–RG30, §7.2 bis, annexe B. Audit retiré. Q1 remplacée. |
 | 3 | 2026-09-25 19h | **Enveloppe, étape 3 (#85)** : double relecture. RG6 remplacée (Q6 caduque), RG16 précisée (note retenue), RG31 (note provisoire), EF7/EF9, §7.2 ter (HYP-20, HYP-21, sacrifice de périmètre), dictionnaire (V4). Bug #83 corrigé sans changement d'analyse. |
+| 3.1 | 2026-09-25 | **Navigation par boutons et écran relecteur distinct (#104, demande du PO)** : l'espace étudiant devient trois écrans (`/etudiant/presence`, `/etudiant/notes`, `/etudiant/relectures`) pour respecter F2 sans ambiguïté ; toute navigation interne se fait par des boutons, le lien d'un exercice par un bouton « Ouvrir l'exercice ». Aucune règle métier ni endpoint modifié. Détail : spécifications §1.2 et §1.2 bis, DESIGN_SYSTEM §3. |
