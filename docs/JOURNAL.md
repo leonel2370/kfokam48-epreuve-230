@@ -35,12 +35,17 @@ Chaque entrée répond aux trois mêmes questions :
 ## Étape 3 — Enveloppe
 
 **Fait :**
+- **Bug** : j'ai traduit « un seul des deux étudiants apparaît » en perte de présence. Deux présences simultanées retentaient toutes deux le tirage du relecteur d'un exercice en attente ; la seconde violait `UNIQUE(exercice_id)` et sa transaction, présence comprise, était annulée.
+  Ordre suivi : issue #83 avec la reproduction, puis test concurrent **rouge commité seul** (`[409, 201]` au lieu de `[201, 201]`), puis correctif (verrouillage de la ligne de l'exercice), test vert. PR #84.
+- **Changement de besoin** (deux relecteurs, moyenne, note provisoire) : issues #85–#88. **Analyse d'abord** (PR #89 : RG6 remplacée, RG16, RG31, §7.2 ter, D2, D4, contrat 2.1). Puis **migration V4 ajoutée**, vérifiée sur une base PostgreSQL déjà remplie (PR #90), puis l'écran « Mes notes » (PR #91). Correctif et évolution sont sur deux branches et deux PR.
 
 **Bloqué :**
+- L'enveloppe n'a été vue qu'à 18h50 : je l'avais cherchée sous le nom `enveloppe` et non `EPREUVE_KFOKAM48/enveloppe.md`. L'étape 3 est donc faite **après l'échéance de 18h00**, ce que j'assume.
+- Deux présences simultanées donnent maintenant deux relecteurs : le test de régression #83 a été adapté à la nouvelle règle (RG6 v3), pas supprimé.
 
-**IA :**
+**IA :** Claude a posé le diagnostic à partir du code (tirage retenté dans la transaction de présence). Je l'ai **prouvé par un test rouge avant toute correction** : le résultat obtenu, `[409, 201]`, correspondait exactement à la prédiction. La migration a été vérifiée sur une vraie base remplie (V3 → V4, lignes conservées, contrainte remplacée), et la requête du tableau sur PostgreSQL, pas seulement sur H2.
 
-**Ce que j'ai sorti du périmètre pour absorber le changement, et pourquoi :**
+**Ce que j'ai sorti du périmètre pour absorber le changement, et pourquoi :** la pièce jointe (#63, qui devait prendre la V4), les écrans CRUD (#60–#62), les menus par rôle côté frontend (#59) et les Should #30–#33, #35, #36. La double relecture est un Must qui touche la base, le contrat et le frontend à la fois ; j'ai garanti d'abord que les parcours imposés restent justes avec deux relecteurs. Écrit aussi dans le cahier, §7.2 ter.
 
 ---
 
