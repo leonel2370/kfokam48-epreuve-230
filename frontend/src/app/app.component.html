@@ -1,9 +1,13 @@
 <header>
-  <nav aria-label="Écrans">
+  <nav aria-label="Menus">
     <a routerLink="/" class="marque">{{ titre }}</a>
-    <a routerLink="/formateur" routerLinkActive="actif">Formateur</a>
-    <a routerLink="/etudiant" routerLinkActive="actif">Étudiant</a>
-    <a routerLink="/relecteur" routerLinkActive="actif">Relecteur</a>
+    @if (auth.profil(); as moi) {
+      @for (m of menus(); track m.lien) {
+        <a [routerLink]="m.lien" routerLinkActive="actif">{{ m.libelle }}</a>
+      }
+      <a routerLink="/profil" routerLinkActive="actif" title="Mon profil">{{ moi.nomAffiche }} · {{ moi.role }}</a>
+      <button class="secondaire" (click)="deconnecter()">Se déconnecter</button>
+    }
   </nav>
 </header>
 <router-outlet />
