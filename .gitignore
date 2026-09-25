@@ -33,3 +33,6 @@ Thumbs.db
 
 # --- Pièces jointes déposées (v2) ---
 uploads/
+
+# Analyse SonarQube locale
+.scannerwork/
