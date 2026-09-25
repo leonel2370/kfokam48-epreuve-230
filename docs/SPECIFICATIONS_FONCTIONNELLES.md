@@ -468,6 +468,9 @@ Scénario: promotion inconnue
 | RELECTURE_INTROUVABLE | 404 | Cette relecture n'existe pas. | relectures |
 | RELECTURE_DEJA_RENDUE | 409 | Cette relecture a déjà été rendue. | relectures |
 | RESSOURCE_INTROUVABLE | 404 | Adresse inconnue. | route inexistante |
+| METHODE_NON_AUTORISEE | 405 | Cette opération n'est pas autorisée sur cette adresse. | verbe non prévu sur une route existante |
+| FORMAT_NON_SUPPORTE | 415 | Le corps de la requête doit être au format JSON. | corps non JSON |
+| CONFLIT | 409 | L'opération entre en conflit avec des données existantes. | filet de sécurité des contraintes UNIQUE (double clic, requêtes simultanées) ; les services renvoient d'abord leur code précis |
 | ERREUR_INTERNE | 500 | Une erreur inattendue est survenue. | filet de sécurité, sans stack trace |
 
 ## 6. Matrice de traçabilité
