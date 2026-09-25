@@ -1,0 +1,31 @@
+# --- Java / Maven ---
+target/
+*.class
+*.log
+hs_err_pid*
+!.mvn/wrapper/maven-wrapper.jar
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.angular/
+coverage/
+npm-debug.log*
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# --- Secrets / environnement ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Outils locaux ---
+.claude/
