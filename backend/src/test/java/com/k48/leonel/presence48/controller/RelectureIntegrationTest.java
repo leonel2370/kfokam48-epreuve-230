@@ -64,12 +64,13 @@ class RelectureIntegrationTest {
   }
 
   @Test
-  void testRg10RelectureRendueUneSeuleFoisEtExerciceRelu() throws Exception {
+  void testRg10Rg31RelectureRendueUneSeuleFoisNoteProvisoireTantQuUnSeulPairARendu() throws Exception {
     var relecture = relectureAssigneeAPaul();
     var paul = etudiant("Paul Mbarga");
     rendre(relecture, paul, "{\"note\":15,\"commentaire\":\"Clair et testé\"}").andExpect(status().isOk());
     assertThat(jdbc.queryForObject("SELECT e.statut FROM exercice e JOIN relecture r ON r.exercice_id = e.id "
-        + "WHERE r.id = ?", String.class, relecture)).as("exercice relu").isEqualTo("RELU");
+        + "WHERE r.id = ?", String.class, relecture)).as("un seul des deux pairs a rendu (RG31)")
+        .isEqualTo("EN_ATTENTE_RELECTURE");
     erreur(rendre(relecture, paul, "{\"note\":10,\"commentaire\":\"Autre avis\"}"), 409, "RELECTURE_DEJA_RENDUE");
   }
 
