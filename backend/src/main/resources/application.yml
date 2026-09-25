@@ -1,0 +1,29 @@
+# Aucun secret ici : les valeurs viennent de l'environnement (.env à la racine, voir .env.example).
+spring:
+  application:
+    name: presence48
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/presence48}
+    username: ${SPRING_DATASOURCE_USERNAME:presence48}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate          # B5 : le schéma appartient à Flyway
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+  jackson:
+    time-zone: UTC
+  mvc:
+    problemdetails:
+      enabled: false              # le format d'erreur est {code, message} (contrat)
+
+server:
+  port: ${BACKEND_PORT:8080}
+  error:
+    whitelabel:
+      enabled: false
+    include-stacktrace: never
+    include-message: never
