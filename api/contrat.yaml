@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.1"
+  version: "2.2"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,7 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.2 (#98) — le schéma Session (GET /api/sessions, complément) renvoie code = null à un ETUDIANT.
     v2.1 (enveloppe, étape 3, #85) — DOUBLE RELECTURE
       - Deux relecteurs par exercice ; la note retenue est la moyenne des notes rendues, provisoire
         tant qu'un seul a rendu. Vue auteur (ExerciceAuteur) : noteRetenue, provisoire, commentaires.
@@ -900,7 +901,10 @@ components:
         id: { type: integer, format: int64 }
         titre: { type: string }
         promotionId: { type: integer, format: int64 }
-        code: { type: string }
+        code:
+          type: string
+          nullable: true
+          description: v2.2 (#98) — null pour un ETUDIANT ; le code se lit en salle (RG2)
         ouvertureAt: { type: string, format: date-time }
         expirationAt: { type: string, format: date-time }
         statut: { type: string, enum: [OUVERTE, CLOTUREE] }
