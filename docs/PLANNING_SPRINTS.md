@@ -93,6 +93,23 @@ Contenu inconnu à ce stade (le script `enveloppe` n'est pas encore dans le doss
 | 17h50 | SOUMISSION.md : les deux URL, hashes complets sur 40 caractères, vérification en navigation privée |
 | 17h55 | Téléversement sur la plateforme |
 
+## Re-priorisation du 25/09 à 14h45 — changement de besoin #54 (sécurité)
+
+Le PO ajoute authentification, rôles, CRUD et pièce jointe. Décision écrite :
+
+| Heure | Équipe | Tâche | Ticket |
+|---|---|---|---|
+| 14h55 → 15h20 | Analyse, Design | Documents v2 (cahier, specs, D1/D2/D5, contrat 2.0), puis templates connexion, profil, admin | #55, #56 |
+| 15h20 → 15h40 | Backend | Données de démo (V2) | #12 |
+| 15h40 → 16h10 | Backend | Connexion, déconnexion, profil, mot de passe, admin par défaut (V3) | #57 |
+| 16h10 → 16h30 | Backend | Contrôle d'accès par rôle, routes imposées publiques | #58 |
+| en parallèle | Frontend | Initialisation, connexion, gardes de routes, menus par rôle | #13, #59 |
+
+**Conséquences assumées :**
+- `[JALON] v0.1` glisse d'environ **16h15 à 16h45** ; S3 à S6 sont resserrés (enveloppe 30 min, version finale 20 min).
+- Les parcours métier Must (#14 à #28) restent visés pour v0.1, **backend d'abord** ; les écrans frontend non terminés à 16h45 passent en v1.0, par une décision écrite dans le backlog.
+- Les Should de sécurité (#60 à #63 : CRUD comptes, promotions/étudiants, sessions, pièce jointe) et les Should existants (#29 à #36) ne sont entamés qu'une fois `[JALON] v1.0` sécurisé.
+
 ## Règles de dérapage
 
 - À 16h30, si `[JALON] v0.1` n'est pas posé : les tickets frontend restants passent en priorité Could, par une décision écrite dans le backlog, et le jalon est posé avec le backend complet.
