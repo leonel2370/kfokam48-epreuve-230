@@ -59,7 +59,7 @@ Les **5 opérations imposées** par le contrat restent **publiques** (décision 
 | Présences | lecture | lecture ; ajout manuel ; suppression d'une présence manuelle | créer la sienne (opération imposée) ; lire les siennes |
 | Exercices + pièce jointe | lecture | lecture dans ses promotions | CRUD du sien (création imposée ; remplacement, pièce jointe, suppression tant que non relu) |
 | Relectures | lecture | lecture, avec le relecteur | lire et rendre celles assignées ; voir sa note sans le relecteur |
-| Tableau | toutes les promotions | ses promotions | — (son récapitulatif personnel) |
+| Tableau | toutes les promotions | ses promotions | — (son récapitulatif personnel) ; `GET /api/tableau` étant imposé, il reste public **sans** session (RISQUE-1) |
 | Profil, mot de passe, déconnexion | ✓ | ✓ | ✓ |
 
 ## 3. Périmètre
@@ -218,7 +218,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | HYP-17 | Politique de mot de passe non précisée | 8 caractères minimum, blocage 5 échecs / 2 min | RG24 |
 | HYP-18 | `admin/admin` est un mot de passe connu de tous (faille) | Changement obligatoire à la première connexion | RG23 ; mot de passe haché dans la migration, jamais en clair |
 | HYP-19 | « Dossier ou fichier en plus du lien » alors que le contrat impose `lien` | Pièce jointe **optionnelle**, ajoutée après le dépôt ; dossier = `.zip` | `POST /api/exercices/{id}/fichier` ; le contrat imposé ne change pas |
-| RISQUE-1 | Les routes imposées publiques portent l'identité dans le corps (`etudiantId`) ou l'en-tête (`X-Etudiant-Id`) : sans session, elles restent **usurpables** | Si une session existe, l'identité doit être celle de l'utilisateur connecté (403 IDENTITE_DIFFERENTE) ; le frontend appelle toujours connecté | Risque résiduel **accepté par le PO** pour garder B2 |
+| RISQUE-1 | Les 5 routes imposées restent publiques : sans session, on peut usurper une identité (`etudiantId`, `X-Etudiant-Id`), ouvrir une session de cours ou lire le tableau d'une promotion | **Avec** une session, tous les contrôles s'appliquent (403 IDENTITE_DIFFERENTE, 403 ACCES_REFUSE) ; le frontend appelle toujours connecté ; à supprimer dès que la contrainte B2 disparaît (passer ces routes derrière la session) | Risque résiduel **accepté par le PO** pour garder B2 |
 | — | « Validation automatique des présences » | Déjà le comportement de la v1 (SF-3) ; rendu explicite par RG21 et EF26 | Aucun état « à valider » |
 | — | Journal d'audit | Retiré par le PO | Exclu (§3) |
 

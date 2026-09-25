@@ -221,7 +221,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 - **Routes publiques :** `POST /api/auth/login`, les 5 opérations imposées, et `GET /api/promotions` + `GET /api/promotions/{id}/etudiants` (sélection du nom pour les opérations imposées). Tout le reste : session obligatoire → `401 NON_AUTHENTIFIE`.
 - **Rôle insuffisant** → `403 ACCES_REFUSE` ; **formateur hors de ses promotions** (RG26) → `403 ACCES_REFUSE`.
-- **Opérations imposées appelées avec une session** : l'identité (`etudiantId` du corps, `X-Etudiant-Id`) doit être celle de l'utilisateur connecté → sinon `403 IDENTITE_DIFFERENTE` (atténuation de RISQUE-1). Sans session : comportement v1, inchangé.
+- **Opérations imposées** (`POST /api/sessions`, `POST /api/presences`, `POST /api/exercices`, `POST /api/relectures/{id}`, `GET /api/tableau`) : **sans session**, comportement v1 inchangé (B2). **Avec une session**, les contrôles s'ajoutent : identité (`etudiantId` du corps, `X-Etudiant-Id`) = utilisateur connecté, sinon `403 IDENTITE_DIFFERENTE` ; ouverture de session et tableau réservés à ADMIN et au FORMATEUR de la promotion, sinon `403 ACCES_REFUSE` (atténuation de RISQUE-1).
 - **CSRF :** routes protégées en écriture → en-tête `X-XSRF-TOKEN` exigé (Angular l'ajoute automatiquement) → sinon `403 ACCES_REFUSE`. Pas de CSRF sur les routes publiques.
 
 ### SF-20 — Gérer les comptes · EF21 · Should *(v2)*
