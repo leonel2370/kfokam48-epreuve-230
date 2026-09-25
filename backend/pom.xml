@@ -16,6 +16,8 @@
   <properties>
     <java.version>21</java.version>
     <jacoco.version>0.8.13</jacoco.version>
+    <!-- Swagger UI (#96) : la branche 3.x de springdoc est celle compatible avec Spring Boot 4 -->
+    <springdoc.version>3.1.1</springdoc.version>
     <!-- SonarQube : hôte et jeton passés depuis .env ; couverture lue dans target/site/jacoco -->
     <sonar.projectKey>kfokam48-epreuve-230</sonar.projectKey>
     <sonar.projectName>kfokam48-epreuve-230 (PRESENCE48)</sonar.projectName>
@@ -81,9 +83,27 @@
       <artifactId>spring-boot-starter-webmvc-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <!-- #96 : le contrat de référence est servi tel quel par Swagger UI, sans copie versionnée -->
+      <resource>
+        <directory>${project.basedir}/../api</directory>
+        <targetPath>static</targetPath>
+        <includes>
+          <include>contrat.yaml</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
