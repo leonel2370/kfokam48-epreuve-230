@@ -29,13 +29,13 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
   <div class="mx-auto max-w-5xl px-4 min-h-14 py-2 flex items-center justify-between gap-2">
     <span class="font-semibold shrink-0">P48</span>
     <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Écrans">
-      <a href="formateur-session.html" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</a>
-      <a href="tableau.html" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</a>
-      <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
-      <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
-      <a href="admin-utilisateurs.html" class="px-3 py-2 rounded-md hover:bg-accent">Admin</a>
-      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Jean Fokam · FORMATEUR</a>
-      <a href="login.html" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</a>
+      <button type="button" onclick="location.href='formateur-session.html'" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</button>
+      <button type="button" onclick="location.href='tableau.html'" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</button>
+      <button type="button" onclick="location.href='etudiant.html'" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</button>
+      <button type="button" onclick="location.href='relecteur.html'" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</button>
+      <button type="button" onclick="location.href='admin-utilisateurs.html'" class="px-3 py-2 rounded-md hover:bg-accent">Admin</button>
+      <button type="button" onclick="location.href='profil.html'" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Jean Fokam · FORMATEUR</button>
+      <button type="button" onclick="location.href='login.html'" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</button>
       <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
     </nav>
   </div>
@@ -62,9 +62,9 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
       <div class="overflow-x-auto"><table class="w-full text-sm">
         <thead class="text-left text-muted-foreground border-b border-border"><tr><th class="py-2 pr-3">Auteur</th><th class="pr-3">Lien</th><th class="pr-3">Statut</th><th class="pr-3">Relecteur</th><th>Note</th></tr></thead>
         <tbody class="divide-y divide-border">
-          <tr><td class="py-2 pr-3">Awa Ndiaye</td><td class="pr-3"><a class="underline" href="#">github.com/awa/tp</a></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-succes/15 text-succes">RELU</span></td><td class="pr-3">Paul M.</td><td>14/20</td></tr>
-          <tr class="bg-attente/5"><td class="py-2 pr-3">Paul Mbarga</td><td class="pr-3"><a class="underline" href="#">github.com/paul/tp</a></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">EN_ATTENTE_RELECTURE</span></td><td class="pr-3">Lina K.</td><td>—</td></tr>
-          <tr><td class="py-2 pr-3">Marc Tchoua</td><td class="pr-3"><a class="underline" href="#">github.com/marc/tp</a></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">DEPOSE</span></td><td class="pr-3 text-muted-foreground">aucun présent</td><td>—</td></tr>
+          <tr><td class="py-2 pr-3">Awa Ndiaye</td><td class="pr-3"><button type="button" class="h-8 px-2 rounded-md border border-input text-xs hover:bg-accent">Ouvrir l'exercice</button> <span class="text-xs text-muted-foreground">github.com/awa/tp</span></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-succes/15 text-succes">RELU</span></td><td class="pr-3">Paul M.</td><td>14/20</td></tr>
+          <tr class="bg-attente/5"><td class="py-2 pr-3">Paul Mbarga</td><td class="pr-3"><button type="button" class="h-8 px-2 rounded-md border border-input text-xs hover:bg-accent">Ouvrir l'exercice</button> <span class="text-xs text-muted-foreground">github.com/paul/tp</span></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">EN_ATTENTE_RELECTURE</span></td><td class="pr-3">Lina K.</td><td>—</td></tr>
+          <tr><td class="py-2 pr-3">Marc Tchoua</td><td class="pr-3"><button type="button" class="h-8 px-2 rounded-md border border-input text-xs hover:bg-accent">Ouvrir l'exercice</button> <span class="text-xs text-muted-foreground">github.com/marc/tp</span></td><td class="pr-3"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground">DEPOSE</span></td><td class="pr-3 text-muted-foreground">aucun présent</td><td>—</td></tr>
         </tbody></table></div>
     </div>
   </section>

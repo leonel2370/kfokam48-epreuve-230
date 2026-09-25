@@ -34,9 +34,9 @@
 
 > **v2 :** toutes les routes exigent une session **sauf les 5 opérations imposées** (RG22). Matrice des droits : [cahier §2 bis](CAHIER_DES_CHARGES.md#2-bis-matrice-des-droits-par-rôle-v2). Arborescence v2 : `/connexion` (public) → redirection selon le rôle vers `/admin`, `/formateur` ou `/etudiant` ; `/profil` pour tous ; en-tête avec le nom connecté et « Se déconnecter ».
 
-### 1.2 Arborescence *(v2, livrée par #59)*
+### 1.2 Arborescence *(v3, #104 — v2 livrée par #59)*
 
-Remplace l'arborescence v1 (accueil « Je suis formateur / étudiant » et choix du nom dans une liste, Q1) : depuis la v2, chacun se connecte et ne voit que l'espace de son rôle (SF-15, SF-19, HYP-15).
+Remplace l'arborescence v1 (accueil « Je suis formateur / étudiant » et choix du nom dans une liste, Q1) : depuis la v2, chacun se connecte et ne voit que l'espace de son rôle (SF-15, SF-19, HYP-15). **v3 (#104)** : l'espace étudiant est découpé en trois écrans pour respecter F2 (trois écrans imposés : formateur, étudiant, **relecteur**).
 
 ```text
 /connexion                  Seule page publique (SF-15) → redirection selon le rôle,
@@ -44,24 +44,34 @@ Remplace l'arborescence v1 (accueil « Je suis formateur / étudiant » et choix
 /profil                     Tous : profil, changement de mot de passe (SF-17, SF-18)
 /formateur                  FORMATEUR (ses promotions, RG26), ADMIN (toutes) :
 │                           ouvrir une session, code en grand + compte à rebours (SF-2),
-│                           liste des sessions de la promotion
+│                           liste des sessions de la promotion ; ?promotionId=<id> présélectionne la promotion
 └── /formateur/tableau/:id  Tableau de la promotion (SF-10)
-/etudiant                   ETUDIANT, une seule page (mobile d'abord) : identité = compte (HYP-15)
-                            · présence par code (SF-3)
-                            · dépôt, session choisie dans la liste des sessions ouvertes (SF-6)
-                            · mes notes : note retenue, provisoire ou définitive (SF-14, RG31)
-                            · mes relectures à faire : le relecteur est un étudiant (SF-8, SF-9)
-/admin                      ADMIN : promotions, accès aux tableaux ; gestion des comptes (SF-20 à SF-22)
-                            reportée (#60–#62, cahier §7.2 ter)
+/etudiant                   ETUDIANT (mobile d'abord), identité = compte (HYP-15) → redirige vers /etudiant/presence
+├── /etudiant/presence      Écran ÉTUDIANT : présence par code (SF-3), dépôt dans une session ouverte (SF-6)
+├── /etudiant/notes         Mes notes : note retenue, provisoire ou définitive (SF-14, RG31)
+└── /etudiant/relectures    Écran RELECTEUR : relectures à faire et rendues (SF-8, SF-9) — le relecteur est un étudiant
+/admin                      ADMIN : promotions, accès à leur tableau et à leurs sessions ; gestion des comptes
+                            (SF-20 à SF-22) reportée (#60–#62, cahier §7.2 ter)
 ```
 
 En-tête : nom et rôle de la personne connectée, **menus de son rôle uniquement**, « Se déconnecter » (SF-16). Une adresse d'un autre rôle renvoie à son propre espace ; une session perdue (401) renvoie à `/connexion`.
+
+### 1.2 bis Navigation *(v3, #104)*
+
+| Règle | Détail |
+|---|---|
+| Navigation interne = **boutons** | Menus de l'en-tête, profil, onglets de l'espace étudiant, « Voir le tableau », « Sessions », « Retour » : des boutons (`<button>`), jamais des liens texte. Le bouton de l'écran affiché porte `aria-current="page"`. |
+| Onglets de l'espace étudiant | Barre de trois boutons commune aux trois écrans : **Présence et dépôt** · **Mes notes** · **Mes relectures**. |
+| Lien d'exercice (externe) | Bouton **« Ouvrir l'exercice »** : nouvel onglet, sans transmettre la page d'origine (`noopener`, `noreferrer`) ; seules les adresses `http(s)` s'ouvrent ; l'adresse est affichée en texte sous le bouton. |
+| Retour contextuel | Depuis un tableau, « Retour » ramène là où l'on était : l'ADMIN à `/admin`, le FORMATEUR aux sessions de cette promotion. |
+| Admin → sessions | « Sessions » d'une promotion ouvre `/formateur` **sur cette promotion** (`?promotionId=`), pas sur la première de la liste. |
+| Adresses | Les chemins ne sont écrits qu'à un endroit dans le code (`core/navigation/chemins.ts`). |
 
 ### 1.3 Zoning des trois écrans imposés (F2)
 
 ```text
 ┌─ ÉCRAN FORMATEUR ─────────────────────────────┐   ┌─ ÉCRAN ÉTUDIANT (mobile 360px) ─┐
-│ Promotion [P1 ▼]            [Tableau]         │   │ Bonjour Awa (P1)   [changer]    │
+│ Promotion [P1 ▼]            [Tableau]         │   │ [Présence][Mes notes][Relect.]  │
 │ ┌ Ouvrir une session ───────────────────────┐ │   │ ┌ Présence ──────────────────┐  │
 │ │ Titre [____________]  [Ouvrir]            │ │   │ │ Code [______]  [Valider]   │  │
 │ └───────────────────────────────────────────┘ │   │ │ ✓ / message d'erreur       │  │
@@ -74,7 +84,7 @@ En-tête : nom et rôle de la personne connectée, **menus de son rôle uniqueme
 └───────────────────────────────────────────────┘   └─────────────────────────────────┘
 ┌─ ÉCRAN RELECTEUR ─────────────────────────────┐   ┌─ TABLEAU (formateur) ───────────┐
 │ Relectures à faire (2)                        │   │ Nom | Prés. | Dép. | Moy. | Rel.│
-│  « Spring JPA »  lien ↗                       │   │ Awa |   3   |  2   | 13,5 |  0  │
+│  « Spring JPA »  [Ouvrir l'exercice]          │   │ Awa |   3   |  2   | 13,5 |  0  │
 │   Note [__] /20  Commentaire [__________]     │   │ Paul|   2   |  1   |  —   |  1 ⚠│
 │   [Envoyer — définitif]                       │   │ (— = aucune note, ⚠ = retard)   │
 │ Relectures rendues                            │   └─────────────────────────────────┘
