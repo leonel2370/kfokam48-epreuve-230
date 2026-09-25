@@ -1,93 +1,42 @@
 # Architecture Angular 17
 
-## Structure
+Application standalone (sans NgModule), signaux, routes chargées à la demande. Squelette généré par
+`createAngularStructure.sh`, puis adapté au projet (#13, #59, #103).
 
-Projet généré par `createAngularStructure.sh` (Angular 17, standalone), puis adapté au projet (#13) :
+## Structure
 
 ```text
 src/app/
-├── core/
-│   ├── api/            api.models.ts (types du contrat) · api.service.ts (seul accès HTTP)
-│   └── interceptors/   erreur.interceptor.ts : toute erreur devient { code, message } (ENF3)
-├── features/           un dossier par écran : accueil, formateur, etudiant, relecteur
-└── app.config.ts       HttpClient + intercepteur + XSRF (cookie XSRF-TOKEN, même origine)
+├── core/                  infrastructure globale, sans écran
+│   ├── api/               api.models.ts (types du contrat) · api.service.ts (seul accès HTTP)
+│   ├── auth/              auth.service.ts (profil connecté) · acces.guard.ts (gardes par rôle)
+│   └── interceptors/      erreur (toute erreur → { code, message }) · session (401 → connexion)
+├── shared/                composants réutilisables, sans appel HTTP (ex. erreur.component)
+├── features/              un dossier par espace : connexion, profil, admin, formateur, etudiant
+├── app.component.*        en-tête (menus du rôle, profil, déconnexion) + <router-outlet>
+├── app.routes.ts          routes et gardes
+└── app.config.ts          routeur, HttpClient, intercepteurs, XSRF (cookie XSRF-TOKEN, même origine)
 ```
 
-Règles : aucune règle métier ni calcul côté client (F3) ; le frontend appelle `/api` en même origine
-(`proxy.conf.json` en développement, nginx en production).
+## Règles
 
-## Core
+- **Aucune règle métier côté client** (F3) : le serveur décide et calcule ; le frontend affiche.
+- **Un seul accès HTTP** : `core/api/api.service.ts`. Le frontend appelle `/api` en même origine
+  (`proxy.conf.json` en développement, nginx en production).
+- **Un composant = quatre fichiers** (#103) :
 
-Le dossier core contient les éléments globaux de l'application.
+  ```text
+  x.component.ts      logique (signaux, appels à ApiService)
+  x.component.html    template
+  x.component.scss    styles propres au composant (seulement s'il y en a)
+  x.component.spec.ts tests
+  ```
 
-Exemples :
-
-- Services globaux
-- Authentification
-- Guards
-- Interceptors HTTP
-- Modèles communs
-- Constantes
-
-
-## Features
-
-Le dossier features contient les fonctionnalités métier.
-
-Exemple :
-
-features/
-├── users/
-├── products/
-└── orders/
-
-Chaque fonctionnalité peut avoir sa propre structure :
-
-users/
-├── components/
-├── models/
-├── pages/
-└── services/
-
-
-## Shared
-
-Le dossier shared contient les éléments réutilisables.
-
-Exemples :
-
-- Composants génériques
-- Directives
-- Pipes
-- Modèles partagés
-
-
-## Layout
-
-Le dossier layout contient la structure visuelle globale.
-
-Exemples :
-
-- Header
-- Footer
-- Navbar
-- Sidebar
-
-
-## Principe général
-
-CORE
-    ↓
-Infrastructure globale
-
-FEATURES
-    ↓
-Fonctionnalités métier
-
-SHARED
-    ↓
-Composants réutilisables
-
-LAYOUT
-    ↓
-Structure visuelle
+  Jamais de `template:` / `styles:` en ligne ni d'attribut `style="…"`. Un style utile à plusieurs écrans va dans
+  `src/styles.scss` (classes utilitaires : `.carte`, `.ligne`, `.ligne.entre`, `.formulaire`, `.extensible`,
+  `.badge`, `.alerte`, `.succes`, `.discret`), sinon dans le `.scss` du composant.
+- **Composants réutilisables d'abord** : tout élément d'interface répété entre écrans va dans `shared/`
+  (entrées par `input()`, sorties par `output()`, pas d'accès HTTP). Les écrans de `features/` les assemblent.
+- **États obligatoires** de chaque écran : chargement, erreur (message de l'API tel quel), vide, données
+  (docs/design/DESIGN_SYSTEM.md).
+- **Styles** : tokens du système de design (thème shadcn « zinc ») en variables CSS dans `src/styles.scss`.

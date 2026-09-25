@@ -1,0 +1,25 @@
+<main>
+  @if (auth.profil(); as moi) {
+    @if (moi.doitChangerMotDePasse) {
+      <p class="alerte" role="alert">Premier accès : choisissez un nouveau mot de passe pour continuer.</p>
+    }
+    <section class="carte">
+      <h2>Mon profil</h2>
+      <p><strong>{{ moi.nomAffiche }}</strong> · {{ moi.role }} · identifiant <code>{{ moi.login }}</code></p>
+    </section>
+    <section class="carte">
+      <h2>Changer mon mot de passe</h2>
+      <form (ngSubmit)="changer()" class="formulaire">
+        <label>Mot de passe actuel
+          <input name="ancien" type="password" [(ngModel)]="ancien" required autocomplete="current-password" />
+        </label>
+        <label>Nouveau mot de passe (8 caractères minimum)
+          <input name="nouveau" type="password" [(ngModel)]="nouveau" required minlength="8" autocomplete="new-password" />
+        </label>
+        <button type="submit" [disabled]="!ancien || nouveau.length < longueurMin">Enregistrer</button>
+      </form>
+      @if (ok()) { <output class="succes">Mot de passe changé.</output> }
+      <app-erreur [erreur]="erreur()" />
+    </section>
+  }
+</main>

@@ -13,29 +13,7 @@ import { RAFRAICHISSEMENT_MS } from './relectures.component';
   selector: 'app-mes-notes',
   standalone: true,
   imports: [DecimalPipe, ErreurComponent],
-  template: `
-    <section class="carte">
-      <div class="ligne" style="justify-content: space-between">
-        <h2>Mes exercices et mes notes</h2>
-        <button type="button" class="secondaire" (click)="charger()">Actualiser</button>
-      </div>
-      @for (x of exercices(); track x.id) {
-        <div class="ligne">
-          <strong>{{ x.sessionTitre }}</strong>
-          <a [href]="x.lien" target="_blank" rel="noopener">lien</a>
-          @if (x.noteRetenue === null) {
-            <span class="discret">en attente de relecture</span>
-          } @else {
-            <span>{{ x.noteRetenue | number: '1.0-2' }} / 20</span>
-            @if (x.provisoire) { <span class="badge EN_ATTENTE_RELECTURE">provisoire</span> }
-            @else { <span class="badge RELU">définitive</span> }
-          }
-        </div>
-        @for (c of x.commentaires; track $index) { <p class="discret">« {{ c }} »</p> }
-      } @empty { <p class="discret">Aucun exercice déposé.</p> }
-      <app-erreur [erreur]="erreur()" />
-    </section>
-  `,
+  templateUrl: './mes-notes.component.html',
 })
 export class MesNotesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
