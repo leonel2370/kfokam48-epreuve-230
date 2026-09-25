@@ -75,7 +75,7 @@ Une PR est refusée si :
 Un ticket est terminé seulement si **tous** ces points sont vrais :
 
 - [ ] Les critères d'acceptation sont vérifiés par un test automatisé ou une preuve jointe à la PR.
-- [ ] Chaque RG citée par le ticket a un test dont le nom la cite (`RG5_autoRelecture_refusee`).
+- [ ] Chaque RG citée par le ticket a un test dont le nom la cite (`testRg5AutoRelectureRefusee`).
 - [ ] Aucune règle de gestion du cahier (§6) n'est enfreinte ; aucune erreur autre que `{code, message}`.
 - [ ] Contrat, migration, diagrammes et cahier sont à jour si concernés.
 - [ ] Aucune régression : suite de tests verte et parcours voisins vérifiés.
@@ -106,5 +106,7 @@ Passer le ticket en `statut :: in progress` au démarrage, puis `statut :: revie
 - `npm run build` vert avant la PR.
 
 ## 8. Qualité SonarQube
+
+Conventions imposées par le profil qualité du serveur (relevées lors de la première analyse, le 25/09) : **indentation de 2 espaces** (Java, XML, TS, HTML), lignes de 120 caractères au plus, pas de tabulation, **noms de méthodes de test au format `^test[A-Z][a-zA-Z0-9]*$`** (ex. `testRg5AutoRelectureRefusee`), au moins une assertion par test, **chaque assertion porte un message** (`assertThat(x).as("…").isEqualTo(y)`, règle java:S2698). `.editorconfig` à la racine applique ces règles dans l'éditeur.
 
 VS Code doit afficher l'extension SonarQube for IDE liée au projet `kfokam48-epreuve-230` (fichier `.vscode/settings.json`). Avant d'ouvrir une PR : lancer l'analyse locale ([plan technique §2 ter](PLAN_TECHNIQUE_EQUIPES.md#2-ter-qualité-du-code--sonar-tests-unitaires-et-tests-de-régression)), vérifier la Quality Gate et coller le lien du tableau de bord dans la PR.

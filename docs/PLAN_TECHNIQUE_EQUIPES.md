@@ -81,7 +81,7 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 
 | Équipe | Cible | Règle |
 |---|---|---|
-| Backend | Services métier (Mockito, horloge `Clock` fixe) | un test par RG, nommé `RGx_…` ; cas nominal + chaque erreur |
+| Backend | Services métier (Mockito, horloge `Clock` fixe) | un test par RG, nommé `testRgX…` (profil qualité : `^test[A-Z][a-zA-Z0-9]*$`) ; cas nominal + chaque erreur |
 | Frontend | Services `core/api` (`HttpTestingController`) et composants de page | vérifier URL, verbe, corps, et l'affichage des états chargement / erreur / vide |
 
 **Tests d'intégration** : backend `@SpringBootTest` + MockMvc, un test par endpoint et par code HTTP du contrat.
@@ -89,7 +89,7 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 **Tests de régression**
 
 - La suite complète (unitaires + intégration, backend et frontend) tourne en CI sur **chaque PR** et bloque la fusion si elle échoue.
-- Chaque bug corrigé laisse un test de régression nommé `REG_<n°issue>_<comportement>` (ex. `REG_45_noteNullNeCassePasLaMoyenne`), commité **rouge** avant le correctif.
+- Chaque bug corrigé laisse un test de régression nommé `testReg<n°issue><Comportement>` (ex. `testReg45NoteNullNeCassePasLaMoyenne`), commité **rouge** avant le correctif.
 - Collection Bruno `api/bruno/` rejouée en CI (`bru run --env local`) : un appel par code d'erreur du catalogue, qui vérifie le format `{code, message}`.
 - Recette R1–R9 ([spécifications §7](SPECIFICATIONS_FONCTIONNELLES.md#7-scénarios-de-recette)) rejouée à la main avant chaque jalon, avec les preuves jointes à la PR du jalon.
 
@@ -199,7 +199,7 @@ flowchart LR
 | Concurrence | contraintes UNIQUE en base comme dernier rempart (double clic, courses) ; `DataIntegrityViolationException` traduite en 409 | PostgreSQL |
 | Contrat | chaque PR qui touche une route vérifie le contrat ; Swagger UI pour comparer visuellement | springdoc-openapi |
 | **Migrations** | `V{n}__{verbe}_{objet}.sql` ; **jamais** modifier une migration poussée ; une migration par changement de schéma, dans la PR de la fonctionnalité ; D2 mis à jour dans la même PR ; données de démonstration dans une migration séparée (`V2__donnees_demo.sql`) ; `ddl-auto=validate` | **Flyway** : schéma reproductible (B5) |
-| Tests | unitaires : services avec Mockito, un test par RG nommé `RGx_…` ; intégration : `@SpringBootTest` + MockMvc sur H2 en mode PostgreSQL (tourne sur un poste vierge, B6) ; option Testcontainers | JUnit 5, Mockito, AssertJ, JaCoCo |
+| Tests | unitaires : services avec Mockito, un test par RG nommé `testRgX…` (profil qualité : `^test[A-Z][a-zA-Z0-9]*$`) ; intégration : `@SpringBootTest` + MockMvc sur H2 en mode PostgreSQL (tourne sur un poste vierge, B6) ; option Testcontainers | JUnit 5, Mockito, AssertJ, JaCoCo |
 
 ### 6.2 Frontend
 
