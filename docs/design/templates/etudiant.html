@@ -29,18 +29,23 @@ tailwind.config = { darkMode: 'class', theme: { extend: {
   <div class="mx-auto max-w-5xl px-4 min-h-14 py-2 flex items-center justify-between gap-2">
     <span class="font-semibold shrink-0">P48</span>
     <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Écrans">
-      <a href="formateur-session.html" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</a>
-      <a href="tableau.html" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</a>
-      <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
-      <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
-      <a href="admin-utilisateurs.html" class="px-3 py-2 rounded-md hover:bg-accent">Admin</a>
-      <a href="profil.html" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Awa · ETUDIANT</a>
-      <a href="login.html" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</a>
+      <button type="button" onclick="location.href='formateur-session.html'" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</button>
+      <button type="button" onclick="location.href='tableau.html'" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</button>
+      <button type="button" onclick="location.href='etudiant.html'" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</button>
+      <button type="button" onclick="location.href='relecteur.html'" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</button>
+      <button type="button" onclick="location.href='admin-utilisateurs.html'" class="px-3 py-2 rounded-md hover:bg-accent">Admin</button>
+      <button type="button" onclick="location.href='profil.html'" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Awa · ETUDIANT</button>
+      <button type="button" onclick="location.href='login.html'" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</button>
       <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
     </nav>
   </div>
 </header>
 <main class="mx-auto max-w-md px-4 py-6 space-y-5">
+  <nav class="flex gap-1 text-sm" aria-label="Espace étudiant">
+    <button type="button" onclick="location.href='etudiant.html'" class="px-3 py-2 rounded-md hover:bg-accent bg-accent" aria-current="page">Présence et dépôt</button>
+    <button type="button" class="px-3 py-2 rounded-md hover:bg-accent">Mes notes</button>
+    <button type="button" onclick="location.href='relecteur.html'" class="px-3 py-2 rounded-md hover:bg-accent">Mes relectures</button>
+  </nav>
   <div class="flex items-center justify-between"><div><p class="text-sm text-muted-foreground">P1-2026</p><h1 class="text-2xl font-semibold">Bonjour Awa</h1></div>
     <button class="h-11 rounded-md px-3 text-sm hover:bg-accent">Changer</button></div>
   <form class="rounded-lg border border-border p-5 space-y-3">
