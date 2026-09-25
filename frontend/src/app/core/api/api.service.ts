@@ -7,6 +7,7 @@ import {
   ExerciceDepose,
   LigneTableau,
   Presence,
+  Profil,
   Promotion,
   RelectureRelecteur,
   Session,
@@ -60,5 +61,14 @@ export class ApiService {
   /** Imposé (EF10) : les agrégats viennent du serveur, jamais recalculés ici (F3). */
   tableau(promotionId: number): Observable<LigneTableau[]> {
     return this.http.get<LigneTableau[]>(`${this.url}/tableau`, { params: { promotionId } });
+  }
+
+  /** v2 : ouvre la session serveur (cookie HttpOnly). */
+  connecter(login: string, motDePasse: string): Observable<Profil> {
+    return this.http.post<Profil>(`${this.url}/auth/login`, { login, motDePasse });
+  }
+
+  deconnecter(): Observable<void> {
+    return this.http.post<void>(`${this.url}/auth/logout`, {});
   }
 }

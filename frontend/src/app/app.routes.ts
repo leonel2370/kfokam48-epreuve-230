@@ -15,5 +15,9 @@ export const routes: Routes = [
     path: 'etudiant',
     loadComponent: () => import('./features/etudiant/etudiant.component').then(m => m.EtudiantComponent),
   },
+  {
+    path: 'relecteur',
+    loadComponent: () => import('./features/relecteur/relecteur.component').then(m => m.RelecteurComponent),
+  },
   { path: '**', redirectTo: '' },
 ];

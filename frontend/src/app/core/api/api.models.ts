@@ -67,3 +67,16 @@ export interface LigneTableau {
   moyenne: number | null;
   relecturesEnAttente: number;
 }
+
+export type Role = 'ADMIN' | 'FORMATEUR' | 'ETUDIANT';
+
+/** v2 : utilisateur connecté (GET /api/moi, POST /api/auth/login). */
+export interface Profil {
+  id: number;
+  login: string;
+  nomAffiche: string;
+  role: Role;
+  etudiantId: number | null;
+  promotionIds: number[];
+  doitChangerMotDePasse: boolean;
+}
