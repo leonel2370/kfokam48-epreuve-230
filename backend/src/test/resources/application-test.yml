@@ -1,7 +1,8 @@
 # Tests : base H2 en mémoire en mode PostgreSQL, créée par les mêmes migrations Flyway (B6 : aucun besoin de base locale).
+# Une base distincte par contexte Spring (random.uuid) : aucun test ne voit les données d'un autre.
 spring:
   datasource:
-    url: jdbc:h2:mem:presence48;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    url: jdbc:h2:mem:presence48-${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
     username: sa
     password: ""
   jpa:

@@ -33,14 +33,16 @@ public class ExerciceService {
   private final ExerciceRepository exercices;
   private final SessionCoursRepository sessions;
   private final EtudiantRepository etudiants;
+  private final TirageRelecteur tirage;
   private final ControleAcces acces;
   private final Clock horloge;
 
   public ExerciceService(ExerciceRepository exercices, SessionCoursRepository sessions,
-      EtudiantRepository etudiants, ControleAcces acces, Clock horloge) {
+      EtudiantRepository etudiants, TirageRelecteur tirage, ControleAcces acces, Clock horloge) {
     this.exercices = exercices;
     this.sessions = sessions;
     this.etudiants = etudiants;
+    this.tirage = tirage;
     this.acces = acces;
     this.horloge = horloge;
   }
@@ -69,6 +71,7 @@ public class ExerciceService {
           "Vous avez déjà déposé un exercice pour cette session.");
     }
     var exercice = exercices.save(new Exercice(sessionId, etudiantId, lienNettoye, horloge.instant()));
+    tirage.assigner(exercice);
     return new ExerciceDeposeReponse(exercice.getId(), exercice.getStatut());
   }
 
