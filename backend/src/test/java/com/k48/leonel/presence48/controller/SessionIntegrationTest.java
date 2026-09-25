@@ -3,6 +3,7 @@ package com.k48.leonel.presence48.controller;
 import static com.k48.leonel.presence48.support.Connexion.MDP_ETUDIANT;
 import static com.k48.leonel.presence48.support.Connexion.MDP_FORMATEUR;
 import static com.k48.leonel.presence48.support.Connexion.connecter;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -18,7 +19,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** EF2 / SF-2 : POST /api/sessions (imposé) et GET /api/sessions (protégé). */
+/**
+ * EF2 / SF-2 : POST /api/sessions (imposé) et GET /api/sessions (protégé).
+ * Contexte recréé à chaque test : le post-processeur csrf() de spring-security-test remplace le dépôt CSRF
+ * du filtre partagé. La base H2 reste commune aux contextes : aucune assertion ne dépend de l'ordre des tests.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -41,7 +46,8 @@ class SessionIntegrationTest {
 
   @Test
   void testOuvertureSansSessionRenvoie201AvecCodeEtExpiration() throws Exception {
-    mvc.perform(post("/api/sessions").contentType(MediaType.APPLICATION_JSON).content(corps("TP JPA", promo("P1-2026"))))
+    mvc.perform(post("/api/sessions").contentType(MediaType.APPLICATION_JSON)
+            .content(corps("TP JPA", promo("P1-2026"))))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.code").value(org.hamcrest.Matchers.matchesPattern("[A-HJ-NP-Z2-9]{6}")))
@@ -92,8 +98,7 @@ class SessionIntegrationTest {
     mvc.perform(get("/api/sessions").param("promotionId", String.valueOf(promo("P1-2026")))
             .session(connecter(mvc, "formateur", MDP_FORMATEUR)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].titre").value("TP Flyway et migrations"))
-        .andExpect(jsonPath("$[0].statut").value("CLOTUREE"));
+        .andExpect(jsonPath("$[?(@.titre == 'TP Flyway et migrations')].statut").value(hasItem("CLOTUREE")));
     var etudiant = connecter(mvc, "awa", MDP_ETUDIANT);
     mvc.perform(get("/api/sessions").param("promotionId", String.valueOf(promo("P1-2026"))).session(etudiant))
         .andExpect(status().isOk());
