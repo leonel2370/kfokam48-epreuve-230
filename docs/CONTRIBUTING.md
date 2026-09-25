@@ -38,7 +38,7 @@ Refs: #12
 ```
 
 - **Types :** `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `perf`, `build`, `ci`.
-- **Scopes :** `session`, `presence`, `exercice`, `relecture`, `tableau`, `identite`, `common`, `api` (contrat), `db` (migrations), `ui`, `ci`, `cdc` (cahier), `diagrammes`.
+- **Scopes :** `session`, `presence`, `exercice`, `relecture`, `tableau`, `identite`, `common`, `api` (contrat), `db` (migrations), `ui`, `ci`, `cdc` (cahier), `diagrammes`, *(v2)* `auth`, `admin`, `fichier`.
 - **Le pied `Refs: #n` est obligatoire** sur chaque commit. `Closes #n` va dans la description de la PR.
 - Un commit = un changement cohérent qui compile. Interdits : « wip », « fix », « update » seuls ; plusieurs tickets dans un commit.
 - Jalons de l'épreuve, **messages exacts**, commits vides sur `main` : `[JALON] analyse`, `[JALON] v0.1`, `[JALON] v1.0` — trois et seulement trois (SUJET §2) ; aucun autre commit ne commence par `[JALON]`.

@@ -63,6 +63,9 @@ R = réalise · A = approuve · C = consulté · I = informé
 | CI, Docker, `.env.example` | I | — | C | C | R/A | C |
 | Recette, rapport de tests | A | — | C | C | I | R |
 | Jalons, tags, CHANGELOG | A | I | C | C | R | C |
+| *(v2)* Matrice des droits, comptes de démo | R/A | I | R | C | I | C |
+| *(v2)* Écrans connexion, profil, administration | A | R | I | R | — | C |
+| *(v2)* Tests de sécurité par rôle (401/403) | A | — | R | R | I | R |
 
 ## 6. Definition of Ready (avant de commencer un ticket)
 
