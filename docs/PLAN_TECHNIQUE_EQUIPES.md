@@ -51,19 +51,31 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 | Conteneurs | **Docker + Docker Compose** | 24+ | `docker compose up` répond à ENF5 | Installation manuelle : 3 commandes max à tenir |
 | Serveur frontend | **nginx** | 1.27 | Sert le build Angular et relaie `/api` (pas de CORS en production) | `ng serve` : serveur de développement seulement |
 | CI | **GitHub Actions** | — | Intégré au dépôt, gratuit en public, statut visible sur chaque PR | Jenkins : infrastructure à maintenir |
-| Qualité continue | **SonarCloud** | — | Gratuit pour un dépôt public, commente les PR, Quality Gate | SonarQube local : pas d'historique partagé (reste le plan B) |
+| Qualité continue | **SonarQube Server** de l'équipe + extension **SonarQube for IDE** (mode connecté) | 2026.4 / 5.10 | Serveur déjà en place (`http://10.0.102.40:9000`) avec la Quality Gate de l'équipe ; l'extension applique les mêmes règles **pendant la frappe**, avant même le commit | SonarCloud : doublonnerait le serveur interne et ses règles |
 | Dépendances | **Dependabot** | — | PR automatiques de mise à jour, branches `chore/` | Renovate : équivalent, plus complexe |
 | Tests d'API | **Bruno** | — | Collections en fichiers texte versionnés (diffables), CLI `bru run` en CI | Postman : collections JSON liées à un compte |
 
 ## 2 ter. Qualité du code : Sonar, tests unitaires et tests de régression
 
-**Sonar (backend + frontend)**
+**Sonar : SonarQube Server + SonarQube for IDE (mode connecté)**
 
-- `sonar-project.properties` à la racine avec deux modules : `backend` (sources Java, rapport `target/site/jacoco/jacoco.xml`) et `frontend` (sources TS, rapport `coverage/lcov.info`).
-- Job `sonar` dans `.github/workflows/ci.yml`, exécuté après les tests sur chaque PR et sur `main` ; secret `SONAR_TOKEN` dans GitHub (valeur locale dans `.env`).
-- **Quality Gate** (bloquante pour la fusion) : 0 nouveau bug, 0 nouvelle vulnérabilité, 0 *security hotspot* non revu ; couverture du nouveau code ≥ 70 % backend et ≥ 50 % frontend ; duplication < 3 % ; note de maintenabilité A.
-- Plan B si SonarCloud n'est pas configuré : `docker run -d -p 9000:9000 sonarqube:community`, puis `./mvnw sonar:sonar` et `npx sonar-scanner` en local, résultat joint à la PR.
-- **Prérequis à faire par le propriétaire du dépôt** : créer l'organisation SonarCloud liée au compte GitHub et renseigner `SONAR_TOKEN`. Tant que ce n'est pas fait, le job est ignoré (condition `if: env.SONAR_TOKEN != ''`) et on le signale dans la PR.
+- **Serveur :** `http://10.0.102.40:9000` (SonarQube Server 2026.4), projet `kfokam48-epreuve-230`, créé le 25/09.
+- **Dans l'éditeur :** l'extension VS Code *SonarQube for IDE* est liée au projet par `.vscode/settings.json` (versionné, sans secret) : `connectionId` `http-10-0-102-40-9000-`, `projectKey` `kfokam48-epreuve-230`. Chaque développeur voit les règles du serveur en direct. La connexion elle-même, avec son jeton, est configurée une fois par poste dans VS Code (*SonarQube Setup › Add SonarQube Server Connection*) et reste dans le trousseau de VS Code.
+- **Analyse complète, avant chaque PR** (obligatoire, le serveur étant sur le réseau privé, la CI GitHub ne peut pas l'atteindre) :
+  - backend : `set -a; . ./.env; set +a; ./mvnw -f backend verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=$SONAR_PROJECT_KEY` (couverture JaCoCo) ;
+  - frontend : `npx sonar-scanner -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN` avec `frontend/sonar-project.properties` (couverture `coverage/lcov.info`).
+  Les deux analyses publient dans le **même projet** (sources `backend/src/main`, `frontend/src`) ; le lien du tableau de bord et le statut de la Quality Gate vont dans la section Preuves de la PR.
+- **Quality Gate appliquée : « TEFO CBS »** (Quality Gate par défaut du serveur, lue par l'API le 25/09) — bloquante pour la fusion :
+
+  | Condition sur le nouveau code | Seuil |
+  |---|---|
+  | Nouvelles violations (bugs, vulnérabilités, code smells) | 0 |
+  | Couverture | ≥ 80 % |
+  | Lignes dupliquées | ≤ 3 % |
+  | Hotspots de sécurité revus | 100 % |
+
+- **Risque signalé :** 80 % de couverture sur tout nouveau code est exigeant avec le temps disponible. Si la Quality Gate échoue sur la couverture, la PR le dit explicitement ; on ne fusionne pas en silence.
+- **Secrets :** `SONAR_TOKEN` n'existe que dans `.env` (local) ; `.env.example` documente `SONAR_HOST_URL`, `SONAR_TOKEN`, `SONAR_PROJECT_KEY`.
 
 **Tests unitaires**
 

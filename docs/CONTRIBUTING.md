@@ -79,6 +79,7 @@ Un ticket est terminé seulement si **tous** ces points sont vrais :
 - [ ] Aucune règle de gestion du cahier (§6) n'est enfreinte ; aucune erreur autre que `{code, message}`.
 - [ ] Contrat, migration, diagrammes et cahier sont à jour si concernés.
 - [ ] Aucune régression : suite de tests verte et parcours voisins vérifiés.
+- [ ] Aucun problème signalé par SonarQube for IDE sur les fichiers modifiés, et **Quality Gate « TEFO CBS » au vert** après analyse locale (lien joint à la PR).
 - [ ] La PR contient les preuves ; l'issue est fermée par la fusion.
 
 ## 5. Tickets
@@ -103,3 +104,7 @@ Passer le ticket en `statut :: in progress` au démarrage, puis `statut :: revie
 - Tout appel HTTP passe par `core/api`. Aucune règle métier côté client : la moyenne vient de l'API.
 - Chaque écran gère les états chargement / erreur / vide.
 - `npm run build` vert avant la PR.
+
+## 8. Qualité SonarQube
+
+VS Code doit afficher l'extension SonarQube for IDE liée au projet `kfokam48-epreuve-230` (fichier `.vscode/settings.json`). Avant d'ouvrir une PR : lancer l'analyse locale ([plan technique §2 ter](PLAN_TECHNIQUE_EQUIPES.md#2-ter-qualité-du-code--sonar-tests-unitaires-et-tests-de-régression)), vérifier la Quality Gate et coller le lien du tableau de bord dans la PR.
