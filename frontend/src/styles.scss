@@ -1,0 +1,70 @@
+/* Tokens du système de design (docs/design/DESIGN_SYSTEM.md, thème shadcn « zinc »), recopiés sans réinterprétation. */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --succes: 142 71% 45%;
+  --attente: 38 92% 50%;
+  --radius: 0.5rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+}
+
+main { max-width: 64rem; margin: 0 auto; padding: 1.5rem 1rem; display: grid; gap: 1.25rem; }
+
+.carte { border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.25rem; background: hsl(var(--card)); }
+.carte h2 { margin: 0 0 .75rem; font-size: 1.125rem; }
+
+label { display: grid; gap: .375rem; font-size: .875rem; font-weight: 500; }
+.ligne { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; }
+
+input, select, textarea {
+  height: 2.5rem; padding: 0 .75rem; font: inherit; font-size: .875rem;
+  border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) - 2px); background: transparent;
+}
+textarea { height: auto; min-height: 5rem; padding: .5rem .75rem; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
+}
+
+button {
+  height: 2.5rem; padding: 0 1rem; font: inherit; font-size: .875rem; font-weight: 500; cursor: pointer;
+  border: 0; border-radius: calc(var(--radius) - 2px);
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.secondaire { background: transparent; color: inherit; border: 1px solid hsl(var(--input)); }
+
+.alerte { border: 1px solid hsl(var(--destructive)); color: hsl(var(--destructive)); border-radius: var(--radius); padding: .75rem 1rem; font-size: .875rem; }
+.succes { border: 1px solid hsl(var(--succes)); color: hsl(142 71% 29%); border-radius: var(--radius); padding: .75rem 1rem; font-size: .875rem; }
+.discret { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+
+.badge { display: inline-block; padding: .125rem .625rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; border: 1px solid hsl(var(--border)); }
+.badge.RELU { background: hsl(var(--succes) / .15); }
+.badge.EN_ATTENTE_RELECTURE { background: hsl(var(--attente) / .2); }
+
+table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+th, td { text-align: left; padding: .625rem .5rem; border-bottom: 1px solid hsl(var(--border)); }
+th { color: hsl(var(--muted-foreground)); font-weight: 500; }
+td.nombre, th.nombre { text-align: right; font-variant-numeric: tabular-nums; }
+
+.code { font-size: 2.5rem; font-weight: 700; letter-spacing: .3em; font-family: ui-monospace, monospace; }
