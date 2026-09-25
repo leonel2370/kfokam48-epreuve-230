@@ -8,7 +8,6 @@ import com.k48.leonel.presence48.repository.UtilisateurRepository;
 import com.k48.leonel.presence48.securite.UtilisateurConnecte;
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,9 +41,9 @@ public class AuthService {
    */
   @Transactional(noRollbackFor = MetierException.class)
   public UtilisateurConnecte authentifier(String login, String motDePasse) {
-    Utilisateur u = utilisateurs.findByLogin(login)
+    var u = utilisateurs.findByLogin(login)
         .orElseThrow(() -> new MetierException(HttpStatus.UNAUTHORIZED, IDENTIFIANTS_INVALIDES, MESSAGE_IDENTIFIANTS));
-    Instant maintenant = horloge.instant();
+    var maintenant = horloge.instant();
     if (u.getBloqueJusquA() != null && maintenant.isBefore(u.getBloqueJusquA())) {
       throw new MetierException(HttpStatus.TOO_MANY_REQUESTS, "TROP_DE_TENTATIVES",
           "Trop de tentatives, réessayez dans 2 minutes.");
@@ -68,7 +67,7 @@ public class AuthService {
 
   @Transactional(readOnly = true)
   public ProfilReponse profil(Long utilisateurId) {
-    Utilisateur u = charger(utilisateurId);
+    var u = charger(utilisateurId);
     List<Long> promotions = switch (u.getRole()) {
       case FORMATEUR -> utilisateurs.promotionsDuFormateur(u.getId());
       case ETUDIANT -> utilisateurs.promotionDeLEtudiant(u.getEtudiantId());
@@ -81,9 +80,10 @@ public class AuthService {
   /** RG24 : 8 caractères minimum, différent de l'ancien ; lève le drapeau RG23. */
   @Transactional
   public void changerMotDePasse(Long utilisateurId, String ancien, String nouveau) {
-    Utilisateur u = charger(utilisateurId);
+    var u = charger(utilisateurId);
     if (!encodeur.matches(ancien, u.getMotDePasseHash())) {
-      throw new MetierException(HttpStatus.UNAUTHORIZED, IDENTIFIANTS_INVALIDES, "Le mot de passe actuel est incorrect.");
+      throw new MetierException(HttpStatus.UNAUTHORIZED, IDENTIFIANTS_INVALIDES,
+          "Le mot de passe actuel est incorrect.");
     }
     if (nouveau.length() < LONGUEUR_MIN || nouveau.equals(ancien)) {
       throw new MetierException(HttpStatus.BAD_REQUEST, "MOT_DE_PASSE_TROP_FAIBLE",

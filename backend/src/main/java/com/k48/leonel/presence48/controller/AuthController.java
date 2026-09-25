@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,12 +38,13 @@ public class AuthController {
   @PostMapping("/auth/login")
   public ProfilReponse connecter(@Valid @RequestBody ConnexionRequete corps, HttpServletRequest requete,
       HttpServletResponse reponse) {
-    UtilisateurConnecte u = auth.authentifier(corps.login(), corps.motDePasse());
+    var u = auth.authentifier(corps.login(), corps.motDePasse());
     requete.getSession(true);
-    requete.changeSessionId();   // protection contre la fixation de session
+    // Nouvel identifiant de session : protection contre la fixation de session
+    requete.changeSessionId();
     var jeton = UsernamePasswordAuthenticationToken.authenticated(u, null,
         List.of(new SimpleGrantedAuthority("ROLE_" + u.role().name())));
-    SecurityContext contexte = SecurityContextHolder.createEmptyContext();
+    var contexte = SecurityContextHolder.createEmptyContext();
     contexte.setAuthentication(jeton);
     SecurityContextHolder.setContext(contexte);
     depotDeContexte.saveContext(contexte, requete, reponse);

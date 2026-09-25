@@ -1,5 +1,6 @@
 package com.k48.leonel.presence48.securite;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
@@ -13,10 +14,12 @@ final class GestionnairesErreurSecurite {
   }
 
   static AuthenticationEntryPoint nonAuthentifie() {
-    return (requete, reponse, e) -> ReponseErreurJson.ecrire(reponse, 401, "NON_AUTHENTIFIE", NON_AUTHENTIFIE);
+    return (requete, reponse, e) ->
+        ReponseErreurJson.ecrire(reponse, HttpServletResponse.SC_UNAUTHORIZED, "NON_AUTHENTIFIE", NON_AUTHENTIFIE);
   }
 
   static AccessDeniedHandler accesRefuse() {
-    return (requete, reponse, e) -> ReponseErreurJson.ecrire(reponse, 403, "ACCES_REFUSE", ACCES_REFUSE);
+    return (requete, reponse, e) ->
+        ReponseErreurJson.ecrire(reponse, HttpServletResponse.SC_FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
   }
 }

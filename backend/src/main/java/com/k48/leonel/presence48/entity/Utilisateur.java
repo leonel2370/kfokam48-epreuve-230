@@ -50,6 +50,11 @@ public class Utilisateur {
   @Column(name = "cree_at", nullable = false)
   private Instant creeAt;
 
+  /** Constructeur requis par JPA. */
+  protected Utilisateur() {
+    // instancié par Hibernate
+  }
+
   public Long getId() {
     return id;
   }

@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,11 +28,11 @@ public class ChangementMotDePasseFiltre extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest requete, HttpServletResponse reponse, FilterChain chaine)
       throws ServletException, IOException {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    var auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth != null && auth.getPrincipal() instanceof UtilisateurConnecte connecte
         && !AUTORISEES.contains(requete.getMethod() + " " + requete.getRequestURI())
         && utilisateurs.findById(connecte.id()).map(u -> u.isDoitChangerMotDePasse()).orElse(false)) {
-      ReponseErreurJson.ecrire(reponse, 403, "CHANGEMENT_MOT_DE_PASSE_REQUIS",
+      ReponseErreurJson.ecrire(reponse, HttpServletResponse.SC_FORBIDDEN, "CHANGEMENT_MOT_DE_PASSE_REQUIS",
           "Vous devez changer votre mot de passe avant de continuer.");
       return;
     }
