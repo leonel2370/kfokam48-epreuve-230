@@ -1,8 +1,9 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
 import { ErreurApi, ExerciceAuteur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { ErreurComponent } from '../../shared/erreur.component';
+import { RAFRAICHISSEMENT_MS } from './relectures.component';
 
 /**
  * SF-14 / #88 : note retenue de chaque exercice (moyenne des deux pairs, RG16 v3), marquée « provisoire »
@@ -14,7 +15,10 @@ import { ErreurComponent } from '../../shared/erreur.component';
   imports: [DecimalPipe, ErreurComponent],
   template: `
     <section class="carte">
-      <h2>Mes exercices et mes notes</h2>
+      <div class="ligne" style="justify-content: space-between">
+        <h2>Mes exercices et mes notes</h2>
+        <button type="button" class="secondaire" (click)="charger()">Actualiser</button>
+      </div>
       @for (x of exercices(); track x.id) {
         <div class="ligne">
           <strong>{{ x.sessionTitre }}</strong>
@@ -33,15 +37,22 @@ import { ErreurComponent } from '../../shared/erreur.component';
     </section>
   `,
 })
-export class MesNotesComponent implements OnInit {
+export class MesNotesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
+  private minuterie?: ReturnType<typeof setInterval>;
 
   readonly etudiantId = input.required<number>();
   readonly exercices = signal<ExerciceAuteur[]>([]);
   readonly erreur = signal<ErreurApi | null>(null);
 
+  /** #101 : une note rendue pendant que la page est ouverte apparaît sans recharger. */
   ngOnInit(): void {
     this.charger();
+    this.minuterie = setInterval(() => this.charger(), RAFRAICHISSEMENT_MS);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.minuterie);
   }
 
   charger(): void {
