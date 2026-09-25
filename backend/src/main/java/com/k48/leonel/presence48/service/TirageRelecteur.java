@@ -6,6 +6,8 @@ import com.k48.leonel.presence48.entity.StatutExercice;
 import com.k48.leonel.presence48.repository.ExerciceRepository;
 import com.k48.leonel.presence48.repository.PresenceRepository;
 import com.k48.leonel.presence48.repository.RelectureRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.util.List;
@@ -25,13 +27,15 @@ public class TirageRelecteur {
   private final PresenceRepository presences;
   private final ExerciceRepository exercices;
   private final RelectureRepository relectures;
+  private final EntityManager em;
   private final Clock horloge;
 
   public TirageRelecteur(PresenceRepository presences, ExerciceRepository exercices,
-      RelectureRepository relectures, Clock horloge) {
+      RelectureRepository relectures, EntityManager em, Clock horloge) {
     this.presences = presences;
     this.exercices = exercices;
     this.relectures = relectures;
+    this.em = em;
     this.horloge = horloge;
   }
 
@@ -41,9 +45,15 @@ public class TirageRelecteur {
     return candidats.isEmpty() ? Optional.empty() : Optional.of(candidats.get(aleatoire.nextInt(candidats.size())));
   }
 
-  /** Assigne un relecteur à l'exercice s'il n'en a pas encore (RG6) et qu'un candidat existe. */
+  /**
+   * Assigne un relecteur à l'exercice s'il n'en a pas encore (RG6) et qu'un candidat existe.
+   * #83 : la ligne de l'exercice est verrouillée puis relue avant le tirage. Deux présences simultanées
+   * ne tirent donc plus chacune un relecteur (conflit qui annulait l'une des présences) : la seconde
+   * attend la première et trouve l'exercice déjà assigné.
+   */
   public void assigner(Exercice exercice) {
-    if (exercice.getStatut() != StatutExercice.DEPOSE) {
+    em.refresh(exercice, LockModeType.PESSIMISTIC_WRITE);
+    if (exercice.getStatut() != StatutExercice.DEPOSE || relectures.findByExerciceId(exercice.getId()).isPresent()) {
       return;
     }
     choisir(presences.etudiantsPresents(exercice.getSessionId()), exercice.getAuteurId(), ALEATOIRE)
