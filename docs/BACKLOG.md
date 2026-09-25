@@ -41,6 +41,7 @@ Priorités : **Must** = `priority :: high` (milestone `v0.1`) · **Should** = `p
 | B24 · #26 | [Frontend] Le formateur consulte le tableau sans recalcul côté client | front-end | feature | high | EF10, F3 | moyenne `null` affichée « — » |
 | B25 · #27 | [DevOps] L'application démarre en une commande avec des données de démonstration | devops | chore | high | ENF5 | `docker compose up` depuis un clone vierge ; README testé |
 | B26 · #28 | [QA] Recette v0.1 : scénarios R1 à R7 rejoués et prouvés | qa | chore | high | — | rapport dans la PR du jalon |
+| B39 · #48 | [DevOps] L'analyse SonarQube est branchée à l'éditeur et au cycle de ticket | devops | chore | high | ENF9 | projet créé ; binding `.vscode/settings.json` ; DoD = Quality Gate TEFO CBS |
 
 ## v1.0 — stories Should (étape 4)
 

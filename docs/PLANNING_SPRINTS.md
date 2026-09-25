@@ -1,7 +1,7 @@
 # Planning des sprints — 25/09/2026
 
 **Public :** toutes les équipes. **Échéance non négociable : dépôt de la soumission avant 18h00.**
-Numéros d'issue : voir [BACKLOG.md](BACKLOG.md). Règle de travail : un ticket suit le cycle complet (branche → commits → PR → CI → merge → test sur `main`) **avant** que le suivant commence ([CONTRIBUTING.md](CONTRIBUTING.md)).
+Numéros d'issue : voir [BACKLOG.md](BACKLOG.md). Règle de travail : un ticket suit le cycle complet (branche → commits → analyse SonarQube → PR → CI → merge → test sur `main`) **avant** que le suivant commence ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Vue d'ensemble
 
@@ -49,7 +49,8 @@ Numéros d'issue : voir [BACKLOG.md](BACKLOG.md). Règle de travail : un ticket 
 | 14h25 | Backend | Gestion centralisée des erreurs `{code, message}` | #11 |
 | 14h30 | Backend | Données de démonstration `V2__donnees_demo.sql` | #12 |
 | 14h40 | Frontend/DevOps | Angular 17 (script corrigé), Tailwind + tokens design, `core/api`, intercepteur | #13 |
-| 14h40 | DevOps | Workflow CI (build + tests + job Sonar conditionnel) — livré avec #10 | #10 |
+| 13h45 | DevOps | SonarQube connecté : projet, binding VS Code, DoD (Quality Gate TEFO CBS) | #48 |
+| 14h40 | DevOps | Workflow CI (build + tests + régression ; Sonar reste local, serveur privé) — livré avec #10 | #10 |
 
 ### S2b — Stories Must (14h40 → 16h15)
 
