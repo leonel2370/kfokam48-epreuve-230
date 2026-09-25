@@ -59,7 +59,7 @@ describe('FormateurComponent (SF-2, RG26)', () => {
     fixture.detectChanges();
     http.expectOne('/api/promotions').flush([P1, P2]);
     http.expectOne('/api/sessions?promotionId=2').flush([]);
-    expect(fixture.componentInstance.promotionId).toBe(2);
+    expect(fixture.componentInstance.promotionChoisie).toBe(2);
     fixture.destroy();
   });
 });
