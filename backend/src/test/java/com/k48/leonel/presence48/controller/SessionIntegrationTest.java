@@ -105,4 +105,22 @@ class SessionIntegrationTest {
     mvc.perform(get("/api/sessions").param("promotionId", String.valueOf(promo("P2-2026"))).session(etudiant))
         .andExpect(status().isForbidden());
   }
+
+  /** Régression #98 : un étudiant ne voit jamais le code de présence (RG2) ; le formateur le voit. */
+  @Test
+  void testRegression98CodeMasquePourLEtudiant() throws Exception {
+    mvc.perform(post("/api/sessions").contentType(MediaType.APPLICATION_JSON)
+            .content(corps("TP code", promo("P1-2026"))))
+        .andExpect(status().isCreated());
+    mvc.perform(get("/api/sessions").param("promotionId", String.valueOf(promo("P1-2026")))
+            .session(connecter(mvc, "awa", MDP_ETUDIANT)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].code").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.nullValue())));
+    mvc.perform(get("/api/sessions").param("promotionId", String.valueOf(promo("P1-2026")))
+            .session(connecter(mvc, "formateur", MDP_FORMATEUR)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[?(@.titre == 'TP code')].code").value(org.hamcrest.Matchers.hasSize(1)))
+        .andExpect(jsonPath("$[?(@.titre == 'TP code')].code").value(
+            org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.matchesPattern("[A-HJ-NP-Z2-9]{6}"))));
+  }
 }
