@@ -52,10 +52,16 @@ Chaque entrée répond aux trois mêmes questions :
 ## Étape 4 — Version finale
 
 **Fait :**
+- `CHANGELOG.md` au format Keep a Changelog : chaque entrée renvoie à son issue et à sa PR.
+- Backlog restant **trié** avec la raison de chaque rang (`docs/BACKLOG.md`).
+- README **testé depuis un clone vierge**, dans un dossier vide et avec ses seules commandes (`git clone` puis `docker compose up --build`) : 4 migrations appliquées, données de démonstration, interface servie, connexion `paul` OK.
+- Puis `[JALON] v1.0` et le tag `v1.0.0`.
 
 **Bloqué :**
+- Réseau lent : le premier build Docker a pris environ 10 min (images et dépendances Maven). Les suivants utilisent le cache.
+- Le dépôt de l'épreuve Git (étape 5) n'est pas faisable : `git-lab.bundle` est introuvable sur le poste.
 
-**IA :**
+**IA :** Claude a rédigé le CHANGELOG à partir de `git log --merges`. Je l'ai vérifié en recoupant chaque numéro de PR avec la liste des PR fusionnées renvoyée par l'API GitHub. Le README a été vérifié par une exécution réelle depuis un clone neuf, pas par relecture.
 
 ---
 
