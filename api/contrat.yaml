@@ -444,10 +444,10 @@ paths:
     post:
       tags: [securite]
       operationId: deconnecter
-      summary: Se déconnecter (SF-16) — invalide la session côté serveur
+      summary: "Se déconnecter (SF-16) — invalide la session côté serveur ; renvoie 204 même sans session (idempotent). Jeton CSRF exigé."
       responses:
-        "204": { description: Session invalidée }
-        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+        "204": { description: Session invalidée (ou déjà absente) }
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (jeton CSRF absent)
 
   /api/moi:
     get:
