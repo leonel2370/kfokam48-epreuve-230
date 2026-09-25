@@ -43,12 +43,16 @@ Mots de passe de démonstration uniquement : à changer hors démonstration.
 
 ## Parcours de démonstration (écrans imposés F2)
 
-1. **Formateur** (`/formateur`) : choisir `P1-2026`, saisir un titre, **Ouvrir** → le code s'affiche avec son expiration (15 min). Le lien **Voir le tableau** mène au tableau de la promotion.
-2. **Étudiant** (`/etudiant`, conçu pour mobile) : choisir `P1-2026` puis `Paul Mbarga`, saisir le code → présence enregistrée. Refaire avec `Hugo Talla`, puis déposer un lien `https://…` : Paul, présent, est tiré au sort comme relecteur (statut `EN_ATTENTE_RELECTURE`).
-3. **Relecteur** (`/relecteur`) : se connecter avec `paul` / `Etudiant48`, noter l'exercice, confirmer l'envoi définitif.
-4. **Tableau** : présences, exercices, moyenne (calculée par le serveur, « — » sans note) et relectures en attente.
+Chacun se connecte sur **http://localhost:4200** et arrive dans l'espace de son rôle. Pour jouer plusieurs personnes en même temps, ouvrir une fenêtre de navigation privée par compte.
 
-Les 5 opérations imposées par le contrat restent publiques (RG22). Les autres routes exigent une session (cookie HttpOnly, SameSite=Strict, jeton XSRF).
+1. **Formateur** (`formateur` / `Formateur48`) : **Mes sessions** → saisir un titre, **Ouvrir** → le code s'affiche en grand avec son expiration (15 min) et la session apparaît dans la liste. **Voir le tableau** mène au tableau de la promotion.
+2. **Étudiants** (`awa`, `paul`, `lina` / `Etudiant48`, idéalement sur téléphone) : **Mon espace** → saisir le code → « Présence enregistrée ». Aucun nom à choisir : l'identité vient du compte.
+3. **Awa** dépose un lien `https://…` en choisissant la session : deux relecteurs parmi les présents (Paul et Lina) sont tirés au sort (statut `EN_ATTENTE_RELECTURE`).
+4. **Paul** puis **Lina** : la relecture apparaît dans « Mes relectures à faire » → note, commentaire, envoi définitif. Après la première note, Awa voit une note **provisoire** ; après la seconde, la moyenne **définitive**.
+5. **Tableau** (formateur) : présences, exercices, moyenne calculée par le serveur (« — » sans note) et relectures en attente.
+6. **Administrateur** (`admin` / `admin`) : changement de mot de passe imposé au premier accès, puis **Administration** : toutes les promotions et leurs tableaux.
+
+Un étudiant qui tape l'adresse d'un autre espace est renvoyé dans le sien. Les 5 opérations imposées par le contrat restent appelables sans session (RG22, pour la correction automatique). Les autres routes exigent une session (cookie HttpOnly, SameSite=Strict, jeton XSRF).
 
 ## Développement sans Docker
 
