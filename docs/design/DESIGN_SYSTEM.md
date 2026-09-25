@@ -52,6 +52,8 @@ Couleurs **métier** (ajout PRESENCE48, pour les badges de statut) : succès `14
 | Skeleton | listes et tableau | état de chargement |
 | Dialog (alert-dialog) | relecture, clôture | confirmation d'une action **définitive** (RG10, RG18) |
 | Toast (sonner) | après succès | « Présence enregistrée », disparition automatique |
+| Navigation *(v3, #104)* | en-tête, onglets étudiant, tableau, admin | **toujours un Button**, jamais un lien texte : `ghost` pour les menus et onglets (actif = fond `accent` + `aria-current="page"`), `outline` pour « Retour », « Voir le tableau », « Sessions » |
+| Bouton d'exercice *(v3, #104)* | relecture, mes notes | Button `outline` « Ouvrir l'exercice » (nouvel onglet, `noopener`/`noreferrer`, http(s) seulement) + adresse en `muted-foreground` dessous, coupée proprement sur mobile |
 
 **États obligatoires de chaque écran :** chargement (Skeleton) · erreur (Alert avec le `message` de l'API, jamais un texte inventé côté client) · vide (texte explicatif et action suivante) · données.
 
@@ -75,7 +77,7 @@ Couleurs **métier** (ajout PRESENCE48, pour les badges de statut) : succès `14
 | [profil.html](templates/profil.html) *(v2)* | Tous | Qui suis-je (nom, identifiant, rôle, promotion), changement de mot de passe, bandeau « changement obligatoire » (RG23) |
 | [admin-utilisateurs.html](templates/admin-utilisateurs.html) *(v2)* | Administrateur | Liste des comptes, rôles, désactivation, dialogue de création avec erreur 409 |
 
-**En-tête v2 :** nom et rôle de l'utilisateur connecté (lien vers le profil) et bouton « Se déconnecter ». Dans les templates, la barre de navigation liste **tous** les écrans pour faciliter la revue ; l'application réelle n'affiche **que les menus du rôle** (§2 bis du cahier). L'écran Étudiant gagne un champ **pièce jointe** (fichier ou .zip, 10 Mo, RG30).
+**En-tête v3 (#104) :** menus du rôle, nom et rôle de l'utilisateur connecté (bouton vers le profil) et bouton « Se déconnecter » : **aucun lien texte**, tout est bouton (§3, ligne Navigation). L'espace étudiant ajoute sous l'en-tête une barre de trois boutons-onglets : Présence et dépôt · Mes notes · Mes relectures (écran relecteur, F2). Dans les templates, la barre de navigation liste **tous** les écrans pour faciliter la revue ; l'application réelle n'affiche **que les menus du rôle** (§2 bis du cahier). L'écran Étudiant gagne un champ **pièce jointe** (fichier ou .zip, 10 Mo, RG30).
 
 Chaque template montre ses états chargement / erreur / vide dans une section « États ». Ouvrir le fichier dans un navigateur ; Tailwind est chargé par CDN **pour la maquette uniquement**. Le frontend l'installe par npm.
 
