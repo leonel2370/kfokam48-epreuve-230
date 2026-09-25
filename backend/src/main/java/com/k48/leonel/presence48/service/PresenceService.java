@@ -32,15 +32,17 @@ public class PresenceService {
   private final EtudiantRepository etudiants;
   private final PresenceRepository presences;
   private final TentativeCodeRepository tentatives;
+  private final TirageRelecteur tirage;
   private final ControleAcces acces;
   private final Clock horloge;
 
-  public PresenceService(SessionCoursRepository sessions, EtudiantRepository etudiants,
-      PresenceRepository presences, TentativeCodeRepository tentatives, ControleAcces acces, Clock horloge) {
+  public PresenceService(SessionCoursRepository sessions, EtudiantRepository etudiants, PresenceRepository presences,
+      TentativeCodeRepository tentatives, TirageRelecteur tirage, ControleAcces acces, Clock horloge) {
     this.sessions = sessions;
     this.etudiants = etudiants;
     this.presences = presences;
     this.tentatives = tentatives;
+    this.tirage = tirage;
     this.acces = acces;
     this.horloge = horloge;
   }
@@ -82,6 +84,7 @@ public class PresenceService {
       throw new MetierException(HttpStatus.CONFLICT, "DEJA_PRESENT", "Votre présence est déjà enregistrée.");
     }
     var presence = presences.save(new Presence(session.getId(), etudiantId, SourcePresence.ETUDIANT, maintenant));
+    tirage.reessayer(session.getId());
     return new PresenceReponse(presence.getId(), presence.getSessionId(), presence.getEtudiantId(),
         presence.getSource());
   }
