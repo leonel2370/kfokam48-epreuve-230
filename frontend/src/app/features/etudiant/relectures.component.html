@@ -13,7 +13,7 @@
       <button type="submit" [disabled]="!peutEnvoyer(r.id)">Envoyer (définitif)</button>
     </form>
   } @empty { <p class="discret">Aucune relecture en attente.</p> }
-  @if (message()) { <p class="succes" role="status">{{ message() }}</p> }
+  @if (message()) { <output class="succes">{{ message() }}</output> }
   <app-erreur [erreur]="erreur()" />
 </section>
 

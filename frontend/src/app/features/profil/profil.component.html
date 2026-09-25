@@ -18,7 +18,7 @@
         </label>
         <button type="submit" [disabled]="!ancien || nouveau.length < longueurMin">Enregistrer</button>
       </form>
-      @if (ok()) { <p class="succes" role="status">Mot de passe changé.</p> }
+      @if (ok()) { <output class="succes">Mot de passe changé.</output> }
       <app-erreur [erreur]="erreur()" />
     </section>
   }
