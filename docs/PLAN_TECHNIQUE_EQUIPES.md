@@ -41,7 +41,7 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 | Migrations | **Flyway** | 10 | SQL lisible et diffable, versions ordonnées (B5), relu en revue | Liquibase : XML/YAML plus lourd à relire |
 | Base de données | **PostgreSQL** | 16 | Contraintes UNIQUE et CHECK fiables, `timestamptz` pour les expirations (RG1) | MySQL : fuseaux horaires moins stricts |
 | Base de test | **H2 (mode PostgreSQL)** puis **Testcontainers** si le temps le permet | 2.x / 1.20 | Les tests tournent sur un poste vierge sans base locale (B6) | Base locale : interdite par B6 |
-| Documentation d'API | **springdoc-openapi** | 2.x | Swagger UI pour comparer l'implémentation au contrat | — |
+| Documentation d'API | **springdoc-openapi** | 3.1.1 (branche 3.x, compatible Spring Boot 4) | Swagger UI sur `/swagger-ui.html` : contrat de référence et doc générée côte à côte (#96) | 2.x : incompatible avec Spring Boot 4 |
 | Mapping | **MapStruct** | 1.6 | Mapping entité ↔ DTO généré à la compilation, pas de réflexion | ModelMapper : erreurs à l'exécution |
 | Tests backend | **JUnit 5, Mockito, AssertJ, JaCoCo** | — | Standard Spring ; JaCoCo alimente Sonar | — |
 | Langage frontend | **TypeScript** (mode `strict`) | 5.4 | Les modèles typés du contrat détectent les écarts à la compilation | JavaScript : erreurs à l'exécution |

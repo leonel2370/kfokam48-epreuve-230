@@ -1,0 +1,7 @@
+# Contexte du build backend (racine) : seuls backend/ et api/ sont utiles.
+*
+!backend/.mvn
+!backend/mvnw
+!backend/pom.xml
+!backend/src
+!api/contrat.yaml

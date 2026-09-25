@@ -33,3 +33,13 @@ server:
       enabled: false
     include-stacktrace: never
     include-message: never
+
+# Swagger UI (#96) : http://localhost:8080/swagger-ui.html — le contrat de référence d'abord, puis la doc générée.
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Contrat (référence)
+        url: /contrat.yaml
+      - name: Implémentation (générée)
+        url: /v3/api-docs
+    urls-primary-name: Contrat (référence)

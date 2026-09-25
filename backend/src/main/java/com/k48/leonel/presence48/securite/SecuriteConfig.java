@@ -29,7 +29,10 @@ public class SecuriteConfig {
 
   private static final Set<String> METHODES_SURES = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
 
-  /** Routes publiques (RG22). Sans session, les opérations imposées se comportent comme en v1 (B2). */
+  /**
+   * Routes publiques (RG22). Sans session, les opérations imposées se comportent comme en v1 (B2).
+   * La documentation Swagger (#96) est publique, en lecture seule.
+   */
   static RequestMatcher[] routesPubliques() {
     var m = PathPatternRequestMatcher.withDefaults();
     return new RequestMatcher[] {
@@ -40,7 +43,13 @@ public class SecuriteConfig {
         m.matcher(HttpMethod.POST, "/api/relectures/{id}"),
         m.matcher(HttpMethod.GET, "/api/tableau"),
         m.matcher(HttpMethod.GET, "/api/promotions"),
-        m.matcher(HttpMethod.GET, "/api/promotions/{promotionId}/etudiants")
+        m.matcher(HttpMethod.GET, "/api/promotions/{promotionId}/etudiants"),
+        // #96 : documentation de l'API, en lecture seule
+        m.matcher(HttpMethod.GET, "/swagger-ui.html"),
+        m.matcher(HttpMethod.GET, "/swagger-ui/**"),
+        m.matcher(HttpMethod.GET, "/v3/api-docs/**"),
+        m.matcher(HttpMethod.GET, "/v3/api-docs"),
+        m.matcher(HttpMethod.GET, "/contrat.yaml")
     };
   }
 
