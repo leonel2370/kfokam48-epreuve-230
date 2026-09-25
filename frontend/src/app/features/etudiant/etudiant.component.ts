@@ -1,28 +1,30 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Etudiant, ErreurApi, ExerciceDepose, Promotion } from '../../core/api/api.models';
+import { ErreurApi, ExerciceDepose, Session } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
-import { IdentiteService } from '../../core/identite/identite.service';
+import { AuthService } from '../../core/auth/auth.service';
 import { ErreurComponent } from '../../shared/erreur.component';
 import { MesNotesComponent } from './mes-notes.component';
+import { RelecturesComponent } from './relectures.component';
 
-/** Écran étudiant, mobile d'abord (ENF1) : identité (SF-1), présence par code (SF-3), dépôt (SF-6). */
+/**
+ * Espace étudiant, mobile d'abord (ENF1). Une seule connexion : l'identité vient du compte (HYP-15),
+ * plus de choix du nom dans une liste. Présence (SF-3), dépôt (SF-6), notes (SF-14), relectures (SF-8, SF-9).
+ */
 @Component({
   selector: 'app-etudiant',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, MesNotesComponent],
-  styles: [':host main { max-width: 28rem; }'],
+  imports: [FormsModule, ErreurComponent, MesNotesComponent, RelecturesComponent],
+  styles: [':host main { max-width: 36rem; }'],
   template: `
     <main>
-      @if (identite.identite(); as moi) {
-        <p class="ligne">Bonjour {{ moi.nom }} <button class="secondaire" (click)="identite.oublier()">Changer</button></p>
-
+      @if (etudiantId(); as moi) {
         <section class="carte">
           <h2>Présence</h2>
-          <form class="ligne" (ngSubmit)="marquer(moi.etudiantId)">
-            <label>Code
+          <form class="ligne" (ngSubmit)="marquer(moi)">
+            <label>Code affiché en salle
               <input name="code" [(ngModel)]="code" required autocomplete="off" autocapitalize="characters"
-                     inputmode="text" maxlength="12" placeholder="K7MX4Q" />
+                     maxlength="12" placeholder="K7MX4Q" />
             </label>
             <button type="submit" [disabled]="!code.trim()">Valider</button>
           </form>
@@ -31,83 +33,63 @@ import { MesNotesComponent } from './mes-notes.component';
         </section>
 
         <section class="carte">
-          <h2>Mon exercice</h2>
-          <form class="ligne" (ngSubmit)="deposer(moi.etudiantId)">
-            <label>Session n°
-              <input name="session" type="number" [(ngModel)]="sessionId" required min="1" />
+          <h2>Déposer mon exercice</h2>
+          <form class="ligne" (ngSubmit)="deposer(moi)">
+            <label>Session
+              <select name="session" [(ngModel)]="sessionId" required>
+                <option [ngValue]="null" disabled>Choisir…</option>
+                @for (s of sessionsOuvertes(); track s.id) { <option [ngValue]="s.id">{{ s.titre }}</option> }
+              </select>
             </label>
             <label>Lien
               <input name="lien" type="url" [(ngModel)]="lien" required placeholder="https://github.com/…" />
             </label>
             <button type="submit" [disabled]="!sessionId || !lien.trim()">Déposer</button>
           </form>
-          <p class="discret">La session est renseignée automatiquement après la validation du code.</p>
           @if (depot(); as d) {
             <p class="succes" role="status">Exercice déposé — statut <span class="badge" [class]="d.statut">{{ d.statut }}</span></p>
           }
           <app-erreur [erreur]="erreurDepot()" />
         </section>
 
-        <app-mes-notes [etudiantId]="moi.etudiantId" />
+        <app-mes-notes [etudiantId]="moi" />
+        <app-relectures [etudiantId]="moi" />
       } @else {
-        <section class="carte">
-          <h2>Qui êtes-vous ?</h2>
-          <label>Promotion
-            <select name="promotion" [ngModel]="promotionId" (ngModelChange)="choisirPromotion($event)">
-              <option [ngValue]="null" disabled>Choisir…</option>
-              @for (p of promotions(); track p.id) { <option [ngValue]="p.id">{{ p.nom }}</option> }
-            </select>
-          </label>
-          @if (etudiants().length > 0) {
-            <label>Votre nom
-              <select name="etudiant" [ngModel]="null" (ngModelChange)="choisirEtudiant($event)">
-                <option [ngValue]="null" disabled>Choisir…</option>
-                @for (e of etudiants(); track e.id) { <option [ngValue]="e">{{ e.nom }}</option> }
-              </select>
-            </label>
-          }
-          <app-erreur [erreur]="erreurIdentite()" />
-        </section>
+        <p class="alerte">Ce compte n'est lié à aucune fiche étudiant.</p>
       }
     </main>
   `,
 })
 export class EtudiantComponent implements OnInit {
   private readonly api = inject(ApiService);
-  readonly identite = inject(IdentiteService);
+  private readonly auth = inject(AuthService);
+  private readonly notes = viewChild(MesNotesComponent);
 
-  readonly promotions = signal<Promotion[]>([]);
-  readonly etudiants = signal<Etudiant[]>([]);
-  readonly erreurIdentite = signal<ErreurApi | null>(null);
+  readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
+  private readonly promotionId = computed(() => this.auth.profil()?.promotionIds[0] ?? null);
+  readonly sessions = signal<Session[]>([]);
+  /** RG18 : une session clôturée n'accepte plus de dépôt ; le serveur le vérifie de toute façon. */
+  readonly sessionsOuvertes = computed(() => this.sessions().filter(s => s.statut === 'OUVERTE'));
   readonly presenceOk = signal(false);
   readonly erreurPresence = signal<ErreurApi | null>(null);
   readonly depot = signal<ExerciceDepose | null>(null);
   readonly erreurDepot = signal<ErreurApi | null>(null);
 
-  promotionId: number | null = null;
   code = '';
   sessionId: number | null = null;
   lien = '';
 
   ngOnInit(): void {
-    this.api.promotions().subscribe({ next: p => this.promotions.set(p), error: (e: ErreurApi) => this.erreurIdentite.set(e) });
-  }
-
-  choisirPromotion(promotionId: number): void {
-    this.promotionId = promotionId;
-    this.api.etudiants(promotionId).subscribe({
-      next: e => this.etudiants.set(e),
-      error: (e: ErreurApi) => this.erreurIdentite.set(e),
-    });
-  }
-
-  choisirEtudiant(etudiant: Etudiant): void {
-    if (this.promotionId) {
-      this.identite.choisir({ promotionId: this.promotionId, etudiantId: etudiant.id, nom: etudiant.nom });
+    const promotionId = this.promotionId();
+    if (promotionId) {
+      this.api.sessions(promotionId).subscribe({
+        next: s => this.sessions.set(s),
+        error: (e: ErreurApi) => this.erreurDepot.set(e),
+      });
     }
   }
 
-  /** Le code est envoyé tel que saisi : la normalisation et toutes les règles sont côté serveur. */
+  /** Le code est envoyé tel que saisi : normalisation et règles côté serveur (F3). */
   marquer(etudiantId: number): void {
     this.presenceOk.set(false);
     this.erreurPresence.set(null);
@@ -124,7 +106,7 @@ export class EtudiantComponent implements OnInit {
     this.depot.set(null);
     this.erreurDepot.set(null);
     this.api.deposerExercice(this.sessionId, etudiantId, this.lien.trim()).subscribe({
-      next: d => this.depot.set(d),
+      next: d => { this.depot.set(d); this.lien = ''; this.notes()?.charger(); },
       error: (e: ErreurApi) => this.erreurDepot.set(e),
     });
   }
