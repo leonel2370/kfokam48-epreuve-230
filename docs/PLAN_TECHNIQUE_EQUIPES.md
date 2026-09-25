@@ -35,6 +35,8 @@ Critères de choix, par ordre de poids : **contraintes du sujet** (B1–B6, F1�
 | Framework backend | **Spring Boot** | 4.1.1 | Imposé ; dernière version stable proposée par Spring Initializr le 25/09 (la 3.3 prévue n'y figure plus) ; starters modulaires (`webmvc`, `flyway`), Hibernate 7 | Spring Boot 3.x : fin de support en cours |
 | Build | **Maven + wrapper `mvnw`** | 3.9 | Imposé (B1) ; build identique partout | Gradle : hors contrainte |
 | Persistance | **Spring Data JPA / Hibernate** | 7.x | Repositories déclaratifs, requêtes agrégées JPQL pour le tableau | JDBC Template : plus verbeux |
+| Sécurité *(v2)* | **Spring Security** | 7 (Boot 4.1) | Session serveur + cookie HttpOnly (vraie déconnexion, pas de jeton en localStorage), BCrypt, CSRF par cookie repris nativement par Angular, `@PreAuthorize` par rôle ; réponses 401/403 branchées sur `{code, message}` | JWT : déconnexion impossible sans liste noire, jeton exposé au XSS s'il est stocké côté navigateur |
+| Stockage de fichiers *(v2)* | **Disque local** (`UPLOAD_DIR`, volume Docker) | — | Simple, sans service externe ; fichiers jamais servis en statique, uniquement via l'API contrôlée | S3/MinIO : service de plus à exploiter pour l'épreuve |
 | Validation | **Jakarta Bean Validation** | 3 | `@Valid` sur les DTO, erreurs 400 homogènes (B4) | Validation manuelle : dupliquée |
 | Migrations | **Flyway** | 10 | SQL lisible et diffable, versions ordonnées (B5), relu en revue | Liquibase : XML/YAML plus lourd à relire |
 | Base de données | **PostgreSQL** | 16 | Contraintes UNIQUE et CHECK fiables, `timestamptz` pour les expirations (RG1) | MySQL : fuseaux horaires moins stricts |

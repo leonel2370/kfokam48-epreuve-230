@@ -30,3 +30,6 @@ Thumbs.db
 
 # --- Outils locaux ---
 .claude/
+
+# --- Pièces jointes déposées (v2) ---
+uploads/

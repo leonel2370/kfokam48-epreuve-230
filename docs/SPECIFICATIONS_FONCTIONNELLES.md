@@ -1,6 +1,6 @@
 # Spécifications fonctionnelles détaillées — PRESENCE48
 
-**Version :** 1 · **Date :** 2026-09-25 · **Auteur :** nono leonel (230)
+**Version :** 2 · **Date :** 2026-09-25 (v2 : sécurité, rôles, CRUD, pièce jointe — #54) · **Auteur :** nono leonel (230)
 **Référence :** [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md). En cas de divergence, **le cahier des charges fait foi** ; ce document le détaille sans rien y ajouter.
 
 ## Sommaire
@@ -27,6 +27,12 @@
 | Exercices | SF-6, SF-13, SF-14 | E3 Exercices | Étudiant |
 | Relecture | SF-7, SF-8, SF-9 | E4 Relecture | Relecteur |
 | Pilotage | SF-10 | E5 Pilotage | Formateur |
+| Authentification *(v2)* | SF-15 à SF-18 | E6 Accès | Connexion, Profil |
+| Droits *(v2)* | SF-19 | E6 Accès | tous |
+| Administration *(v2)* | SF-20 à SF-23 | E7 Administration | Administration |
+| Pièce jointe *(v2)* | SF-24 | E3 Exercices | Étudiant |
+
+> **v2 :** toutes les routes exigent une session **sauf les 5 opérations imposées** (RG22). Matrice des droits : [cahier §2 bis](CAHIER_DES_CHARGES.md#2-bis-matrice-des-droits-par-rôle-v2). Arborescence v2 : `/connexion` (public) → redirection selon le rôle vers `/admin`, `/formateur` ou `/etudiant` ; `/profil` pour tous ; en-tête avec le nom connecté et « Se déconnecter ».
 
 ### 1.2 Arborescence
 
@@ -187,6 +193,60 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 - **Acteur :** Étudiant. `GET /api/etudiants/{id}/exercices` → statut, note et commentaire, **sans relecteur** (RG8).
 
+> **v2 — validation automatique de la présence (RG21, EF26) :** SF-3 enregistre la présence **dès** qu'un code valide est soumis. Il n'existe ni état « à valider » ni action du formateur ; la présence apparaît aussitôt dans le tableau.
+
+### SF-15 — Se connecter · EF15, EF18 · Must *(v2)*
+
+- **Acteur :** tout utilisateur. **Endpoint :** `POST /api/auth/login {login, motDePasse}` (public).
+- **Flux nominal :** compte trouvé et actif → non bloqué (RG24) → mot de passe BCrypt correct → session créée (cookie `JSESSIONID` HttpOnly, SameSite=Strict) + cookie `XSRF-TOKEN` → `200 {id, login, nomAffiche, role, etudiantId, doitChangerMotDePasse}` → le frontend redirige selon le rôle, ou vers « Changer le mot de passe » si `doitChangerMotDePasse`.
+- **Erreurs :** `400 CHAMP_MANQUANT` · `401 IDENTIFIANTS_INVALIDES` (même message que le login existe ou non, pour ne pas révéler les comptes) · `403 COMPTE_DESACTIVE` · `429 TROP_DE_TENTATIVES` (5 échecs, 2 min).
+- **Règles :** RG23, RG24, RG28.
+
+### SF-16 — Se déconnecter · EF15 · Must *(v2)*
+
+- `POST /api/auth/logout` → session invalidée côté serveur, cookies effacés → `204`. Toute requête suivante avec l'ancien cookie → `401 NON_AUTHENTIFIE`.
+
+### SF-17 — Voir son profil · EF16 · Must *(v2)*
+
+- `GET /api/moi` → `200 {id, login, nomAffiche, role, etudiantId, promotionIds, doitChangerMotDePasse}` ; sans session → `401`. Sert au frontend à savoir « qui est qui » et quels menus afficher.
+- `GET /api/moi/recap` (ETUDIANT) → sa propre ligne de tableau (présences, exercices, moyenne, relectures en attente).
+
+### SF-18 — Changer son mot de passe · EF17, EF18 · Must *(v2)*
+
+- `PUT /api/moi/mot-de-passe {ancien, nouveau}` → ancien correct et nouveau ≥ 8 caractères, différent de l'ancien → haché BCrypt, `doit_changer_mot_de_passe=false` → `204`.
+- **Erreurs :** `400 MOT_DE_PASSE_TROP_FAIBLE` · `401 IDENTIFIANTS_INVALIDES` (ancien faux).
+- **Premier login admin (RG23) :** tant que le changement n'est pas fait, toute route sauf `/api/moi`, `/api/moi/mot-de-passe` et `/api/auth/logout` → `403 CHANGEMENT_MOT_DE_PASSE_REQUIS`.
+
+### SF-19 — Contrôle d'accès par rôle · EF19, EF20 · Must *(v2)*
+
+- **Routes publiques :** `POST /api/auth/login`, les 5 opérations imposées, et `GET /api/promotions` + `GET /api/promotions/{id}/etudiants` (sélection du nom pour les opérations imposées). Tout le reste : session obligatoire → `401 NON_AUTHENTIFIE`.
+- **Rôle insuffisant** → `403 ACCES_REFUSE` ; **formateur hors de ses promotions** (RG26) → `403 ACCES_REFUSE`.
+- **Opérations imposées** (`POST /api/sessions`, `POST /api/presences`, `POST /api/exercices`, `POST /api/relectures/{id}`, `GET /api/tableau`) : **sans session**, comportement v1 inchangé (B2). **Avec une session**, les contrôles s'ajoutent : identité (`etudiantId` du corps, `X-Etudiant-Id`) = utilisateur connecté, sinon `403 IDENTITE_DIFFERENTE` ; ouverture de session et tableau réservés à ADMIN et au FORMATEUR de la promotion, sinon `403 ACCES_REFUSE` (atténuation de RISQUE-1).
+- **CSRF :** routes protégées en écriture → en-tête `X-XSRF-TOKEN` exigé (Angular l'ajoute automatiquement) → sinon `403 ACCES_REFUSE`. Pas de CSRF sur les routes publiques.
+
+### SF-20 — Gérer les comptes · EF21 · Should *(v2)*
+
+- **Acteur :** ADMIN. `GET /api/utilisateurs?page&size` · `POST /api/utilisateurs {login, nomAffiche, role, motDePasseInitial, etudiantId?}` (compte créé avec `doitChangerMotDePasse=true`) · `PUT /api/utilisateurs/{id} {nomAffiche, role, actif, etudiantId?}` · `POST /api/utilisateurs/{id}/reinitialiser-mot-de-passe {motDePasseInitial}` · `DELETE /api/utilisateurs/{id}` = désactivation (RG28).
+- **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver le dernier admin actif).
+
+### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2)*
+
+- **ADMIN :** `POST/PUT/DELETE /api/promotions[/{id}]` (DELETE refusé si étudiants ou sessions → `409 SUPPRESSION_IMPOSSIBLE`) ; `PUT /api/promotions/{id}/formateurs {utilisateurIds[]}`. Lecture : ADMIN toutes, FORMATEUR les siennes, ETUDIANT la sienne.
+
+### SF-22 — Gérer les fiches étudiants · EF23 · Should *(v2)*
+
+- **ADMIN et FORMATEUR (dans ses promotions) :** `POST /api/etudiants {nom, promotionId}` · `PUT /api/etudiants/{id}` · `DELETE /api/etudiants/{id}` = désactivation si historique (RG28). Un étudiant désactivé n'apparaît plus dans les listes de sélection mais reste dans le tableau.
+
+### SF-23 — Modifier ou supprimer une session · EF24 · Should *(v2)*
+
+- **FORMATEUR (ses promotions) et ADMIN :** `PUT /api/sessions/{id} {titre}` · `DELETE /api/sessions/{id}` → refusé si présences ou exercices (`409 SUPPRESSION_IMPOSSIBLE`, RG29). `DELETE /api/presences/{id}` : uniquement une présence de source FORMATEUR, session non clôturée.
+
+### SF-24 — Joindre un fichier à son exercice · EF25 · Should *(v2)*
+
+- **Acteur :** ETUDIANT auteur. `POST /api/exercices/{id}/fichier` (multipart, champ `fichier`) → contrôle taille (≤ 10 Mo), extension et type → stocké sous `UPLOAD_DIR/exercices/{id}/` avec un nom généré (jamais le nom fourni, pour éviter les chemins malveillants) → `200 ExerciceAuteur`. Remplacement autorisé tant que non RELU (RG14, RG30). `DELETE` idem.
+- `GET /api/exercices/{id}/fichier` → téléchargement (`Content-Disposition: attachment`) pour l'auteur, le relecteur assigné, le formateur de la promotion et l'admin ; sinon `403`.
+- **Erreurs :** `413 FICHIER_TROP_VOLUMINEUX` · `415 TYPE_FICHIER_REFUSE` · `404 FICHIER_INTROUVABLE` · `409 EXERCICE_DEJA_RELU` · `409 SESSION_CLOTUREE`.
+
 ---
 
 ## 3. Flows
@@ -267,6 +327,26 @@ flowchart TD
 Diagrammes de référence : [D1 cas d'utilisation](diagrammes/D1-cas-utilisation.md) · [D2 données](diagrammes/D2-modele-donnees.md) · [D3 séquence présence](diagrammes/D3-sequence-presence.md) · [D4 états exercice](diagrammes/D4-etats-exercice.md).
 
 ---
+
+### 3.5 Flow de connexion *(v2)*
+
+```mermaid
+flowchart TD
+    A[Écran de connexion] --> B[POST /api/auth/login]
+    B --> C{Réponse}
+    C -- 401 IDENTIFIANTS_INVALIDES --> A
+    C -- 403 COMPTE_DESACTIVE --> X[Message : contacter l'administrateur]
+    C -- 429 --> Y[Attendre 2 minutes]
+    C -- 200 --> D{doitChangerMotDePasse ?}
+    D -- oui --> E[Écran Changer le mot de passe] --> F[PUT /api/moi/mot-de-passe] --> G
+    D -- non --> G{Rôle}
+    G -- ADMIN --> H[/admin : comptes, promotions/]
+    G -- FORMATEUR --> I[/formateur : sessions, tableau/]
+    G -- ETUDIANT --> J[/etudiant : présence, exercices, relectures/]
+    H & I & J --> K[Se déconnecter → POST /api/auth/logout → écran de connexion]
+```
+
+Séquence détaillée : [D5](diagrammes/D5-sequence-connexion.md).
 
 ## 4. User stories
 
@@ -441,6 +521,104 @@ Scénario: promotion inconnue
 
 **US-11 · Voir les exercices en attente d'une session** · Should · EF11 · RG11
 
+### Épopée E6 — Accès *(v2)*
+
+**US-15 · Me connecter et me déconnecter** · Must · EF15 · RG22, RG24
+> En tant qu'**utilisateur**, je veux me connecter avec mon identifiant et me déconnecter, afin que l'application sache qui je suis.
+
+```gherkin
+Scénario: connexion puis déconnexion
+  Quand je me connecte avec "formateur" / "Formateur48"
+  Alors je reçois 200 avec le rôle "FORMATEUR"
+  Quand je me déconnecte
+  Alors GET /api/moi me renvoie 401 {"code":"NON_AUTHENTIFIE"}
+Scénario: mauvais mot de passe
+  Quand je me connecte avec "formateur" / "faux"
+  Alors je reçois 401 {"code":"IDENTIFIANTS_INVALIDES"}
+```
+
+**US-16 · Voir qui je suis** · Must · EF16
+**US-17 · Changer mon mot de passe** · Must · EF17 · RG24
+
+**US-18 · Premier démarrage avec admin/admin** · Must · EF18 · RG23
+
+```gherkin
+Scénario: changement obligatoire
+  Étant donné une base neuve
+  Quand je me connecte avec "admin" / "admin"
+  Alors je reçois 200 avec doitChangerMotDePasse = true
+  Et GET /api/utilisateurs me renvoie 403 {"code":"CHANGEMENT_MOT_DE_PASSE_REQUIS"}
+  Quand je change le mot de passe pour "Admin-2026!"
+  Alors GET /api/utilisateurs me renvoie 200
+```
+
+**US-19 · Ne voir que ce que mon rôle autorise** · Must · EF19 · RG25, RG26
+
+```gherkin
+Scénario: étudiant sur une route formateur
+  Étant donné que je suis connecté en tant qu'étudiant
+  Quand j'appelle POST /api/sessions/1/cloture
+  Alors je reçois 403 {"code":"ACCES_REFUSE"}
+Scénario: formateur hors de ses promotions
+  Étant donné un formateur rattaché à P1 seulement
+  Quand il demande GET /api/tableau?promotionId=2
+  Alors il reçoit 403 {"code":"ACCES_REFUSE"}
+```
+
+**US-20 · Les opérations imposées restent publiques** · Must · EF20 · RG22
+
+```gherkin
+Scénario: présence sans session
+  Étant donné un code valide
+  Quand j'envoie POST /api/presences sans cookie de session
+  Alors je reçois 201 (jamais 401)
+Scénario: identité différente de la session
+  Étant donné que je suis connecté en tant qu'Awa
+  Quand j'envoie POST /api/presences avec l'etudiantId de Paul
+  Alors je reçois 403 {"code":"IDENTITE_DIFFERENTE"}
+```
+
+**US-26 · Présence validée automatiquement** · Must · EF26 · RG21
+
+```gherkin
+Scénario: aucune validation du formateur
+  Quand Awa soumet un code valide
+  Alors sa présence est enregistrée immédiatement avec source "ETUDIANT"
+  Et le tableau du formateur l'affiche sans autre action
+```
+
+### Épopée E7 — Administration *(v2)*
+
+**US-21 · Gérer les comptes** · Should · EF21 · RG27, RG28
+
+```gherkin
+Scénario: identifiant déjà pris
+  Quand l'administrateur crée le compte "awa" alors qu'il existe
+  Alors il reçoit 409 {"code":"LOGIN_DEJA_UTILISE"}
+Scénario: compte désactivé
+  Étant donné le compte "paul" désactivé
+  Quand Paul se connecte
+  Alors il reçoit 403 {"code":"COMPTE_DESACTIVE"}
+```
+
+**US-22 · Gérer promotions et rattachements** · Should · EF22 · RG26
+**US-23 · Gérer les fiches étudiants** · Should · EF23 · RG28
+**US-24 · Modifier ou supprimer mes sessions** · Should · EF24 · RG29
+
+**US-25 · Joindre un fichier à mon exercice** · Should · EF25 · RG30
+
+```gherkin
+Scénario: fichier accepté
+  Quand Awa joint "tp.zip" de 2 Mo à son exercice
+  Alors elle reçoit 200 et son relecteur peut le télécharger
+Scénario: trop volumineux
+  Quand elle joint un fichier de 11 Mo
+  Alors elle reçoit 413 {"code":"FICHIER_TROP_VOLUMINEUX"}
+Scénario: tiers non autorisé
+  Quand Marc, ni auteur ni relecteur, demande le fichier
+  Alors il reçoit 403 {"code":"ACCES_REFUSE"}
+```
+
 ---
 
 ## 5. Catalogue des codes d'erreur
@@ -472,6 +650,19 @@ Scénario: promotion inconnue
 | FORMAT_NON_SUPPORTE | 415 | Le corps de la requête doit être au format JSON. | corps non JSON |
 | CONFLIT | 409 | L'opération entre en conflit avec des données existantes. | filet de sécurité des contraintes UNIQUE (double clic, requêtes simultanées) ; les services renvoient d'abord leur code précis |
 | ERREUR_INTERNE | 500 | Une erreur inattendue est survenue. | filet de sécurité, sans stack trace |
+| NON_AUTHENTIFIE *(v2)* | 401 | Vous devez être connecté. | toute route protégée sans session |
+| IDENTIFIANTS_INVALIDES *(v2)* | 401 | Identifiant ou mot de passe incorrect. | connexion, changement de mot de passe |
+| ACCES_REFUSE *(v2)* | 403 | Vous n'avez pas les droits pour cette action. | rôle insuffisant, hors de ses promotions, CSRF absent |
+| COMPTE_DESACTIVE *(v2)* | 403 | Ce compte est désactivé. | connexion |
+| CHANGEMENT_MOT_DE_PASSE_REQUIS *(v2)* | 403 | Vous devez changer votre mot de passe avant de continuer. | RG23 |
+| IDENTITE_DIFFERENTE *(v2)* | 403 | L'identité envoyée ne correspond pas à l'utilisateur connecté. | opérations imposées appelées avec une session |
+| MOT_DE_PASSE_TROP_FAIBLE *(v2)* | 400 | Le mot de passe doit contenir au moins 8 caractères. | RG24 |
+| LOGIN_DEJA_UTILISE *(v2)* | 409 | Cet identifiant est déjà utilisé. | RG27 |
+| UTILISATEUR_INTROUVABLE *(v2)* | 404 | Cet utilisateur n'existe pas. | CRUD comptes |
+| SUPPRESSION_IMPOSSIBLE *(v2)* | 409 | Cet élément a un historique : désactivez-le plutôt. | RG28, RG29 |
+| FICHIER_TROP_VOLUMINEUX *(v2)* | 413 | Le fichier dépasse 10 Mo. | RG30 |
+| TYPE_FICHIER_REFUSE *(v2)* | 415 | Ce type de fichier n'est pas accepté. | RG30 |
+| FICHIER_INTROUVABLE *(v2)* | 404 | Aucun fichier joint à cet exercice. | RG30 |
 
 ## 6. Matrice de traçabilité
 
@@ -491,6 +682,18 @@ Scénario: promotion inconnue
 | EF12 | US-12 | RG18 | POST /sessions/{id}/cloture | SF-12 | IT `testRg18DepotApresCloture409` |
 | EF13 | US-13 | RG14 | PUT /exercices/{id} | SF-13 | IT `testRg14RemplacementApresRelecture409` |
 | EF14 | US-14 | RG8 | GET /etudiants/{id}/exercices | SF-14 | IT `testRg8ReponseSansRelecteur` |
+| EF15 | US-15 | RG22, RG24 | POST /auth/login, /auth/logout | SF-15, SF-16 | IT `testConnexionPuisDeconnexionRenvoie401` · `testMauvaisMotDePasseRenvoie401` |
+| EF16 | US-16 | RG25 | GET /moi | SF-17 | IT `testProfilRenvoieLeRole` |
+| EF17 | US-17 | RG24 | PUT /moi/mot-de-passe | SF-18 | UT `testRg24MotDePasseCourtRefuse` |
+| EF18 | US-18 | RG23 | — | SF-18 | IT `testRg23AdminDoitChangerSonMotDePasse` |
+| EF19 | US-19 | RG25, RG26 | toutes les routes protégées | SF-19 | IT `testRg25EtudiantSurRouteFormateur403` · `testRg26FormateurHorsPromotion403` |
+| EF20 | US-20 | RG22 | 5 opérations imposées | SF-19 | IT `testRg22OperationsImposeesSansSession` · `testIdentiteDifferente403` |
+| EF21 | US-21 | RG27, RG28 | /utilisateurs | SF-20 | IT `testRg27LoginDejaUtilise409` · `testRg28CompteDesactive403` |
+| EF22 | US-22 | RG26 | /promotions | SF-21 | IT |
+| EF23 | US-23 | RG28 | /etudiants | SF-22 | IT |
+| EF24 | US-24 | RG29 | PUT/DELETE /sessions/{id} | SF-23 | IT `testRg29SuppressionSessionAvecHistorique409` |
+| EF25 | US-25 | RG30 | /exercices/{id}/fichier | SF-24 | IT `testRg30FichierTropVolumineux413` · `testRg30TiersNonAutorise403` |
+| EF26 | US-26 | RG21 | POST /presences | SF-3 | IT `testRg21PresenceVisibleSansValidation` |
 
 Tests minimaux exigés (B6) : **UT `testRg5AutoRelectureRefusee`** (règle métier réelle) et **IT `POST /api/presences` 201/409/410** (endpoint).
 
@@ -509,3 +712,9 @@ Données de démonstration : P1 = Awa, Paul, Lina, Marc, … ; P2 = 6 étudiants
 | R7 | Awa consulte sa note | 16 et commentaire, sans relecteur |
 | R8 | Le formateur clôture, puis Lina tente de déposer | 409 SESSION_CLOTUREE |
 | R9 | Tableau P1 | La moyenne d'Awa inclut 16 ; les relectures non rendues sont comptées |
+| R10 *(v2)* | Première connexion `admin`/`admin` | Changement de mot de passe exigé, puis accès à l'administration |
+| R11 *(v2)* | L'admin crée le compte formateur et le rattache à P1 | Le formateur ne voit que P1 |
+| R12 *(v2)* | Awa connectée ouvre une route formateur | 403 ACCES_REFUSE ; le menu formateur n'est pas affiché |
+| R13 *(v2)* | Appel de POST /api/presences sans session (comme le correcteur) | Codes du contrat, jamais 401 |
+| R14 *(v2)* | Awa joint un .zip de 2 Mo ; Marc tente de le télécharger | 200 pour Awa et son relecteur ; 403 pour Marc |
+| R15 *(v2)* | Déconnexion puis retour arrière du navigateur | Retour à l'écran de connexion (401) |

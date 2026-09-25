@@ -43,6 +43,23 @@ Priorités : **Must** = `priority :: high` (milestone `v0.1`) · **Should** = `p
 | B26 · #28 | [QA] Recette v0.1 : scénarios R1 à R7 rejoués et prouvés | qa | chore | high | — | rapport dans la PR du jalon |
 | B39 · #48 | [DevOps] L'analyse SonarQube est branchée à l'éditeur et au cycle de ticket | devops | chore | high | ENF9 | projet créé ; binding `.vscode/settings.json` ; DoD = Quality Gate TEFO CBS |
 
+## Changement de besoin v2 — sécurité, rôles, CRUD, pièce jointe (25/09, #54)
+
+| Id | Titre | Équipe | Type | Prio | Réf. |
+|---|---|---|---|---|---|
+| B40 · #54 | [Evolution] Authentification, rôles, CRUD par profil et pièce jointe d'exercice (issue mère, analyse d'impact) | analyse | evolution | high | EF15–EF26 |
+| B41 · #55 | [Analyse] Cahier, spécifications, diagrammes et contrat v2 intègrent la sécurité | analyse | documentation | high | — |
+| B42 · #56 | [Maquette] Templates connexion, profil, administration des utilisateurs | design | documentation | high | EF15–EF21 |
+| B43 · #57 | [Backend] Connexion, déconnexion, profil, changement de mot de passe, admin par défaut | back-end | feature | high | EF15–EF18, RG23, RG24 |
+| B44 · #58 | [Backend] Chaque rôle n'accède qu'à ce que son rang autorise | back-end | feature | high | EF19, EF20, RG22, RG25, RG26 |
+| B45 · #59 | [Frontend] Connexion, gardes de routes, menus par rôle | front-end | feature | high | EF15, EF16, EF19 |
+| B46 · #60 | [Backend+Frontend] L'administrateur gère les comptes | back/front | feature | medium | EF21, RG27, RG28 |
+| B47 · #61 | [Backend+Frontend] Promotions et étudiants gérés dans l'application | back/front | feature | medium | EF22, EF23 |
+| B48 · #62 | [Backend+Frontend] Le formateur modifie ou supprime ses sessions | back/front | feature | medium | EF24, RG29 |
+| B49 · #63 | [Backend+Frontend] Pièce jointe (fichier ou .zip) d'exercice | back/front | feature | medium | EF25, RG30 |
+
+Re-priorisation écrite : voir [PLANNING_SPRINTS.md](PLANNING_SPRINTS.md#re-priorisation-du-2509-à-14h45--changement-de-besoin-54-sécurité). Audit : retiré par le PO.
+
 ## v1.0 — stories Should (étape 4)
 
 | Id | Titre | Équipe | Prio | Réf. |

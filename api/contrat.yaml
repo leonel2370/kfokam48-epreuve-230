@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "1.1"
+  version: "2.0"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -14,14 +14,33 @@ info:
     Les corps de requête et de réponse imposés ne sont pas modifiés.
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
+
+    v2.0 (changement de besoin #54) — SÉCURITÉ
+      - Session serveur : cookie JSESSIONID (HttpOnly, SameSite=Strict) obtenu par POST /api/auth/login.
+      - Routes PUBLIQUES (security: []) : les 5 opérations imposées, /api/auth/login et les deux listes
+        de sélection (GET /api/promotions, GET /api/promotions/{promotionId}/etudiants). Sans session,
+        les opérations imposées se comportent exactement comme en v1 (B2).
+      - AVEC une session, les opérations imposées appliquent en plus les contrôles de rôle, de
+        promotion (RG26) et d'identité (403 IDENTITE_DIFFERENTE, ACCES_REFUSE).
+      - Toutes les autres routes exigent la session (401 NON_AUTHENTIFIE) et, en écriture,
+        l'en-tête X-XSRF-TOKEN recopié du cookie XSRF-TOKEN (sinon 403 ACCES_REFUSE).
+      - Un compte dont le mot de passe doit être changé (RG23) reçoit 403 CHANGEMENT_MOT_DE_PASSE_REQUIS
+        partout sauf GET /api/moi, PUT /api/moi/mot-de-passe et POST /api/auth/logout.
     Dates : ISO-8601 avec fuseau (UTC).
 
-security: []   # aucune authentification (Q1) — identité déclarative, voir HYP-2
+security:
+  - cookieAuth: []   # v2 : session obligatoire par défaut ; les routes publiques déclarent security: []
 
 servers:
   - url: http://localhost:8080
 
 tags:
+  - name: securite
+    description: v2 — connexion, profil, mot de passe
+  - name: administration
+    description: v2 — CRUD par profil (comptes, promotions, étudiants, sessions)
+  - name: exercice
+    description: v2 — pièce jointe d'exercice
   - name: imposé
     description: Opérations imposées par le sujet (Annexe B), inchangées
   - name: complément
@@ -31,7 +50,27 @@ paths:
 
   # ------------------------------------------------------------------ Référentiel
   /api/promotions:
+    post:
+      tags: [administration]
+      operationId: creerPromotion
+      summary: Créer une promotion (ADMIN, SF-21)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PromotionEcriture" }
+      responses:
+        "201":
+          description: Promotion créée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Promotion" }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # CONFLIT (nom déjà pris)
     get:
+      security: []
       operationId: listerPromotions
       tags: [complément]
       summary: Liste des promotions (sélection à l'écran, EF1)
@@ -46,6 +85,7 @@ paths:
 
   /api/promotions/{promotionId}/etudiants:
     get:
+      security: []
       operationId: listerEtudiantsPromotion
       tags: [complément]
       summary: Étudiants d'une promotion, pour choisir son nom (Q1, EF1)
@@ -64,6 +104,7 @@ paths:
   # ------------------------------------------------------------------ Sessions
   /api/sessions:
     post:
+      security: []
       operationId: ouvrirSession
       tags: [imposé]
       summary: Le formateur ouvre une session et obtient un code de présence (EF2)
@@ -91,6 +132,7 @@ paths:
                   ouvertureAt: { type: string, format: date-time }
                   expirationAt: { type: string, format: date-time }
         "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, PROMOTION_INCONNUE
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (v2, avec une session d'un autre rôle ou hors promotion)
     get:
       operationId: listerSessions
       tags: [complément]
@@ -172,6 +214,7 @@ paths:
   # ------------------------------------------------------------------ Présence
   /api/presences:
     post:
+      security: []
       operationId: marquerPresence
       tags: [imposé]
       summary: Un étudiant marque sa présence avec le code (EF3)
@@ -201,14 +244,16 @@ paths:
         "400": { $ref: "#/components/responses/Erreur" }   # CODE_INCONNU, CHAMP_MANQUANT, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
         "409": { $ref: "#/components/responses/Erreur" }   # DEJA_PRESENT, SESSION_CLOTUREE
         "410": { $ref: "#/components/responses/Erreur" }   # CODE_EXPIRE
+        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (v2, uniquement avec une session)
         "429": { $ref: "#/components/responses/Erreur" }   # TROP_DE_TENTATIVES (ajout, Q4)
 
   # ------------------------------------------------------------------ Exercices
   /api/exercices:
     post:
+      security: []
       operationId: deposerExercice
       tags: [imposé]
-      summary: Un étudiant dépose le lien de son exercice (EF6) ; déclenche le tirage du relecteur (EF7)
+      summary: "Un étudiant dépose le lien de son exercice (EF6) ; déclenche le tirage du relecteur (EF7) ; statut = DEPOSE (aucun relecteur disponible) ou EN_ATTENTE_RELECTURE"
       requestBody:
         required: true
         content:
@@ -222,7 +267,7 @@ paths:
                 lien: { type: string, format: uri }
       responses:
         "201":
-          description: Exercice déposé. statut vaut DEPOSE (aucun relecteur disponible) ou EN_ATTENTE_RELECTURE
+          description: Exercice déposé
           content:
             application/json:
               schema:
@@ -232,6 +277,7 @@ paths:
                   id: { type: integer, format: int64 }
                   statut: { type: string }
         "400": { $ref: "#/components/responses/Erreur" }   # LIEN_INVALIDE, CHAMP_MANQUANT, SESSION_INTROUVABLE, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
+        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (v2, uniquement avec une session)
         "409": { $ref: "#/components/responses/Erreur" }   # EXERCICE_DEJA_DEPOSE, SESSION_CLOTUREE
 
   /api/exercices/{exerciceId}:
@@ -306,6 +352,7 @@ paths:
 
   /api/relectures/{id}:
     post:
+      security: []
       operationId: rendreRelecture
       tags: [imposé]
       summary: Un relecteur rend sa note et son commentaire (EF9)
@@ -328,13 +375,14 @@ paths:
       responses:
         "200": { description: Relecture enregistrée }
         "400": { $ref: "#/components/responses/Erreur" }   # NOTE_INVALIDE, CHAMP_MANQUANT
-        "403": { $ref: "#/components/responses/Erreur" }   # AUTO_RELECTURE, RELECTEUR_NON_ASSIGNE
+        "403": { $ref: "#/components/responses/Erreur" }   # AUTO_RELECTURE, RELECTEUR_NON_ASSIGNE, IDENTITE_DIFFERENTE (v2)
         "404": { $ref: "#/components/responses/Erreur" }   # RELECTURE_INTROUVABLE (ajout)
         "409": { $ref: "#/components/responses/Erreur" }   # RELECTURE_DEJA_RENDUE, SESSION_CLOTUREE
 
   # ------------------------------------------------------------------ Tableau
   /api/tableau:
     get:
+      security: []
       operationId: consulterTableau
       tags: [imposé]
       summary: Le tableau récapitulatif du formateur (EF10)
@@ -361,10 +409,448 @@ paths:
                     exercicesDeposes: { type: integer }
                     moyenne: { type: number, nullable: true }
                     relecturesEnAttente: { type: integer }
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (v2, avec une session : étudiant, ou formateur hors promotion)
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
 
+  # ------------------------------------------------------------------ v2 : authentification et profil
+  /api/auth/login:
+    post:
+      tags: [securite]
+      operationId: connecter
+      security: []
+      summary: Se connecter (SF-15, EF15, EF18)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [login, motDePasse]
+              properties:
+                login: { type: string }
+                motDePasse: { type: string, format: password }
+      responses:
+        "200":
+          description: Session ouverte (cookies JSESSIONID et XSRF-TOKEN)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profil" }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT
+        "401": { $ref: "#/components/responses/Erreur" }   # IDENTIFIANTS_INVALIDES
+        "403": { $ref: "#/components/responses/Erreur" }   # COMPTE_DESACTIVE
+        "429": { $ref: "#/components/responses/Erreur" }   # TROP_DE_TENTATIVES
+
+  /api/auth/logout:
+    post:
+      tags: [securite]
+      operationId: deconnecter
+      summary: Se déconnecter (SF-16) — invalide la session côté serveur
+      responses:
+        "204": { description: Session invalidée }
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+
+  /api/moi:
+    get:
+      tags: [securite]
+      operationId: monProfil
+      summary: Profil de l'utilisateur connecté (SF-17, EF16)
+      responses:
+        "200":
+          description: Qui suis-je
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Profil" }
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+
+  /api/moi/mot-de-passe:
+    put:
+      tags: [securite]
+      operationId: changerMotDePasse
+      summary: Changer son mot de passe (SF-18, EF17, RG23, RG24)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ancien, nouveau]
+              properties:
+                ancien: { type: string, format: password }
+                nouveau: { type: string, format: password, minLength: 8 }
+      responses:
+        "204": { description: Mot de passe changé }
+        "400": { $ref: "#/components/responses/Erreur" }   # MOT_DE_PASSE_TROP_FAIBLE, CHAMP_MANQUANT
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE, IDENTIFIANTS_INVALIDES (ancien faux)
+
+  /api/moi/recap:
+    get:
+      tags: [securite]
+      operationId: monRecapitulatif
+      summary: Ligne de tableau de l'étudiant connecté (SF-17)
+      responses:
+        "200":
+          description: Récapitulatif personnel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LigneTableau" }
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (pas un étudiant)
+
+  # ------------------------------------------------------------------ v2 : administration
+  /api/utilisateurs:
+    get:
+      tags: [administration]
+      operationId: listerUtilisateurs
+      summary: Lister les comptes (ADMIN, SF-20)
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Taille"
+      responses:
+        "200":
+          description: Page de comptes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PageUtilisateurs" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE, CHANGEMENT_MOT_DE_PASSE_REQUIS
+    post:
+      tags: [administration]
+      operationId: creerUtilisateur
+      summary: Créer un compte (ADMIN, EF21) — mot de passe à changer à la première connexion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UtilisateurCreation" }
+      responses:
+        "201":
+          description: Compte créé
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, MOT_DE_PASSE_TROP_FAIBLE
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # LOGIN_DEJA_UTILISE
+
+  /api/utilisateurs/{utilisateurId}:
+    parameters:
+      - $ref: "#/components/parameters/UtilisateurId"
+    get:
+      tags: [administration]
+      operationId: lireUtilisateur
+      summary: Lire un compte (ADMIN)
+      responses:
+        "200":
+          description: Compte
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # UTILISATEUR_INTROUVABLE
+    put:
+      tags: [administration]
+      operationId: modifierUtilisateur
+      summary: Modifier nom, rôle, fiche étudiant, activation (ADMIN)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UtilisateurModification" }
+      responses:
+        "200":
+          description: Compte modifié
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Utilisateur" }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE (dernier admin actif)
+    delete:
+      tags: [administration]
+      operationId: desactiverUtilisateur
+      summary: Désactiver un compte (ADMIN, RG28) — jamais de suppression physique
+      responses:
+        "204": { description: Compte désactivé }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE (dernier admin actif)
+
+  /api/utilisateurs/{utilisateurId}/reinitialiser-mot-de-passe:
+    parameters:
+      - $ref: "#/components/parameters/UtilisateurId"
+    post:
+      tags: [administration]
+      operationId: reinitialiserMotDePasse
+      summary: Donner un mot de passe provisoire (ADMIN) — à changer à la connexion suivante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motDePasseInitial]
+              properties:
+                motDePasseInitial: { type: string, format: password, minLength: 8 }
+      responses:
+        "204": { description: Mot de passe réinitialisé }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+
+  /api/promotions/{promotionId}:
+    parameters:
+      - $ref: "#/components/parameters/PromotionId"
+    put:
+      tags: [administration]
+      operationId: modifierPromotion
+      summary: Renommer une promotion (ADMIN, SF-21)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PromotionEcriture" }
+      responses:
+        "200":
+          description: Promotion modifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Promotion" }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
+        "409": { $ref: "#/components/responses/Erreur" }   # CONFLIT (nom déjà pris)
+    delete:
+      tags: [administration]
+      operationId: supprimerPromotion
+      summary: Supprimer une promotion vide (ADMIN)
+      responses:
+        "204": { description: Promotion supprimée }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE
+
+  /api/promotions/{promotionId}/formateurs:
+    parameters:
+      - $ref: "#/components/parameters/PromotionId"
+    put:
+      tags: [administration]
+      operationId: rattacherFormateurs
+      summary: Définir les formateurs d'une promotion (ADMIN, RG26)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [utilisateurIds]
+              properties:
+                utilisateurIds:
+                  type: array
+                  items: { type: integer, format: int64 }
+      responses:
+        "204": { description: Rattachements enregistrés }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (utilisateur non formateur)
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+
+  /api/etudiants:
+    post:
+      tags: [administration]
+      operationId: creerEtudiant
+      summary: Créer une fiche étudiant (ADMIN, FORMATEUR de la promotion, SF-22)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EtudiantEcriture" }
+      responses:
+        "201":
+          description: Fiche créée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Etudiant" }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, PROMOTION_INCONNUE
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+
+  /api/etudiants/{etudiantId}:
+    parameters:
+      - $ref: "#/components/parameters/EtudiantId"
+    put:
+      tags: [administration]
+      operationId: modifierEtudiant
+      summary: Modifier une fiche étudiant (ADMIN, FORMATEUR de la promotion)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EtudiantEcriture" }
+      responses:
+        "200":
+          description: Fiche modifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Etudiant" }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
+    delete:
+      tags: [administration]
+      operationId: desactiverEtudiant
+      summary: Supprimer une fiche sans historique, sinon la désactiver (RG28)
+      responses:
+        "204": { description: Fiche supprimée ou désactivée }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+
+  /api/sessions/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    put:
+      tags: [administration]
+      operationId: modifierSession
+      summary: Modifier le titre d'une session (FORMATEUR de la promotion, ADMIN, SF-23)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titre]
+              properties:
+                titre: { type: string }
+      responses:
+        "200":
+          description: Session modifiée
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Session" }
+        "400": { $ref: "#/components/responses/Erreur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # SESSION_INTROUVABLE
+        "409": { $ref: "#/components/responses/Erreur" }   # SESSION_CLOTUREE
+    delete:
+      tags: [administration]
+      operationId: supprimerSession
+      summary: Supprimer une session sans présence ni exercice (RG29)
+      responses:
+        "204": { description: Session supprimée }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE
+
+  /api/presences/{presenceId}:
+    delete:
+      tags: [administration]
+      operationId: supprimerPresenceManuelle
+      summary: Retirer une présence ajoutée à la main (FORMATEUR, source FORMATEUR, session non clôturée)
+      parameters:
+        - name: presenceId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        "204": { description: Présence retirée }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (présence de source ETUDIANT)
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # SESSION_CLOTUREE
+
+  # ------------------------------------------------------------------ v2 : pièce jointe d'exercice
+  /api/exercices/{exerciceId}/fichier:
+    parameters:
+      - name: exerciceId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    post:
+      tags: [exercice]
+      operationId: joindreFichier
+      summary: Joindre ou remplacer le fichier (ou .zip) de son exercice (ETUDIANT auteur, SF-24, RG30)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [fichier]
+              properties:
+                fichier:
+                  type: string
+                  format: binary
+                  description: 10 Mo max ; pdf, zip, txt, md, java, ts, png, jpg
+      responses:
+        "200":
+          description: Fichier joint
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExerciceAuteur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (pas l'auteur)
+        "404": { $ref: "#/components/responses/Erreur" }   # EXERCICE_INTROUVABLE
+        "409": { $ref: "#/components/responses/Erreur" }   # EXERCICE_DEJA_RELU, SESSION_CLOTUREE
+        "413": { $ref: "#/components/responses/Erreur" }   # FICHIER_TROP_VOLUMINEUX
+        "415": { $ref: "#/components/responses/Erreur" }   # TYPE_FICHIER_REFUSE
+    get:
+      tags: [exercice]
+      operationId: telechargerFichier
+      summary: Télécharger la pièce jointe (auteur, relecteur assigné, formateur de la promotion, ADMIN)
+      responses:
+        "200":
+          description: Contenu du fichier (Content-Disposition attachment)
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # EXERCICE_INTROUVABLE, FICHIER_INTROUVABLE
+    delete:
+      tags: [exercice]
+      operationId: retirerFichier
+      summary: Retirer la pièce jointe tant que l'exercice n'est pas relu (auteur)
+      responses:
+        "204": { description: Fichier retiré }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }
+        "409": { $ref: "#/components/responses/Erreur" }   # EXERCICE_DEJA_RELU
+
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+      description: "Session obtenue par POST /api/auth/login. Écritures protégées : en-tête X-XSRF-TOKEN = cookie XSRF-TOKEN."
   parameters:
+    Page:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    Taille:
+      name: size
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    UtilisateurId:
+      name: utilisateurId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
     PromotionId:
       name: promotionId
       in: path
@@ -438,6 +924,92 @@ components:
         statut: { $ref: "#/components/schemas/StatutExercice" }
         note: { type: integer, nullable: true }
         commentaire: { type: string, nullable: true }
+        fichier: { $ref: "#/components/schemas/PieceJointe" }
+    PieceJointe:
+      description: v2 — pièce jointe optionnelle (RG30) ; absente si aucun fichier
+      type: object
+      nullable: true
+      required: [nom, type, taille]
+      properties:
+        nom: { type: string }
+        type: { type: string }
+        taille: { type: integer, format: int64 }
+    Profil:
+      description: v2 — utilisateur connecté
+      type: object
+      required: [id, login, nomAffiche, role, doitChangerMotDePasse]
+      properties:
+        id: { type: integer, format: int64 }
+        login: { type: string }
+        nomAffiche: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        etudiantId: { type: integer, format: int64, nullable: true }
+        promotionIds:
+          type: array
+          items: { type: integer, format: int64 }
+        doitChangerMotDePasse: { type: boolean }
+    Role:
+      type: string
+      enum: [ADMIN, FORMATEUR, ETUDIANT]
+    Utilisateur:
+      type: object
+      required: [id, login, nomAffiche, role, actif]
+      properties:
+        id: { type: integer, format: int64 }
+        login: { type: string }
+        nomAffiche: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        etudiantId: { type: integer, format: int64, nullable: true }
+        actif: { type: boolean }
+        doitChangerMotDePasse: { type: boolean }
+    UtilisateurCreation:
+      type: object
+      required: [login, nomAffiche, role, motDePasseInitial]
+      properties:
+        login: { type: string, maxLength: 50 }
+        nomAffiche: { type: string, maxLength: 150 }
+        role: { $ref: "#/components/schemas/Role" }
+        motDePasseInitial: { type: string, format: password, minLength: 8 }
+        etudiantId: { type: integer, format: int64, nullable: true, description: obligatoire si role = ETUDIANT }
+    UtilisateurModification:
+      type: object
+      required: [nomAffiche, role, actif]
+      properties:
+        nomAffiche: { type: string, maxLength: 150 }
+        role: { $ref: "#/components/schemas/Role" }
+        actif: { type: boolean }
+        etudiantId: { type: integer, format: int64, nullable: true }
+    PageUtilisateurs:
+      type: object
+      required: [contenu, page, taille, total]
+      properties:
+        contenu:
+          type: array
+          items: { $ref: "#/components/schemas/Utilisateur" }
+        page: { type: integer }
+        taille: { type: integer }
+        total: { type: integer, format: int64 }
+    PromotionEcriture:
+      type: object
+      required: [nom]
+      properties:
+        nom: { type: string, maxLength: 100 }
+    EtudiantEcriture:
+      type: object
+      required: [nom, promotionId]
+      properties:
+        nom: { type: string, maxLength: 150 }
+        promotionId: { type: integer, format: int64 }
+    LigneTableau:
+      type: object
+      required: [etudiantId, nom, presences, exercicesDeposes, moyenne, relecturesEnAttente]
+      properties:
+        etudiantId: { type: integer, format: int64 }
+        nom: { type: string }
+        presences: { type: integer }
+        exercicesDeposes: { type: integer }
+        moyenne: { type: number, nullable: true }
+        relecturesEnAttente: { type: integer }
     ExerciceFormateur:
       type: object
       required: [id, auteurId, auteurNom, lien, statut]
