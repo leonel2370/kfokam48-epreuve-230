@@ -46,7 +46,9 @@ porte une clé étrangère `relecteur_id` vers `etudiant`. Conséquence : un mê
 
 ## 2 bis. Matrice des droits par rôle *(v2)*
 
-Les **5 opérations imposées** par le contrat restent **publiques** (décision PO, pour respecter B2 à la lettre) ; toutes les autres exigent une session. Voir RG22, RG25.
+Les **5 opérations imposées** par le contrat restent **publiques** (décision PO, pour respecter B2 à la lettre), ainsi que la connexion et les deux listes de sélection de nom ; toutes les autres exigent une session. Voir RG22, RG25.
+
+**Comptes de démonstration** (mots de passe conformes à RG24, à changer hors démonstration) : `admin`/`admin` (changement imposé, RG23), `formateur`/`Formateur48`, `awa`/`Etudiant48`, `paul`/`Etudiant48`… — liste complète dans le README.
 
 | Ressource | ADMIN | FORMATEUR | ETUDIANT |
 |---|---|---|---|
@@ -169,7 +171,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG19 | Un étudiant ne peut agir que sur les sessions de sa promotion → `400 ETUDIANT_HORS_PROMOTION` | [HYP-7] |
 | RG20 | Le code est unique parmi les sessions dont le code n'a pas expiré | [HYP-6] |
 | RG21 *(v2)* | La présence est **validée automatiquement** : un code valide soumis par l'étudiant crée immédiatement la présence (source ETUDIANT) ; aucune validation par le formateur n'existe | PO 25/09 (confirme SF-3) |
-| RG22 *(v2)* | Les 5 opérations imposées sont publiques ; toute autre route exige une session, sinon 401 NON_AUTHENTIFIE | PO 25/09, B2 |
+| RG22 *(v2)* | Sont publiques : les 5 opérations imposées, la connexion, et les deux listes de sélection `GET /api/promotions` et `GET /api/promotions/{id}/etudiants` (identifiants et noms seulement, nécessaires pour appeler les opérations imposées sans session). Toute autre route exige une session, sinon 401 NON_AUTHENTIFIE | PO 25/09, B2 |
 | RG23 *(v2)* | Un compte `admin` existe par défaut ; tant que son mot de passe initial n'est pas changé, toute route autre que profil, changement de mot de passe et déconnexion renvoie 403 CHANGEMENT_MOT_DE_PASSE_REQUIS | PO 25/09, [HYP-18] |
 | RG24 *(v2)* | Un mot de passe fait au moins 8 caractères ; 5 échecs de connexion consécutifs bloquent le compte 2 minutes (même logique que RG4) | [HYP-17] |
 | RG25 *(v2)* | Un utilisateur n'accède qu'aux ressources de son rôle (§2 bis) → sinon 403 ACCES_REFUSE | PO 25/09 |
