@@ -16,6 +16,12 @@ docker compose up --build
 
 Puis ouvrir **http://localhost:4200**. L'API est aussi exposée sur http://localhost:8080/api.
 
+**Documentation de l'API (Swagger UI) : http://localhost:8080/swagger-ui.html**, accessible sans connexion. Le menu en haut à droite propose deux définitions :
+- **Contrat (référence)** : `api/contrat.yaml` tel quel, le contrat qui fait foi ;
+- **Implémentation (générée)** : ce que le backend expose réellement (`/v3/api-docs`).
+
+Les routes protégées demandent une session : se connecter d'abord avec `POST /api/auth/login` dans la même fenêtre.
+
 - Aucun fichier à créer : sans `.env`, les valeurs de démonstration de `docker-compose.yml` s'appliquent. Pour les changer : `cp .env.example .env`, puis éditer.
 - La base PostgreSQL est créée par les migrations Flyway (`V1` schéma, `V2` données de démonstration, `V3` comptes et sécurité).
 - Arrêt : `docker compose down` (ajouter `-v` pour repartir d'une base vide de démonstration).
