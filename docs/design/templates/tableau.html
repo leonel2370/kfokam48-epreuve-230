@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRESENCE48 — Tableau (template visuel)</title>
+<!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: {
+  fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+  borderRadius: { lg: 'var(--radius)', md: 'calc(var(--radius) - 2px)', sm: 'calc(var(--radius) - 4px)' },
+  colors: Object.fromEntries(['background','foreground','card','primary','primary-foreground','secondary','muted','muted-foreground','accent','destructive','destructive-foreground','border','input','ring','succes','attente']
+    .map(k => [k, 'hsl(var(--' + k + '))'])) } } };
+</script>
+<style>
+  :root { --background:0 0% 100%; --foreground:240 10% 3.9%; --card:0 0% 100%; --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+    --secondary:240 4.8% 95.9%; --muted:240 4.8% 95.9%; --muted-foreground:240 3.8% 46.1%; --accent:240 4.8% 95.9%;
+    --destructive:0 84.2% 60.2%; --destructive-foreground:0 0% 98%; --border:240 5.9% 90%; --input:240 5.9% 90%; --ring:240 5.9% 10%;
+    --succes:142 71% 45%; --attente:38 92% 50%; --radius:0.5rem; }
+  .dark { --background:240 10% 3.9%; --foreground:0 0% 98%; --card:240 10% 3.9%; --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --secondary:240 3.7% 15.9%; --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%; --accent:240 3.7% 15.9%;
+    --destructive:0 62.8% 30.6%; --border:240 3.7% 15.9%; --input:240 3.7% 15.9%; --ring:240 4.9% 83.9%; }
+  body { background:hsl(var(--background)); color:hsl(var(--foreground)); }
+</style>
+</head>
+<body class="font-sans antialiased">
+<header class="border-b border-border">
+  <div class="mx-auto max-w-5xl px-4 min-h-14 py-2 flex items-center justify-between gap-2">
+    <span class="font-semibold shrink-0">P48</span>
+    <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Écrans">
+      <a href="formateur-session.html" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</a>
+      <a href="tableau.html" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</a>
+      <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
+      <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
+      <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
+    </nav>
+  </div>
+</header>
+<main class="mx-auto max-w-5xl px-4 py-8 space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-3"><div><h1 class="text-2xl font-semibold">Tableau de la promotion</h1><p class="text-sm text-muted-foreground">P1-2026 · 12 étudiants · valeurs calculées par l'API</p></div>
+    <select class="h-10 rounded-md border border-input bg-background px-3"><option>P1-2026</option></select></div>
+  <div class="overflow-x-auto rounded-lg border border-border"><table class="w-full text-sm">
+    <thead class="bg-muted/50 text-left"><tr><th class="p-3">Étudiant</th><th class="p-3 text-right">Présences</th><th class="p-3 text-right">Exercices déposés</th><th class="p-3 text-right">Moyenne reçue</th><th class="p-3 text-right">Relectures en attente</th></tr></thead>
+    <tbody class="divide-y divide-border">
+      <tr><td class="p-3">Awa Ndiaye</td><td class="p-3 text-right">3</td><td class="p-3 text-right">2</td><td class="p-3 text-right">13,5</td><td class="p-3 text-right">0</td></tr>
+      <tr class="bg-attente/5"><td class="p-3">Paul Mbarga</td><td class="p-3 text-right">2</td><td class="p-3 text-right">1</td><td class="p-3 text-right text-muted-foreground" title="Aucune note reçue">—</td><td class="p-3 text-right"><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">1 en retard</span></td></tr>
+      <tr><td class="p-3">Marc Tchoua</td><td class="p-3 text-right">1</td><td class="p-3 text-right">0</td><td class="p-3 text-right text-muted-foreground">—</td><td class="p-3 text-right">0</td></tr>
+    </tbody></table></div>
+  <p class="text-xs text-muted-foreground">« — » : aucune note reçue (moyenne null). La moyenne n'est jamais recalculée par l'interface (F3).</p>
+</main>
+<section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
+  <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-lg border border-border p-4 space-y-2"><p class="text-sm text-muted-foreground">Chargement</p>
+      <div class="h-4 w-3/4 rounded bg-muted animate-pulse"></div><div class="h-4 w-1/2 rounded bg-muted animate-pulse"></div><div class="h-4 w-2/3 rounded bg-muted animate-pulse"></div></div>
+    <div role="alert" class="rounded-lg border border-destructive/50 p-4 text-destructive"><p class="font-medium">Le code de présence a expiré.</p>
+      <p class="text-xs opacity-80 mt-1">CODE_EXPIRE · message affiché tel que renvoyé par l'API</p></div>
+    <div class="rounded-lg border border-dashed border-border p-4 text-center"><p class="font-medium">Rien à afficher</p>
+      <p class="text-sm text-muted-foreground">Texte d'état vide + action suivante.</p></div>
+  </div>
+</section>
+</body>
+</html>

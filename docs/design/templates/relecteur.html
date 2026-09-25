@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRESENCE48 — Relecteur (template visuel)</title>
+<!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: {
+  fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+  borderRadius: { lg: 'var(--radius)', md: 'calc(var(--radius) - 2px)', sm: 'calc(var(--radius) - 4px)' },
+  colors: Object.fromEntries(['background','foreground','card','primary','primary-foreground','secondary','muted','muted-foreground','accent','destructive','destructive-foreground','border','input','ring','succes','attente']
+    .map(k => [k, 'hsl(var(--' + k + '))'])) } } };
+</script>
+<style>
+  :root { --background:0 0% 100%; --foreground:240 10% 3.9%; --card:0 0% 100%; --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+    --secondary:240 4.8% 95.9%; --muted:240 4.8% 95.9%; --muted-foreground:240 3.8% 46.1%; --accent:240 4.8% 95.9%;
+    --destructive:0 84.2% 60.2%; --destructive-foreground:0 0% 98%; --border:240 5.9% 90%; --input:240 5.9% 90%; --ring:240 5.9% 10%;
+    --succes:142 71% 45%; --attente:38 92% 50%; --radius:0.5rem; }
+  .dark { --background:240 10% 3.9%; --foreground:0 0% 98%; --card:240 10% 3.9%; --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --secondary:240 3.7% 15.9%; --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%; --accent:240 3.7% 15.9%;
+    --destructive:0 62.8% 30.6%; --border:240 3.7% 15.9%; --input:240 3.7% 15.9%; --ring:240 4.9% 83.9%; }
+  body { background:hsl(var(--background)); color:hsl(var(--foreground)); }
+</style>
+</head>
+<body class="font-sans antialiased">
+<header class="border-b border-border">
+  <div class="mx-auto max-w-5xl px-4 min-h-14 py-2 flex items-center justify-between gap-2">
+    <span class="font-semibold shrink-0">P48</span>
+    <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Écrans">
+      <a href="formateur-session.html" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</a>
+      <a href="tableau.html" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</a>
+      <a href="etudiant.html" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</a>
+      <a href="relecteur.html" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</a>
+      <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
+    </nav>
+  </div>
+</header>
+<main class="mx-auto max-w-3xl px-4 py-8 space-y-6">
+  <div><h1 class="text-2xl font-semibold">Mes relectures</h1><p class="text-sm text-muted-foreground">2 à faire · 1 rendue</p></div>
+  <article class="rounded-lg border border-border p-6 space-y-4">
+    <div class="flex items-center justify-between"><h2 class="font-semibold">TP Spring JPA — 25/09</h2><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-attente/15 text-attente">EN_ATTENTE_RELECTURE</span></div>
+    <a href="#" class="text-sm underline">Ouvrir l'exercice ↗</a> <span class="text-xs text-muted-foreground">(auteur non affiché)</span>
+    <form class="grid gap-3 sm:grid-cols-[8rem_1fr]">
+      <div class="space-y-2"><label for="note" class="text-sm font-medium">Note /20</label>
+        <input id="note" type="number" min="0" max="20" step="1" class="h-10 w-full rounded-md border border-input bg-background px-3 text-base"></div>
+      <div class="space-y-2"><label for="com" class="text-sm font-medium">Commentaire</label>
+        <textarea id="com" rows="3" class="w-full rounded-md border border-input bg-background p-3 text-base"></textarea></div>
+      <button type="button" class="sm:col-start-2 justify-self-end h-10 rounded-md bg-primary px-4 text-primary-foreground font-medium">Envoyer</button>
+    </form>
+  </article>
+  <div role="alertdialog" aria-labelledby="dlg-t" class="rounded-lg border border-border p-6 shadow-lg space-y-3 max-w-md">
+    <h2 id="dlg-t" class="font-semibold">Envoyer la relecture ?</h2>
+    <p class="text-sm text-muted-foreground">La note est <strong>définitive</strong> : elle ne pourra plus être modifiée (RG10).</p>
+    <div class="flex justify-end gap-2"><button class="h-10 rounded-md border border-input px-4">Annuler</button><button class="h-10 rounded-md bg-primary px-4 text-primary-foreground">Confirmer l'envoi</button></div>
+  </div>
+  <article class="rounded-lg border border-border p-6 opacity-80"><div class="flex items-center justify-between"><h2 class="font-semibold">TP Flyway — 18/09</h2><span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-succes/15 text-succes">RELU</span></div>
+    <p class="text-sm mt-2">Note rendue : 12/20</p></article>
+</main>
+<section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
+  <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-lg border border-border p-4 space-y-2"><p class="text-sm text-muted-foreground">Chargement</p>
+      <div class="h-4 w-3/4 rounded bg-muted animate-pulse"></div><div class="h-4 w-1/2 rounded bg-muted animate-pulse"></div><div class="h-4 w-2/3 rounded bg-muted animate-pulse"></div></div>
+    <div role="alert" class="rounded-lg border border-destructive/50 p-4 text-destructive"><p class="font-medium">Le code de présence a expiré.</p>
+      <p class="text-xs opacity-80 mt-1">CODE_EXPIRE · message affiché tel que renvoyé par l'API</p></div>
+    <div class="rounded-lg border border-dashed border-border p-4 text-center"><p class="font-medium">Rien à afficher</p>
+      <p class="text-sm text-muted-foreground">Texte d'état vide + action suivante.</p></div>
+  </div>
+</section>
+</body>
+</html>
