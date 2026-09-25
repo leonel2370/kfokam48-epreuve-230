@@ -4,12 +4,13 @@ import { Etudiant, ErreurApi, ExerciceDepose, Promotion } from '../../core/api/a
 import { ApiService } from '../../core/api/api.service';
 import { IdentiteService } from '../../core/identite/identite.service';
 import { ErreurComponent } from '../../shared/erreur.component';
+import { MesNotesComponent } from './mes-notes.component';
 
 /** Écran étudiant, mobile d'abord (ENF1) : identité (SF-1), présence par code (SF-3), dépôt (SF-6). */
 @Component({
   selector: 'app-etudiant',
   standalone: true,
-  imports: [FormsModule, ErreurComponent],
+  imports: [FormsModule, ErreurComponent, MesNotesComponent],
   styles: [':host main { max-width: 28rem; }'],
   template: `
     <main>
@@ -46,6 +47,8 @@ import { ErreurComponent } from '../../shared/erreur.component';
           }
           <app-erreur [erreur]="erreurDepot()" />
         </section>
+
+        <app-mes-notes [etudiantId]="moi.etudiantId" />
       } @else {
         <section class="carte">
           <h2>Qui êtes-vous ?</h2>

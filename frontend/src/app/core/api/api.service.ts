@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Etudiant,
+  ExerciceAuteur,
   ExerciceDepose,
   LigneTableau,
   Presence,
@@ -70,5 +71,10 @@ export class ApiService {
 
   deconnecter(): Observable<void> {
     return this.http.post<void>(`${this.url}/auth/logout`, {});
+  }
+
+  /** Contrat 2.1 : note retenue (moyenne des deux relecteurs) et caractère provisoire, calculés par le serveur. */
+  mesExercices(etudiantId: number): Observable<ExerciceAuteur[]> {
+    return this.http.get<ExerciceAuteur[]>(`${this.url}/etudiants/${etudiantId}/exercices`);
   }
 }
