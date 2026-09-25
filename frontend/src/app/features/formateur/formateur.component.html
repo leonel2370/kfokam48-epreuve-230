@@ -13,7 +13,9 @@
       <button type="submit" [disabled]="enCours() || !titre.trim() || !promotionId">
         {{ enCours() ? 'Ouverture…' : 'Ouvrir' }}
       </button>
-      @if (promotionId) { <a [routerLink]="['/formateur/tableau', promotionId]">Voir le tableau</a> }
+      @if (promotionId) {
+        <app-bouton-navigation variante="secondaire" [chemin]="cheminTableau(promotionId)">Voir le tableau</app-bouton-navigation>
+      }
     </form>
     @if (promotions().length === 0 && !erreur()) {
       <p class="discret">Vous n'êtes rattaché à aucune promotion.</p>
