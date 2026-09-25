@@ -219,7 +219,7 @@ flowchart LR
 | Sujet | Méthode | Outils (pourquoi) |
 |---|---|---|
 | Hygiène du dépôt | `.gitignore` Java + Node + IDE posé **avant** le premier code ; jamais `target/`, `node_modules/`, `dist/`, `.env` | Git |
-| Secrets | **Toutes les informations sensibles vivent dans `.env`** à la racine (jetons GitHub/Sonar, mots de passe de base), jamais dans le code, `application.yml`, `docker-compose.yml` ni un commit. `.env.example` versionné documente chaque clé. Spring lit `${SPRING_DATASOURCE_PASSWORD}`, Compose utilise `env_file: .env`, la CI utilise les secrets GitHub. En cas de fuite : **révoquer d'abord**, nettoyer ensuite | `.env`, secrets GitHub Actions |
+| Secrets | **Toutes les informations sensibles vivent dans `.env`** à la racine (jetons GitHub/Sonar, mots de passe de base), jamais dans le code, `application.yml`, `docker-compose.yml` ni un commit. `.env.example` versionné documente chaque clé. Spring lit `${DB_PASSWORD}` (préfixe volontairement différent de `SPRING_`, voir #51), Compose utilise `env_file: .env`, la CI utilise les secrets GitHub. En cas de fuite : **révoquer d'abord**, nettoyer ensuite | `.env`, secrets GitHub Actions |
 | Démarrage | `docker compose up` à la racine : `db` (postgres:16), `backend` (Dockerfile multi-stage Maven → JRE 21), `frontend` (build Node → nginx) ; alternative en 3 commandes dans le README | Docker Compose (ENF5) |
 | CI | GitHub Actions sur chaque PR : `./mvnw -B verify`, `npm ci && npm run build && npm test -- --watch=false --browsers=ChromeHeadless`, lint du contrat | GitHub Actions |
 | Protection | `main` protégée : PR obligatoire, CI verte requise, pas de force-push | règles de branche GitHub |

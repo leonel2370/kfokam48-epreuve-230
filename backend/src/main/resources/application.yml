@@ -3,9 +3,9 @@ spring:
   application:
     name: presence48
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/presence48}
-    username: ${SPRING_DATASOURCE_USERNAME:presence48}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/presence48}
+    username: ${DB_USERNAME:presence48}
+    password: ${DB_PASSWORD:}
   jpa:
     hibernate:
       ddl-auto: validate          # B5 : le schéma appartient à Flyway
