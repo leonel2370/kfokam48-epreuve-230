@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.2"
+  version: "2.3"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,13 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.3 (#111) — ÉTAT DE LA LIVRAISON
+      - Chaque opération porte x-livre: true (livrée) ou x-livre: false + « Non livré (backlog #n) »
+        en tête de son résumé : Swagger UI ne présente plus comme disponibles les 24 opérations
+        des tickets non livrés (clôture, présence manuelle, remplacement de lien, CRUD, pièce jointe).
+      - GET /api/sessions, GET /api/etudiants/{id}/exercices et /relectures : 401/403 déclarés ;
+        400 ajouté sur les paramètres manquants (GET /api/sessions, GET /api/tableau).
+      - Pendant un changement de mot de passe obligatoire (RG23), POST /api/auth/login reste permis.
     v2.2 (#98) — le schéma Session (GET /api/sessions, complément) renvoie code = null à un ETUDIANT.
     v2.1 (enveloppe, étape 3, #85) — DOUBLE RELECTURE
       - Deux relecteurs par exercice ; la note retenue est la moyenne des notes rendues, provisoire
@@ -30,7 +37,8 @@ info:
       - Toutes les autres routes exigent la session (401 NON_AUTHENTIFIE) et, en écriture,
         l'en-tête X-XSRF-TOKEN recopié du cookie XSRF-TOKEN (sinon 403 ACCES_REFUSE).
       - Un compte dont le mot de passe doit être changé (RG23) reçoit 403 CHANGEMENT_MOT_DE_PASSE_REQUIS
-        partout sauf GET /api/moi, PUT /api/moi/mot-de-passe et POST /api/auth/logout.
+        partout sauf GET /api/moi, PUT /api/moi/mot-de-passe, POST /api/auth/logout et POST /api/auth/login
+        (permis pour se (re)connecter ; sans session, aucune route n'est bloquée par RG23).
     Dates : ISO-8601 avec fuseau (UTC).
 
 security:
@@ -56,6 +64,7 @@ paths:
   # ------------------------------------------------------------------ Référentiel
   /api/promotions:
     post:
+      x-livre: true
       tags: [administration]
       operationId: creerPromotion
       summary: Créer une promotion (ADMIN, SF-21)
@@ -75,6 +84,7 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "409": { $ref: "#/components/responses/Erreur" }   # CONFLIT (nom déjà pris)
     get:
+      x-livre: true
       security: []
       operationId: listerPromotions
       tags: [complément]
@@ -90,6 +100,7 @@ paths:
 
   /api/promotions/{promotionId}/etudiants:
     get:
+      x-livre: true
       security: []
       operationId: listerEtudiantsPromotion
       tags: [complément]
@@ -109,6 +120,7 @@ paths:
   # ------------------------------------------------------------------ Sessions
   /api/sessions:
     post:
+      x-livre: true
       security: []
       operationId: ouvrirSession
       tags: [imposé]
@@ -139,6 +151,7 @@ paths:
         "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, PROMOTION_INCONNUE
         "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (v2, avec une session d'un autre rôle ou hors promotion)
     get:
+      x-livre: true
       operationId: listerSessions
       tags: [complément]
       summary: Sessions d'une promotion, plus récentes d'abord
@@ -155,13 +168,17 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/Session" }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (promotionId manquant ou non numérique)
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+        "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (v2, avec une session : étudiant, ou formateur hors promotion)
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
 
   /api/sessions/{sessionId}/cloture:
     post:
+      x-livre: false
       operationId: cloturerSession
       tags: [complément]
-      summary: Le formateur clôture la session (EF12, HYP-1, RG18)
+      summary: "Non livré (backlog #32) — Le formateur clôture la session (EF12, HYP-1, RG18)"
       parameters:
         - $ref: "#/components/parameters/SessionId"
       responses:
@@ -175,9 +192,10 @@ paths:
 
   /api/sessions/{sessionId}/presences:
     post:
+      x-livre: false
       operationId: ajouterPresenceManuelle
       tags: [complément]
-      summary: Le formateur ajoute une présence à la main (EF5, Q14, RG15)
+      summary: "Non livré (backlog #30) — Le formateur ajoute une présence à la main (EF5, Q14, RG15)"
       parameters:
         - $ref: "#/components/parameters/SessionId"
       requestBody:
@@ -201,9 +219,10 @@ paths:
 
   /api/sessions/{sessionId}/exercices:
     get:
+      x-livre: false
       operationId: listerExercicesSession
       tags: [complément]
-      summary: Exercices d'une session avec statut et relecteur, vue formateur (EF11, Q11, HYP-9)
+      summary: "Non livré (backlog #31) — Exercices d'une session avec statut et relecteur, vue formateur (EF11, Q11, HYP-9)"
       parameters:
         - $ref: "#/components/parameters/SessionId"
       responses:
@@ -219,6 +238,7 @@ paths:
   # ------------------------------------------------------------------ Présence
   /api/presences:
     post:
+      x-livre: true
       security: []
       operationId: marquerPresence
       tags: [imposé]
@@ -255,6 +275,7 @@ paths:
   # ------------------------------------------------------------------ Exercices
   /api/exercices:
     post:
+      x-livre: true
       security: []
       operationId: deposerExercice
       tags: [imposé]
@@ -287,9 +308,10 @@ paths:
 
   /api/exercices/{exerciceId}:
     put:
+      x-livre: false
       operationId: remplacerLien
       tags: [complément]
-      summary: L'auteur remplace le lien tant que l'exercice n'est pas relu (EF13, Q13, RG14)
+      summary: "Non livré (backlog #33) — L'auteur remplace le lien tant que l'exercice n'est pas relu (EF13, Q13, RG14)"
       parameters:
         - name: exerciceId
           in: path
@@ -318,9 +340,10 @@ paths:
 
   /api/etudiants/{etudiantId}/exercices:
     get:
+      x-livre: true
       operationId: listerExercicesEtudiant
       tags: [complément]
-      summary: Exercices de l'étudiant avec note et commentaire reçus, sans le relecteur (EF14, Q8)
+      summary: Exercices de l'étudiant avec la note retenue, provisoire si un seul relecteur a rendu (EF14, Q8, RG16 v3, RG31)
       parameters:
         - $ref: "#/components/parameters/EtudiantId"
       responses:
@@ -331,11 +354,15 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/ExerciceAuteur" }
-        "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (etudiantId manquant)
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (étudiant, #109) ou ACCES_REFUSE (hors promotion, RG26)
+        "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU (formateur/admin seulement, #109)
 
   # ------------------------------------------------------------------ Relectures
   /api/etudiants/{etudiantId}/relectures:
     get:
+      x-livre: true
       operationId: listerRelecturesEtudiant
       tags: [complément]
       summary: Relectures assignées à l'étudiant (EF8)
@@ -353,10 +380,14 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/RelectureRelecteur" }
-        "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (etudiantId manquant)
+        "401": { $ref: "#/components/responses/Erreur" }   # NON_AUTHENTIFIE
+        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (étudiant, #109) ou ACCES_REFUSE (hors promotion, RG26)
+        "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU (formateur/admin seulement, #109)
 
   /api/relectures/{id}:
     post:
+      x-livre: true
       security: []
       operationId: rendreRelecture
       tags: [imposé]
@@ -387,6 +418,7 @@ paths:
   # ------------------------------------------------------------------ Tableau
   /api/tableau:
     get:
+      x-livre: true
       security: []
       operationId: consulterTableau
       tags: [imposé]
@@ -414,12 +446,14 @@ paths:
                     exercicesDeposes: { type: integer }
                     moyenne: { type: number, nullable: true }
                     relecturesEnAttente: { type: integer }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (promotionId manquant ou non numérique)
         "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE (v2, avec une session : étudiant, ou formateur hors promotion)
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
 
   # ------------------------------------------------------------------ v2 : authentification et profil
   /api/auth/login:
     post:
+      x-livre: true
       tags: [securite]
       operationId: connecter
       security: []
@@ -447,6 +481,7 @@ paths:
 
   /api/auth/logout:
     post:
+      x-livre: true
       tags: [securite]
       operationId: deconnecter
       summary: "Se déconnecter (SF-16) — invalide la session côté serveur ; renvoie 204 même sans session (idempotent). Jeton CSRF exigé."
@@ -456,6 +491,7 @@ paths:
 
   /api/moi:
     get:
+      x-livre: true
       tags: [securite]
       operationId: monProfil
       summary: Profil de l'utilisateur connecté (SF-17, EF16)
@@ -469,6 +505,7 @@ paths:
 
   /api/moi/mot-de-passe:
     put:
+      x-livre: true
       tags: [securite]
       operationId: changerMotDePasse
       summary: Changer son mot de passe (SF-18, EF17, RG23, RG24)
@@ -489,9 +526,10 @@ paths:
 
   /api/moi/recap:
     get:
+      x-livre: false
       tags: [securite]
       operationId: monRecapitulatif
-      summary: Ligne de tableau de l'étudiant connecté (SF-17)
+      summary: "Non livré (backlog #112) — Ligne de tableau de l'étudiant connecté (SF-17)"
       responses:
         "200":
           description: Récapitulatif personnel
@@ -504,9 +542,10 @@ paths:
   # ------------------------------------------------------------------ v2 : administration
   /api/utilisateurs:
     get:
+      x-livre: false
       tags: [administration]
       operationId: listerUtilisateurs
-      summary: Lister les comptes (ADMIN, SF-20)
+      summary: "Non livré (backlog #60) — Lister les comptes (ADMIN, SF-20)"
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Taille"
@@ -519,9 +558,10 @@ paths:
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE, CHANGEMENT_MOT_DE_PASSE_REQUIS
     post:
+      x-livre: false
       tags: [administration]
       operationId: creerUtilisateur
-      summary: Créer un compte (ADMIN, EF21) — mot de passe à changer à la première connexion
+      summary: "Non livré (backlog #60) — Créer un compte (ADMIN, EF21) — mot de passe à changer à la première connexion"
       requestBody:
         required: true
         content:
@@ -542,9 +582,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/UtilisateurId"
     get:
+      x-livre: false
       tags: [administration]
       operationId: lireUtilisateur
-      summary: Lire un compte (ADMIN)
+      summary: "Non livré (backlog #60) — Lire un compte (ADMIN)"
       responses:
         "200":
           description: Compte
@@ -555,9 +596,10 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # UTILISATEUR_INTROUVABLE
     put:
+      x-livre: false
       tags: [administration]
       operationId: modifierUtilisateur
-      summary: Modifier nom, rôle, fiche étudiant, activation (ADMIN)
+      summary: "Non livré (backlog #60) — Modifier nom, rôle, fiche étudiant, activation (ADMIN)"
       requestBody:
         required: true
         content:
@@ -575,9 +617,10 @@ paths:
         "404": { $ref: "#/components/responses/Erreur" }
         "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE (dernier admin actif)
     delete:
+      x-livre: false
       tags: [administration]
       operationId: desactiverUtilisateur
-      summary: Désactiver un compte (ADMIN, RG28) — jamais de suppression physique
+      summary: "Non livré (backlog #60) — Désactiver un compte (ADMIN, RG28) — jamais de suppression physique"
       responses:
         "204": { description: Compte désactivé }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -589,9 +632,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/UtilisateurId"
     post:
+      x-livre: false
       tags: [administration]
       operationId: reinitialiserMotDePasse
-      summary: Donner un mot de passe provisoire (ADMIN) — à changer à la connexion suivante
+      summary: "Non livré (backlog #60) — Donner un mot de passe provisoire (ADMIN) — à changer à la connexion suivante"
       requestBody:
         required: true
         content:
@@ -612,9 +656,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     put:
+      x-livre: false
       tags: [administration]
       operationId: modifierPromotion
-      summary: Renommer une promotion (ADMIN, SF-21)
+      summary: "Non livré (backlog #61) — Renommer une promotion (ADMIN, SF-21)"
       requestBody:
         required: true
         content:
@@ -632,9 +677,10 @@ paths:
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
         "409": { $ref: "#/components/responses/Erreur" }   # CONFLIT (nom déjà pris)
     delete:
+      x-livre: false
       tags: [administration]
       operationId: supprimerPromotion
-      summary: Supprimer une promotion vide (ADMIN)
+      summary: "Non livré (backlog #61) — Supprimer une promotion vide (ADMIN)"
       responses:
         "204": { description: Promotion supprimée }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -646,9 +692,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     put:
+      x-livre: false
       tags: [administration]
       operationId: rattacherFormateurs
-      summary: Définir les formateurs d'une promotion (ADMIN, RG26)
+      summary: "Non livré (backlog #61) — Définir les formateurs d'une promotion (ADMIN, RG26)"
       requestBody:
         required: true
         content:
@@ -669,9 +716,10 @@ paths:
 
   /api/etudiants:
     post:
+      x-livre: false
       tags: [administration]
       operationId: creerEtudiant
-      summary: Créer une fiche étudiant (ADMIN, FORMATEUR de la promotion, SF-22)
+      summary: "Non livré (backlog #61) — Créer une fiche étudiant (ADMIN, FORMATEUR de la promotion, SF-22)"
       requestBody:
         required: true
         content:
@@ -691,9 +739,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/EtudiantId"
     put:
+      x-livre: false
       tags: [administration]
       operationId: modifierEtudiant
-      summary: Modifier une fiche étudiant (ADMIN, FORMATEUR de la promotion)
+      summary: "Non livré (backlog #61) — Modifier une fiche étudiant (ADMIN, FORMATEUR de la promotion)"
       requestBody:
         required: true
         content:
@@ -710,9 +759,10 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
     delete:
+      x-livre: false
       tags: [administration]
       operationId: desactiverEtudiant
-      summary: Supprimer une fiche sans historique, sinon la désactiver (RG28)
+      summary: "Non livré (backlog #61) — Supprimer une fiche sans historique, sinon la désactiver (RG28)"
       responses:
         "204": { description: Fiche supprimée ou désactivée }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -723,9 +773,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/SessionId"
     put:
+      x-livre: false
       tags: [administration]
       operationId: modifierSession
-      summary: Modifier le titre d'une session (FORMATEUR de la promotion, ADMIN, SF-23)
+      summary: "Non livré (backlog #62) — Modifier le titre d'une session (FORMATEUR de la promotion, ADMIN, SF-23)"
       requestBody:
         required: true
         content:
@@ -747,9 +798,10 @@ paths:
         "404": { $ref: "#/components/responses/Erreur" }   # SESSION_INTROUVABLE
         "409": { $ref: "#/components/responses/Erreur" }   # SESSION_CLOTUREE
     delete:
+      x-livre: false
       tags: [administration]
       operationId: supprimerSession
-      summary: Supprimer une session sans présence ni exercice (RG29)
+      summary: "Non livré (backlog #62) — Supprimer une session sans présence ni exercice (RG29)"
       responses:
         "204": { description: Session supprimée }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -759,9 +811,10 @@ paths:
 
   /api/presences/{presenceId}:
     delete:
+      x-livre: false
       tags: [administration]
       operationId: supprimerPresenceManuelle
-      summary: Retirer une présence ajoutée à la main (FORMATEUR, source FORMATEUR, session non clôturée)
+      summary: "Non livré (backlog #30) — Retirer une présence ajoutée à la main (FORMATEUR, source FORMATEUR, session non clôturée)"
       parameters:
         - name: presenceId
           in: path
@@ -782,9 +835,10 @@ paths:
         required: true
         schema: { type: integer, format: int64 }
     post:
+      x-livre: false
       tags: [exercice]
       operationId: joindreFichier
-      summary: Joindre ou remplacer le fichier (ou .zip) de son exercice (ETUDIANT auteur, SF-24, RG30)
+      summary: "Non livré (backlog #63) — Joindre ou remplacer le fichier (ou .zip) de son exercice (ETUDIANT auteur, SF-24, RG30)"
       requestBody:
         required: true
         content:
@@ -810,9 +864,10 @@ paths:
         "413": { $ref: "#/components/responses/Erreur" }   # FICHIER_TROP_VOLUMINEUX
         "415": { $ref: "#/components/responses/Erreur" }   # TYPE_FICHIER_REFUSE
     get:
+      x-livre: false
       tags: [exercice]
       operationId: telechargerFichier
-      summary: Télécharger la pièce jointe (auteur, relecteur assigné, formateur de la promotion, ADMIN)
+      summary: "Non livré (backlog #63) — Télécharger la pièce jointe (auteur, relecteur assigné, formateur de la promotion, ADMIN)"
       responses:
         "200":
           description: Contenu du fichier (Content-Disposition attachment)
@@ -823,9 +878,10 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # EXERCICE_INTROUVABLE, FICHIER_INTROUVABLE
     delete:
+      x-livre: false
       tags: [exercice]
       operationId: retirerFichier
-      summary: Retirer la pièce jointe tant que l'exercice n'est pas relu (auteur)
+      summary: "Non livré (backlog #63) — Retirer la pièce jointe tant que l'exercice n'est pas relu (auteur)"
       responses:
         "204": { description: Fichier retiré }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -876,7 +932,8 @@ components:
       in: header
       required: true
       description: |
-        Identité choisie à l'écran (Q1). Déclarative : aucune authentification (HYP-2).
+        Identité de l'appelant (HYP-2). Publique sans session (RG22, opérations imposées) ; avec une
+        session, ce doit être l'identifiant de l'étudiant connecté, sinon 403 IDENTITE_DIFFERENTE (v2).
         Absente ou non numérique → 400 CHAMP_MANQUANT.
       schema: { type: integer, format: int64 }
 
