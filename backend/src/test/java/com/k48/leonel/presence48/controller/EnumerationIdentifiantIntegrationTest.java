@@ -47,8 +47,8 @@ class EnumerationIdentifiantIntegrationTest {
     var session = connecter(mvc, "awa", MDP_ETUDIANT);
     erreur(mvc.perform(get("/api/etudiants/" + INCONNU + "/exercices").session(session)), 403,
         "IDENTITE_DIFFERENTE");
-    erreur(mvc.perform(get("/api/etudiants/" + awa + "/exercices").session(session)), 403,
-        "IDENTITE_DIFFERENTE");
+    // Contrôle positif : ses propres données restent lisibles (l'existence n'est demandée qu'après l'identité).
+    mvc.perform(get("/api/etudiants/" + awa + "/exercices").session(session)).andExpect(status().isOk());
   }
 
   @Test
@@ -57,8 +57,8 @@ class EnumerationIdentifiantIntegrationTest {
     var session = connecter(mvc, "paul", MDP_ETUDIANT);
     erreur(mvc.perform(get("/api/etudiants/" + INCONNU + "/relectures").session(session)), 403,
         "IDENTITE_DIFFERENTE");
-    erreur(mvc.perform(get("/api/etudiants/" + paul + "/relectures").session(session)), 403,
-        "IDENTITE_DIFFERENTE");
+    // Contrôle positif : ses propres données restent lisibles.
+    mvc.perform(get("/api/etudiants/" + paul + "/relectures").session(session)).andExpect(status().isOk());
   }
 
   @Test
