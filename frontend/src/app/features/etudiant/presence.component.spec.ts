@@ -31,6 +31,39 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('select[name="etudiant"]')).toBeNull();
   });
 
+  it('#107 recharge la liste des sessions après une présence réussie et sélectionne la session du code', () => {
+    const c = ouvrir().componentInstance;
+    c.code = 'k7mx4q';
+    c.marquer(1);
+    http.expectOne('/api/presences').flush({ id: 1, sessionId: 9, etudiantId: 1, source: 'ETUDIANT' });
+    // La liste est rechargée après le succès : le formateur a ouvert la session pendant que la page était ouverte.
+    http.expectOne('/api/sessions?promotionId=1').flush([SESSION]);
+    expect(c.sessionsOuvertes().map(s => s.id)).toContain(9);
+    expect(c.sessionId).toBe(9);
+  });
+
+  it('#107 recharge aussi la liste des sessions après un dépôt réussi', () => {
+    const c = ouvrir().componentInstance;
+    c.sessionId = 9;
+    c.lien = 'https://github.com/awa/tp';
+    c.deposer(1);
+    http.expectOne('/api/exercices').flush({ id: 4, statut: 'EN_ATTENTE_RELECTURE' });
+    http.expectOne('/api/sessions?promotionId=1').flush([SESSION]);
+    expect(c.depot()?.statut).toBe('EN_ATTENTE_RELECTURE');
+  });
+
+  it("#107 l'erreur de chargement des sessions a sa propre zone, distincte de celle du dépôt", () => {
+    const fixture = TestBed.createComponent(PresenceComponent);
+    fixture.detectChanges();
+    http.expectOne('/api/sessions?promotionId=1').flush({ code: 'ERREUR_INTERNE', message: 'Base injoignable.' },
+      { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    // Trois zones d'erreur distinctes : chargement des sessions, présence, dépôt.
+    expect(el.querySelectorAll('app-erreur').length).toBe(3);
+    expect(el.textContent).toContain('Base injoignable.');
+  });
+
   it('marque la présence puis dépose pour la session du code', () => {
     const c = ouvrir().componentInstance;
     c.code = ' k7mx4q ';
