@@ -43,7 +43,8 @@ export class MesNotesComponent implements OnInit, OnDestroy {
       return;
     }
     this.api.mesExercices(etudiantId).subscribe({
-      next: l => this.exercices.set(l),
+      // #106 : des données à jour ne doivent pas cohabiter avec une vieille erreur.
+      next: l => { this.exercices.set(l); this.erreur.set(null); },
       error: (e: ErreurApi) => this.erreur.set(e),
     });
   }

@@ -24,6 +24,8 @@ export class ProfilComponent {
   readonly longueurMin = LONGUEUR_MIN;
   readonly erreur = signal<ErreurApi | null>(null);
   readonly ok = signal(false);
+  /** #106 : l'enregistrement en cours désactive le bouton (pas de double envoi). */
+  readonly enCours = signal(false);
   ancien = '';
   nouveau = '';
 
@@ -32,18 +34,23 @@ export class ProfilComponent {
     const obligatoire = this.auth.profil()?.doitChangerMotDePasse ?? false;
     this.erreur.set(null);
     this.ok.set(false);
+    this.enCours.set(true);
     this.api.changerMotDePasse(this.ancien, this.nouveau).subscribe({
       next: () => {
         this.ancien = '';
         this.nouveau = '';
         this.ok.set(true);
+        this.enCours.set(false);
         this.auth.rafraichir().subscribe(p => {
           if (obligatoire && p) {
             void this.router.navigateByUrl(AuthService.espace(p));
           }
         });
       },
-      error: (e: ErreurApi) => this.erreur.set(e),
+      error: (e: ErreurApi) => {
+        this.enCours.set(false);
+        this.erreur.set(e);
+      },
     });
   }
 }
