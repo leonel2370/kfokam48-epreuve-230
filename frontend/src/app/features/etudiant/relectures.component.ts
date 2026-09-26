@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ErreurApi, RelectureRelecteur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { AuthService } from '../../core/auth/auth.service';
+import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /** #101 : les listes se rafraîchissent seules, une relecture ou une note peut arriver pendant que la page est ouverte. */
 export const RAFRAICHISSEMENT_MS = 15_000;
@@ -21,14 +23,16 @@ function noteSaisieValide(note: number | null | undefined): note is number {
 @Component({
   selector: 'app-relectures',
   standalone: true,
-  imports: [FormsModule, ErreurComponent],
+  imports: [FormsModule, ErreurComponent, BoutonExerciceComponent],
   templateUrl: './relectures.component.html',
 })
 export class RelecturesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private minuterie?: ReturnType<typeof setInterval>;
 
-  readonly etudiantId = input.required<number>();
+  /** Écran RELECTEUR routé (F2, #104) : le relecteur est l'étudiant du compte connecté (HYP-15). */
+  readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
   readonly relectures = signal<RelectureRelecteur[]>([]);
   readonly rendues = signal<RelectureRelecteur[]>([]);
   readonly erreur = signal<ErreurApi | null>(null);
@@ -54,22 +58,28 @@ export class RelecturesComponent implements OnInit, OnDestroy {
 
   rendre(r: RelectureRelecteur): void {
     const note = this.notes[r.id];
-    if (typeof note !== 'number' || !confirm('Envoi définitif : la note ne pourra plus être modifiée. Continuer ?')) {
+    const etudiantId = this.etudiantId();
+    if (etudiantId === null || !noteSaisieValide(note)
+      || !confirm('Envoi définitif : la note ne pourra plus être modifiée. Continuer ?')) {
       return;
     }
     this.erreur.set(null);
-    this.api.rendreRelecture(r.id, this.etudiantId(), note, (this.commentaires[r.id] ?? '').trim()).subscribe({
+    this.api.rendreRelecture(r.id, etudiantId, note, (this.commentaires[r.id] ?? '').trim()).subscribe({
       next: () => { this.message.set('Relecture envoyée.'); this.charger(); },
       error: (e: ErreurApi) => this.erreur.set(e),
     });
   }
 
   charger(): void {
-    this.api.relectures(this.etudiantId(), 'A_FAIRE').subscribe({
+    const etudiantId = this.etudiantId();
+    if (etudiantId === null) {
+      return;
+    }
+    this.api.relectures(etudiantId, 'A_FAIRE').subscribe({
       next: l => this.relectures.set(l),
       error: (e: ErreurApi) => this.erreur.set(e),
     });
-    this.api.relectures(this.etudiantId(), 'RENDUE').subscribe({
+    this.api.relectures(etudiantId, 'RENDUE').subscribe({
       next: l => this.rendues.set(l),
       error: (e: ErreurApi) => this.erreur.set(e),
     });

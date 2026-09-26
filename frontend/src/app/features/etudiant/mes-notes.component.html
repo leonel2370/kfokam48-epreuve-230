@@ -6,7 +6,7 @@
   @for (x of exercices(); track x.id) {
     <div class="ligne">
       <strong>{{ x.sessionTitre }}</strong>
-      <a [href]="x.lien" target="_blank" rel="noopener">lien</a>
+      <app-bouton-exercice [lien]="x.lien" />
       @if (x.noteRetenue === null) {
         <span class="discret">en attente de relecture</span>
       } @else {

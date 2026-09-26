@@ -4,8 +4,10 @@
     @for (p of promotions(); track p.id) {
       <p class="ligne">
         <strong>{{ p.nom }}</strong>
-        <a [routerLink]="['/formateur/tableau', p.id]">Tableau</a>
-        <a routerLink="/formateur">Sessions</a>
+        <app-bouton-navigation variante="secondaire" [chemin]="cheminTableau(p.id)">Tableau</app-bouton-navigation>
+        <app-bouton-navigation variante="secondaire" [chemin]="cheminSessions" [parametres]="parametresSessions(p.id)">
+          Sessions
+        </app-bouton-navigation>
       </p>
     } @empty { <p class="discret">Aucune promotion.</p> }
     <app-erreur [erreur]="erreur()" />

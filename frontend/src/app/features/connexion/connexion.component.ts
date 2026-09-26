@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ErreurApi } from '../../core/api/api.models';
 import { AuthService } from '../../core/auth/auth.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /** SF-15 : seule page publique ; après connexion, chacun va dans l'espace de son rôle. */
 @Component({

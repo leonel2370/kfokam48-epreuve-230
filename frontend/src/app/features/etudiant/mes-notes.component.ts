@@ -1,8 +1,10 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ErreurApi, ExerciceAuteur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { AuthService } from '../../core/auth/auth.service';
+import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 import { RAFRAICHISSEMENT_MS } from './relectures.component';
 
 /**
@@ -12,14 +14,16 @@ import { RAFRAICHISSEMENT_MS } from './relectures.component';
 @Component({
   selector: 'app-mes-notes',
   standalone: true,
-  imports: [DecimalPipe, ErreurComponent],
+  imports: [DecimalPipe, ErreurComponent, BoutonExerciceComponent],
   templateUrl: './mes-notes.component.html',
 })
 export class MesNotesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private minuterie?: ReturnType<typeof setInterval>;
 
-  readonly etudiantId = input.required<number>();
+  /** Écran routé (#104) : l'étudiant est celui du compte connecté (HYP-15). */
+  readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
   readonly exercices = signal<ExerciceAuteur[]>([]);
   readonly erreur = signal<ErreurApi | null>(null);
 
@@ -34,7 +38,11 @@ export class MesNotesComponent implements OnInit, OnDestroy {
   }
 
   charger(): void {
-    this.api.mesExercices(this.etudiantId()).subscribe({
+    const etudiantId = this.etudiantId();
+    if (etudiantId === null) {
+      return;
+    }
+    this.api.mesExercices(etudiantId).subscribe({
       next: l => this.exercices.set(l),
       error: (e: ErreurApi) => this.erreur.set(e),
     });
