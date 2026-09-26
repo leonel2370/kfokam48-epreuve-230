@@ -116,6 +116,7 @@ class RelectureIntegrationTest {
         .andExpect(jsonPath("$[*].rendue").value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is(true))));
     erreur(mvc.perform(get("/api/etudiants/" + paul + "/relectures").session(connecter(mvc, "awa", MDP_ETUDIANT))),
         403, "IDENTITE_DIFFERENTE");
-    erreur(mvc.perform(get("/api/etudiants/999999/relectures").session(session)), 404, "ETUDIANT_INCONNU");
+    // #109 : l'identité (403) passe avant l'existence (404) : aucun étudiant ne peut énumérer les identifiants.
+    erreur(mvc.perform(get("/api/etudiants/999999/relectures").session(session)), 403, "IDENTITE_DIFFERENTE");
   }
 }
