@@ -114,4 +114,17 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     fixture.detectChanges();
     expect(c.depotEnCours()).withContext('la requête est terminée').toBeFalse();
   });
+
+  it('#108 — le statut du dépôt est affiché en français, pas en code brut', () => {
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    c.sessionId = 9;
+    c.lien = 'https://github.com/awa/tp';
+    c.deposer(1);
+    http.expectOne('/api/exercices').flush({ id: 4, statut: 'EN_ATTENTE_RELECTURE' });
+    fixture.detectChanges();
+    const page = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(page).toContain('En attente de relecture');
+    expect(page).withContext('plus de code brut').not.toContain('EN_ATTENTE_RELECTURE');
+  });
 });
