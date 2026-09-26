@@ -30,7 +30,7 @@
       <button type="submit" [disabled]="!sessionId || !lien.trim() || depotEnCours()">Déposer</button>
     </form>
     @if (depot(); as d) {
-      <output class="succes">Exercice déposé — statut <span class="badge" [class]="d.statut">{{ d.statut }}</span></output>
+      <output class="succes">Exercice déposé — statut <span class="badge" [class]="d.statut">{{ libelleExercice(d.statut) }}</span></output>
       <app-bouton-navigation variante="secondaire" [chemin]="chemins.etudiantNotes">Voir mes notes</app-bouton-navigation>
     }
     <app-erreur [erreur]="erreurDepot()" />
