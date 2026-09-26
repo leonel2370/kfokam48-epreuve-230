@@ -89,18 +89,20 @@ public class ExerciceService {
   /**
    * SF-14 (route protégée) : exercices de l'auteur avec la note retenue (moyenne des notes rendues, RG16 v3),
    * provisoire tant que les deux relecteurs n'ont pas rendu (RG31), sans leur identité (RG8).
+   * Ordre des contrôles (#109, RG25) : pour un étudiant connecté, l'identité (403) passe AVANT
+   * l'existence (404) afin qu'il ne puisse pas énumérer les identifiants (OWASP A01).
    */
   @Transactional(readOnly = true)
   public List<ExerciceAuteurReponse> exercicesDe(Long etudiantId) {
+    var connecte = acces.connecte().orElse(null);
+    if (connecte != null && connecte.role() == Role.ETUDIANT) {
+      acces.verifierIdentite(etudiantId);
+    }
     var etudiant = etudiants.findById(etudiantId).orElseThrow(() ->
         new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
-    acces.connecte().ifPresent(u -> {
-      if (u.role() == Role.ETUDIANT) {
-        acces.verifierIdentite(etudiantId);
-      } else {
-        acces.verifierGestionPromotion(etudiant.getPromotionId());
-      }
-    });
+    if (connecte != null && connecte.role() != Role.ETUDIANT) {
+      acces.verifierGestionPromotion(etudiant.getPromotionId());
+    }
     return exercices.findByAuteurIdOrderByDeposeAtDesc(etudiantId).stream().map(x -> {
       var rendues = relectures.findByExerciceIdOrderByIdAsc(x.getId()).stream()
           .filter(Relecture::estRendue).toList();
