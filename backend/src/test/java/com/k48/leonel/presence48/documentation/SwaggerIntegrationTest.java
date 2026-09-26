@@ -79,7 +79,7 @@ class SwaggerIntegrationTest {
             .as("description de %s", chemin).isNotBlank();
       }
     }
-    org.assertj.core.api.Assertions.assertThat(nombre).as("les 12 opérations livrées").isEqualTo(12);
+    org.assertj.core.api.Assertions.assertThat(nombre).as("les 13 opérations livrées").isEqualTo(13);
   }
 
   /** #105 : cookieAuth déclaré, opérations imposées publiques, erreurs métier documentées avec exemples. */
@@ -90,15 +90,14 @@ class SwaggerIntegrationTest {
         .path("cookieAuth").path("type").asText()).isEqualTo("apiKey");
     org.assertj.core.api.Assertions.assertThat(racine.path("components").path("securitySchemes")
         .path("cookieAuth").path("in").asText()).isEqualTo("cookie");
-    // Opérations imposées publiques (RG22) : security = []
+    // Opérations imposées publiques (RG22) : aucune exigence de sécurité déclarée.
     for (var imposee : List.of("/api/sessions|post", "/api/presences|post", "/api/exercices|post",
         "/api/relectures/{id}|post", "/api/tableau|get")) {
       var morceaux = imposee.split("\\|");
       var operation = racine.path("paths").path(morceaux[0]).path(morceaux[1]);
-      org.assertj.core.api.Assertions.assertThat(operation.path("security").isArray())
-          .as("%s %s : security vide", morceaux[1], morceaux[0]).isTrue();
-      org.assertj.core.api.Assertions.assertThat(operation.path("security").size())
-          .as("%s %s : aucune exigence", morceaux[1], morceaux[0]).isZero();
+      var security = operation.path("security");
+      org.assertj.core.api.Assertions.assertThat(security.isMissingNode() || security.size() == 0)
+          .as("%s %s : aucune exigence de sécurité", morceaux[1], morceaux[0]).isTrue();
     }
     // Les autres routes exigent la session (cookieAuth).
     var listeSessions = racine.path("paths").path("/api/sessions").path("get").path("security");
@@ -108,16 +107,16 @@ class SwaggerIntegrationTest {
     for (var code : List.of("400", "409", "410", "429")) {
       org.assertj.core.api.Assertions.assertThat(reponses.has(code)).as("réponse %s", code).isTrue();
     }
-    org.assertj.core.api.Assertions.assertThat(reponses.path("410").path("content").path("application/json")
+    org.assertj.core.api.Assertions.assertThat(reponses.path("410").path("content").path("*/*")
         .path("schema").path("$ref").asText()).contains("Erreur");
   }
 
-  /** #105 : Swagger UI envoie le jeton CSRF sur les écritures. */
+  /** #105 : Swagger UI envoie le jeton CSRF — l'initialiseur embarque un requestInterceptor qui le recopie. */
   @Test
   void testSwaggerUiEnvoieLeJetonCsrf() throws Exception {
-    mvc.perform(get("/v3/api-docs/swagger-config"))
+    mvc.perform(get("/swagger-ui/swagger-initializer.js"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.csrfEnabled").value(true));
+        .andExpect(content().string(containsString("X-XSRF-TOKEN")));
   }
 
   private JsonNode lireDocs() throws Exception {

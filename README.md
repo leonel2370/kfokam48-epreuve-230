@@ -83,4 +83,4 @@ docs/                 Cahier des charges, spécifications, diagrammes D1–D5, p
 docker-compose.yml    PostgreSQL + backend + frontend (nginx, même origine)
 ```
 
-Documentation d'analyse : [cahier des charges](docs/CAHIER_DES_CHARGES.md) · [spécifications fonctionnelles](docs/SPECIFICATIONS_FONCTIONNELLES.md) · [diagrammes](docs/diagrammes/) · [journal](docs/JOURNAL.md) · [contribuer](docs/CONTRIBUTING.md).
+Documentation d'analyse : [cahier des charges](docs/CAHIER_DES_CHARGES.md) · [spécifications fonctionnelles](docs/SPECIFICATIONS_FONCTIONNELLES.md) · [diagrammes](docs/diagrammes/) · [guide de l'API](docs/GUIDE_API.md) · [journal](docs/JOURNAL.md) · [contribuer](docs/CONTRIBUTING.md).
