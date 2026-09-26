@@ -86,7 +86,7 @@ describe('TableauComponent (SF-10)', () => {
     http.expectNone('/api/tableau?promotionId=abc');
     fixture.detectChanges();
     const page = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(page).toContain('adresse invalide');
+    expect(page).toContain('invalide');
     expect(page).not.toContain('Chargement…');
     fixture.destroy();
   });

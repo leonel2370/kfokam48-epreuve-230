@@ -30,7 +30,7 @@
       <p class="discret">
         Expire à {{ s.expirationAt | date: 'HH:mm' }}
         @if (restant() > 0) { — encore {{ minutes() }} min {{ secondes() }} s }
-        @else { — expiré : ajoutez les retardataires manuellement }
+        @else { — expiré : les étudiants en retard passeront par le formateur (présence manuelle : à venir) }
       </p>
     </section>
   }
@@ -47,7 +47,7 @@
               <td>{{ s.titre }}</td>
               <td>{{ s.ouvertureAt | date: 'dd/MM HH:mm' }}</td>
               <td><code>{{ s.code }}</code></td>
-              <td><span class="badge">{{ s.statut }}</span></td>
+              <td><span class="badge" [class.CLOTUREE]="s.statut === 'CLOTUREE'">{{ libelleSession(s.statut) }}</span></td>
             </tr>
           }
         </tbody>
