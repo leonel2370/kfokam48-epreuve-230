@@ -87,4 +87,31 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('.alerte')?.textContent).toContain('Le code a expiré.');
   });
+
+  it('#106 — le bouton Valider est désactivé pendant la requête de présence (pas de double envoi)', () => {
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    c.code = 'k7mx4q';
+    c.marquer(1);
+    fixture.detectChanges();
+    const bouton = (fixture.nativeElement as HTMLElement).querySelector('form button[type="submit"]') as HTMLButtonElement;
+    expect(bouton.disabled).withContext('pendant la requête').toBeTrue();
+    http.expectOne('/api/presences').flush({ id: 1, sessionId: 9, etudiantId: 1, source: 'ETUDIANT' });
+    fixture.detectChanges();
+    expect(c.presenceEnCours()).withContext('la requête est terminée').toBeFalse();
+  });
+
+  it('#106 — le bouton Déposer est désactivé pendant la requête de dépôt (pas de double envoi)', () => {
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    c.sessionId = 9;
+    c.lien = 'https://github.com/awa/tp';
+    c.deposer(1);
+    fixture.detectChanges();
+    const boutons = (fixture.nativeElement as HTMLElement).querySelectorAll('form button[type="submit"]');
+    expect((boutons[1] as HTMLButtonElement).disabled).withContext('pendant la requête').toBeTrue();
+    http.expectOne('/api/exercices').flush({ id: 4, statut: 'DEPOSE' });
+    fixture.detectChanges();
+    expect(c.depotEnCours()).withContext('la requête est terminée').toBeFalse();
+  });
 });

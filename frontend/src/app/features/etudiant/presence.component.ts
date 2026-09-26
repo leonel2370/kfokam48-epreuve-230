@@ -32,6 +32,9 @@ export class PresenceComponent implements OnInit {
   readonly erreurPresence = signal<ErreurApi | null>(null);
   readonly depot = signal<ExerciceDepose | null>(null);
   readonly erreurDepot = signal<ErreurApi | null>(null);
+  /** #106 : les requêtes en cours désactivent leurs boutons (pas de double envoi). */
+  readonly presenceEnCours = signal(false);
+  readonly depotEnCours = signal(false);
   /** #107 : l'erreur de chargement des sessions a sa propre zone, distincte de celle du dépôt. */
   readonly erreurChargement = signal<ErreurApi | null>(null);
 
@@ -60,14 +63,19 @@ export class PresenceComponent implements OnInit {
   marquer(etudiantId: number): void {
     this.presenceOk.set(false);
     this.erreurPresence.set(null);
+    this.presenceEnCours.set(true);
     this.api.marquerPresence(this.code.trim(), etudiantId).subscribe({
       next: p => {
         this.presenceOk.set(true);
         this.sessionId = p.sessionId;
         this.code = '';
+        this.presenceEnCours.set(false);
         this.chargerSessions();
       },
-      error: (e: ErreurApi) => this.erreurPresence.set(e),
+      error: (e: ErreurApi) => {
+        this.presenceEnCours.set(false);
+        this.erreurPresence.set(e);
+      },
     });
   }
 
@@ -77,9 +85,18 @@ export class PresenceComponent implements OnInit {
     }
     this.depot.set(null);
     this.erreurDepot.set(null);
+    this.depotEnCours.set(true);
     this.api.deposerExercice(this.sessionId, etudiantId, this.lien.trim()).subscribe({
-      next: d => { this.depot.set(d); this.lien = ''; this.chargerSessions(); },
-      error: (e: ErreurApi) => this.erreurDepot.set(e),
+      next: d => {
+        this.depot.set(d);
+        this.lien = '';
+        this.depotEnCours.set(false);
+        this.chargerSessions();
+      },
+      error: (e: ErreurApi) => {
+        this.depotEnCours.set(false);
+        this.erreurDepot.set(e);
+      },
     });
   }
 }

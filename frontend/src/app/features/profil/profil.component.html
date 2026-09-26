@@ -16,7 +16,7 @@
         <label>Nouveau mot de passe (8 caractères minimum)
           <input name="nouveau" type="password" [(ngModel)]="nouveau" required minlength="8" autocomplete="new-password" />
         </label>
-        <button type="submit" [disabled]="!ancien || nouveau.length < longueurMin">Enregistrer</button>
+        <button type="submit" [disabled]="!ancien || nouveau.length < longueurMin || enCours()">Enregistrer</button>
       </form>
       @if (ok()) { <output class="succes">Mot de passe changé.</output> }
       <app-erreur [erreur]="erreur()" />
