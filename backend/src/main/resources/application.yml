@@ -34,7 +34,8 @@ server:
     include-stacktrace: never
     include-message: never
 
-# Swagger UI (#96) : http://localhost:8080/swagger-ui.html — le contrat de référence d'abord, puis la doc générée.
+# Swagger UI (#96, #105) : http://localhost:8080/swagger-ui.html — le contrat de référence d'abord, puis la doc
+# générée. Le jeton CSRF est envoyé par l'intercepteur injecté dans swagger-initializer.js (#105, ENF11).
 springdoc:
   swagger-ui:
     urls:
