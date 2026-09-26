@@ -62,4 +62,39 @@ describe('FormateurComponent (SF-2, RG26)', () => {
     expect(fixture.componentInstance.promotionChoisie).toBe(2);
     fixture.destroy();
   });
+
+  it('#108 — code expiré : un texte honnête, la présence manuelle n’existe pas (#30, backlog)', () => {
+    const fixture = TestBed.createComponent(FormateurComponent);
+    fixture.detectChanges();
+    http.expectOne('/api/promotions').flush([P1]);
+    http.expectOne('/api/sessions?promotionId=1').flush([]);
+    const c = fixture.componentInstance;
+    c.titre = 'TP JPA';
+    c.ouvrir();
+    http.expectOne('/api/sessions').flush({ id: 7, code: 'K7MX4Q',
+      ouvertureAt: '2026-09-25T15:00:00Z', expirationAt: '2026-09-25T15:15:00Z' });
+    c['maintenant'].set(Date.parse('2026-09-25T15:20:00Z'));
+    fixture.detectChanges();
+    const texte = (fixture.nativeElement as HTMLElement)
+      .querySelector('section[aria-live="polite"] .discret')?.textContent ?? '';
+    expect(texte).toContain('expiré');
+    expect(texte).withContext('la présence manuelle (#30) n’est pas livrée').not.toContain('manuellement');
+    fixture.destroy();
+  });
+
+  it('#108 — statuts lisibles : « Clôturée » plutôt que le code brut CLOTUREE', () => {
+    const fixture = TestBed.createComponent(FormateurComponent);
+    fixture.detectChanges();
+    http.expectOne('/api/promotions').flush([P1]);
+    const ouverte = { id: 7, titre: 'TP JPA', promotionId: 1, code: 'K7MX4Q',
+      ouvertureAt: '2026-09-25T15:00:00Z', expirationAt: '2026-09-25T15:15:00Z', statut: 'OUVERTE', clotureAt: null };
+    const cloturee = { ...ouverte, id: 4, titre: 'TP Flyway', code: 'DEMO01', statut: 'CLOTUREE' };
+    http.expectOne('/api/sessions?promotionId=1').flush([ouverte, cloturee]);
+    fixture.detectChanges();
+    const page = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(page).toContain('Ouverte');
+    expect(page).toContain('Clôturée');
+    expect(page).withContext('plus de code brut').not.toContain('CLOTUREE');
+    fixture.destroy();
+  });
 });

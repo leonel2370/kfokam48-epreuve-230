@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ErreurApi } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { libelleRole } from '../../core/navigation/libelles';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 const LONGUEUR_MIN = 8;
@@ -20,6 +21,9 @@ export class ProfilComponent {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
+
+  /** #108 : libellé français du rôle — le code brut n'est plus affiché. */
+  readonly libelleDuRole = libelleRole;
 
   readonly longueurMin = LONGUEUR_MIN;
   readonly erreur = signal<ErreurApi | null>(null);

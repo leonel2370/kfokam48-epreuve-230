@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { ErreurApi, LigneTableau } from '../../core/api/api.models';
+import { ErreurApi, LigneTableau, Promotion } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { CHEMINS, EntreeNavigation, PARAM_PROMOTION } from '../../core/navigation/chemins';
@@ -23,6 +23,12 @@ export class TableauComponent implements OnInit {
   readonly lignes = signal<LigneTableau[]>([]);
   readonly erreur = signal<ErreurApi | null>(null);
   readonly chargement = signal(true);
+  /** Nom de la promotion affichée dans le titre (#108) ; identifiant non numérique → adresse invalide. */
+  readonly promotion = signal<Promotion | null>(null);
+  readonly adresseInvalide = signal(false);
+
+  readonly titre = computed(() =>
+    this.promotion() ? `Tableau de la promotion ${this.promotion()!.nom}` : 'Tableau de la promotion');
 
   /** Retour contextuel (spécifications §1.2 bis) : l'admin revient à l'administration, le formateur à ses sessions. */
   readonly retour = computed<EntreeNavigation>(() => this.auth.profil()?.role === 'ADMIN'
@@ -30,7 +36,19 @@ export class TableauComponent implements OnInit {
     : { chemin: CHEMINS.formateur, libelle: '← Retour aux sessions', parametres: { [PARAM_PROMOTION]: this.promotionId() } });
 
   ngOnInit(): void {
-    this.api.tableau(Number(this.promotionId())).subscribe({
+    const promotionId = Number(this.promotionId());
+    if (!Number.isInteger(promotionId) || promotionId <= 0) {
+      // #108 : « /formateur/tableau/abc » ne doit pas envoyer NaN au serveur.
+      this.adresseInvalide.set(true);
+      this.chargement.set(false);
+      return;
+    }
+    this.api.promotions().subscribe({
+      next: toutes =>
+        this.promotion.set(toutes.find(p => p.id === promotionId) ?? null),
+      error: () => { /* le titre reste générique : le tableau lui-même fait foi. */ },
+    });
+    this.api.tableau(promotionId).subscribe({
       next: l => { this.lignes.set(l); this.chargement.set(false); },
       error: (e: ErreurApi) => { this.erreur.set(e); this.chargement.set(false); },
     });
