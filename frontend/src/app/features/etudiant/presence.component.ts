@@ -32,19 +32,28 @@ export class PresenceComponent implements OnInit {
   readonly erreurPresence = signal<ErreurApi | null>(null);
   readonly depot = signal<ExerciceDepose | null>(null);
   readonly erreurDepot = signal<ErreurApi | null>(null);
+  /** #107 : l'erreur de chargement des sessions a sa propre zone, distincte de celle du dépôt. */
+  readonly erreurChargement = signal<ErreurApi | null>(null);
 
   code = '';
   sessionId: number | null = null;
   lien = '';
 
   ngOnInit(): void {
+    this.chargerSessions();
+  }
+
+  /** #107 : la liste est rechargée après une présence ou un dépôt — le formateur peut ouvrir une session
+   *  pendant que l'écran est ouvert ; le sélecteur ne doit pas rester vide ni trompeur. */
+  private chargerSessions(): void {
     const promotionId = this.promotionId();
-    if (promotionId) {
-      this.api.sessions(promotionId).subscribe({
-        next: s => this.sessions.set(s),
-        error: (e: ErreurApi) => this.erreurDepot.set(e),
-      });
+    if (!promotionId) {
+      return;
     }
+    this.api.sessions(promotionId).subscribe({
+      next: s => { this.sessions.set(s); this.erreurChargement.set(null); },
+      error: (e: ErreurApi) => this.erreurChargement.set(e),
+    });
   }
 
   /** Le code est envoyé tel que saisi : normalisation et règles côté serveur (F3). */
@@ -52,7 +61,12 @@ export class PresenceComponent implements OnInit {
     this.presenceOk.set(false);
     this.erreurPresence.set(null);
     this.api.marquerPresence(this.code.trim(), etudiantId).subscribe({
-      next: p => { this.presenceOk.set(true); this.sessionId = p.sessionId; this.code = ''; },
+      next: p => {
+        this.presenceOk.set(true);
+        this.sessionId = p.sessionId;
+        this.code = '';
+        this.chargerSessions();
+      },
       error: (e: ErreurApi) => this.erreurPresence.set(e),
     });
   }
@@ -64,7 +78,7 @@ export class PresenceComponent implements OnInit {
     this.depot.set(null);
     this.erreurDepot.set(null);
     this.api.deposerExercice(this.sessionId, etudiantId, this.lien.trim()).subscribe({
-      next: d => { this.depot.set(d); this.lien = ''; },
+      next: d => { this.depot.set(d); this.lien = ''; this.chargerSessions(); },
       error: (e: ErreurApi) => this.erreurDepot.set(e),
     });
   }

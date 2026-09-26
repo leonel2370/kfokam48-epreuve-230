@@ -1,4 +1,7 @@
 @if (etudiantId(); as moi) {
+  @if (erreurChargement(); as e) {
+    <app-erreur [erreur]="e" />
+  }
   <section class="carte">
     <h2>Présence</h2>
     <form class="ligne" (ngSubmit)="marquer(moi)">
