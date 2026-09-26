@@ -26,4 +26,23 @@ describe('ProfilComponent (SF-17, SF-18)', () => {
     http.expectOne('/api/moi').flush({ ...PROFILS.admin, doitChangerMotDePasse: false });
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin');
   });
+
+  it('#106 — le bouton Enregistrer est désactivé pendant la requête (pas de double envoi)', () => {
+    TestBed.configureTestingModule({ imports: [ProfilComponent], providers: FOURNISSEURS_TEST });
+    const http = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).profil.set(PROFILS.awa);
+    const fixture = TestBed.createComponent(ProfilComponent);
+    fixture.detectChanges();
+    const c = fixture.componentInstance;
+    c.ancien = 'Etudiant48';
+    c.nouveau = 'NouveauMdp48';
+    c.changer();
+    fixture.detectChanges();
+    const bouton = (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(bouton.disabled).withContext('pendant la requête').toBeTrue();
+    http.expectOne('/api/moi/mot-de-passe').flush(null);
+    http.expectOne('/api/moi').flush(PROFILS.awa);
+    fixture.detectChanges();
+    expect(bouton.disabled).withContext('après la requête').toBeFalse();
+  });
 });

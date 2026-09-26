@@ -92,4 +92,56 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
     expect(c.peutEnvoyer(7)).withContext('commentaire vide').toBeFalse();
     fixture.destroy();
   });
+
+  it('#106 — un rafraîchissement réussi efface l’erreur précédente', fakeAsync(() => {
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    tick(RAFRAICHISSEMENT_MS);
+    http.expectOne(A_FAIRE).flush({ code: 'ERREUR_INTERNE', message: 'Coupure passagère.' },
+      { status: 500, statusText: 'Server Error' });
+    http.expectOne(RENDUES).flush({ code: 'ERREUR_INTERNE', message: 'Coupure passagère.' },
+      { status: 500, statusText: 'Server Error' });
+    expect(c.erreur()).not.toBeNull();
+    tick(RAFRAICHISSEMENT_MS);
+    http.expectOne(A_FAIRE).flush([]);
+    http.expectOne(RENDUES).flush([]);
+    expect(c.erreur()).withContext('les listes sont à jour, l’erreur doit disparaître').toBeNull();
+    discardPeriodicTasks();
+    fixture.destroy();
+  }));
+
+  it('#106 — le message « Relecture envoyée » disparaît au bout de quelques secondes', fakeAsync(() => {
+    spyOn(window, 'confirm').and.returnValue(true);
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    c.notes[7] = 15;
+    c.commentaires[7] = 'ok';
+    c.rendre(RELECTURE);
+    http.expectOne('/api/relectures/7').flush(null);
+    http.expectOne(A_FAIRE).flush([]);
+    http.expectOne(RENDUES).flush([]);
+    expect(c.message()).toBe('Relecture envoyée.');
+    tick(5001);
+    expect(c.message()).withContext('le message ne doit pas rester indéfiniment').toBe('');
+    discardPeriodicTasks();
+    fixture.destroy();
+  }));
+
+  it('#106 — le bouton Envoyer est désactivé pendant la requête (pas de double envoi)', () => {
+    spyOn(window, 'confirm').and.returnValue(true);
+    const fixture = ouvrir();
+    const c = fixture.componentInstance;
+    c.notes[7] = 15;
+    c.commentaires[7] = 'ok';
+    c.rendre(RELECTURE);
+    fixture.detectChanges();
+    const bouton = (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(bouton.disabled).withContext('pendant la requête').toBeTrue();
+    http.expectOne('/api/relectures/7').flush(null);
+    http.expectOne(A_FAIRE).flush([]);
+    http.expectOne(RENDUES).flush([]);
+    fixture.detectChanges();
+    expect(bouton.disabled).withContext('après la requête').toBeFalse();
+    fixture.destroy();
+  });
 });

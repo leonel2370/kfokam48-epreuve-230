@@ -44,4 +44,20 @@ describe('MesNotesComponent (#88, RG31, #101)', () => {
     discardPeriodicTasks();
     fixture.destroy();
   }));
+
+  it('#106 — un rafraîchissement réussi efface l’erreur précédente', fakeAsync(() => {
+    const fixture = TestBed.createComponent(MesNotesComponent);
+    fixture.detectChanges();
+    http.expectOne(URL).flush([PROVISOIRE]);
+    const c = fixture.componentInstance;
+    tick(RAFRAICHISSEMENT_MS);
+    http.expectOne(URL).flush({ code: 'ERREUR_INTERNE', message: 'Coupure passagère.' },
+      { status: 500, statusText: 'Server Error' });
+    expect(c.erreur()).not.toBeNull();
+    tick(RAFRAICHISSEMENT_MS);
+    http.expectOne(URL).flush([PROVISOIRE]);
+    expect(c.erreur()).withContext('les données sont à jour, l’erreur doit disparaître').toBeNull();
+    discardPeriodicTasks();
+    fixture.destroy();
+  }));
 });
