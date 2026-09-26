@@ -1,6 +1,9 @@
 <main>
   <section class="carte">
-    <h2>Tableau de la promotion</h2>
+    <h2>{{ titre() }}</h2>
+    @if (adresseInvalide()) {
+      <p class="alerte" role="alert">L’adresse de cette page est invalide : choisissez une promotion depuis vos sessions.</p>
+    }
     <app-erreur [erreur]="erreur()" />
     @if (chargement()) {
       <p class="discret">Chargement…</p>

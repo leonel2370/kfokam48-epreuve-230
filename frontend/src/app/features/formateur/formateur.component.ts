@@ -5,6 +5,7 @@ import { ErreurApi, Promotion, Session, SessionOuverte } from '../../core/api/ap
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { cheminTableau } from '../../core/navigation/chemins';
+import { LIBELLES_STATUT_SESSION } from '../../core/navigation/libelles';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
@@ -50,6 +51,11 @@ export class FormateurComponent implements OnInit, OnDestroy {
 
   promotionChoisie: number | null = null;
   titre = '';
+
+  /** #108 : libellés français des statuts — le code brut n'est plus affiché. */
+  libelleSession(statut: string): string {
+    return LIBELLES_STATUT_SESSION[statut] ?? statut;
+  }
 
   ngOnInit(): void {
     const moi = this.auth.profil();

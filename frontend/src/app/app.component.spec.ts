@@ -27,12 +27,12 @@ describe('AppComponent — en-tête par rôle, en boutons (spécifications §1.2
 
   it("n'affiche à l'étudiant que son espace, son nom et la déconnexion", () => {
     TestBed.inject(AuthService).profil.set(PROFILS.awa);
-    expect(boutons()).toEqual(['Mon espace', 'Awa Ndiaye · ETUDIANT', 'Se déconnecter']);
+    expect(boutons()).toEqual(['Mon espace', 'Awa Ndiaye · Étudiant', 'Se déconnecter']);
   });
 
   it("n'affiche au formateur que ses sessions", () => {
     TestBed.inject(AuthService).profil.set(PROFILS.formateur);
-    expect(boutons()).toEqual(['Mes sessions', 'Jean Fokam · FORMATEUR', 'Se déconnecter']);
+    expect(boutons()).toEqual(['Mes sessions', 'Jean Fokam · Formateur', 'Se déconnecter']);
   });
 
   it('déconnecte côté serveur puis oublie le profil (SF-16)', () => {

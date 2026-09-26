@@ -4,7 +4,7 @@
     @if (auth.profil(); as moi) {
       <app-barre-navigation libelle="Menus" [entrees]="menus()" />
       <app-bouton-navigation [chemin]="chemins.profil" titre="Mon profil">
-        {{ moi.nomAffiche }} · {{ moi.role }}
+        {{ moi.nomAffiche }} · {{ libelleDuRole(moi.role) }}
       </app-bouton-navigation>
       <button type="button" class="secondaire" (click)="deconnecter()">Se déconnecter</button>
     }

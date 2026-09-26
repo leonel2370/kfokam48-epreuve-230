@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { CHEMINS, EntreeNavigation } from './core/navigation/chemins';
+import { libelleRole } from './core/navigation/libelles';
 import { BarreNavigationComponent } from './shared/barre-navigation/barre-navigation.component';
 import { BoutonNavigationComponent } from './shared/bouton-navigation/bouton-navigation.component';
 
@@ -18,6 +19,9 @@ export class AppComponent {
   readonly auth = inject(AuthService);
   readonly titre = 'Présence48';
   readonly chemins = CHEMINS;
+
+  /** #108 : libellé français du rôle — le code brut (ETUDIANT) n'est plus affiché. */
+  readonly libelleDuRole = libelleRole;
 
   /** Menus visibles selon le rôle (matrice des droits, cahier §2 bis). */
   readonly menus = computed<EntreeNavigation[]>(() => {
