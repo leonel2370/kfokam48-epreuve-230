@@ -46,18 +46,22 @@ public class RelectureService {
     this.horloge = horloge;
   }
 
-  /** SF-8 (route protégée) : l'étudiant voit les siennes ; ADMIN et FORMATEUR de la promotion peuvent lire. */
+  /**
+   * SF-8 (route protégée) : l'étudiant voit les siennes ; ADMIN et FORMATEUR de la promotion peuvent lire.
+   * Ordre des contrôles (#109, RG25) : pour un étudiant connecté, l'identité (403) passe AVANT
+   * l'existence (404) afin qu'il ne puisse pas énumérer les identifiants (OWASP A01).
+   */
   @Transactional(readOnly = true)
   public List<RelectureRelecteurReponse> lister(Long etudiantId, Filtre filtre) {
+    var connecte = acces.connecte().orElse(null);
+    if (connecte != null && connecte.role() == Role.ETUDIANT) {
+      acces.verifierIdentite(etudiantId);
+    }
     var etudiant = etudiants.findById(etudiantId).orElseThrow(() ->
         new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
-    acces.connecte().ifPresent(u -> {
-      if (u.role() == Role.ETUDIANT) {
-        acces.verifierIdentite(etudiantId);
-      } else {
-        acces.verifierGestionPromotion(etudiant.getPromotionId());
-      }
-    });
+    if (connecte != null && connecte.role() != Role.ETUDIANT) {
+      acces.verifierGestionPromotion(etudiant.getPromotionId());
+    }
     return relectures.vuesDuRelecteur(etudiantId).stream()
         .filter(r -> filtre == null || r.rendue() == (filtre == Filtre.RENDUE))
         .toList();
