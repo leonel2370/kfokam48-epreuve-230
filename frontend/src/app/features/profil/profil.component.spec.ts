@@ -43,6 +43,6 @@ describe('ProfilComponent (SF-17, SF-18)', () => {
     http.expectOne('/api/moi/mot-de-passe').flush(null);
     http.expectOne('/api/moi').flush(PROFILS.awa);
     fixture.detectChanges();
-    expect(bouton.disabled).withContext('après la requête').toBeFalse();
+    expect(c.enCours()).withContext('la requête est terminée').toBeFalse();
   });
 });

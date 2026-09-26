@@ -9,7 +9,7 @@
         <input name="code" [(ngModel)]="code" required autocomplete="off" autocapitalize="characters"
                maxlength="12" placeholder="K7MX4Q" />
       </label>
-      <button type="submit" [disabled]="!code.trim()">Valider</button>
+      <button type="submit" [disabled]="!code.trim() || presenceEnCours()">Valider</button>
     </form>
     @if (presenceOk()) { <output class="succes">Présence enregistrée.</output> }
     <app-erreur [erreur]="erreurPresence()" />
@@ -27,7 +27,7 @@
       <label>Lien
         <input name="lien" type="url" [(ngModel)]="lien" required placeholder="https://github.com/…" />
       </label>
-      <button type="submit" [disabled]="!sessionId || !lien.trim()">Déposer</button>
+      <button type="submit" [disabled]="!sessionId || !lien.trim() || depotEnCours()">Déposer</button>
     </form>
     @if (depot(); as d) {
       <output class="succes">Exercice déposé — statut <span class="badge" [class]="d.statut">{{ d.statut }}</span></output>

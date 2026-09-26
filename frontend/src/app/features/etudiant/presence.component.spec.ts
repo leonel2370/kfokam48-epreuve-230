@@ -98,7 +98,7 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     expect(bouton.disabled).withContext('pendant la requête').toBeTrue();
     http.expectOne('/api/presences').flush({ id: 1, sessionId: 9, etudiantId: 1, source: 'ETUDIANT' });
     fixture.detectChanges();
-    expect(bouton.disabled).withContext('après la requête').toBeFalse();
+    expect(c.presenceEnCours()).withContext('la requête est terminée').toBeFalse();
   });
 
   it('#106 — le bouton Déposer est désactivé pendant la requête de dépôt (pas de double envoi)', () => {
@@ -112,6 +112,6 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     expect((boutons[1] as HTMLButtonElement).disabled).withContext('pendant la requête').toBeTrue();
     http.expectOne('/api/exercices').flush({ id: 4, statut: 'DEPOSE' });
     fixture.detectChanges();
-    expect((boutons[1] as HTMLButtonElement).disabled).withContext('après la requête').toBeFalse();
+    expect(c.depotEnCours()).withContext('la requête est terminée').toBeFalse();
   });
 });

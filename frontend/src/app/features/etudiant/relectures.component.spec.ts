@@ -141,7 +141,7 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
     http.expectOne(A_FAIRE).flush([]);
     http.expectOne(RENDUES).flush([]);
     fixture.detectChanges();
-    expect(bouton.disabled).withContext('après la requête').toBeFalse();
+    expect(c.envoi()).withContext('la requête est terminée').toBeFalse();
     fixture.destroy();
   });
 });

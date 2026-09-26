@@ -37,6 +37,9 @@ export class RelecturesComponent implements OnInit, OnDestroy {
   readonly rendues = signal<RelectureRelecteur[]>([]);
   readonly erreur = signal<ErreurApi | null>(null);
   readonly message = signal('');
+  /** #106 : l'envoi en cours désactive le bouton (pas de double envoi définitif). */
+  readonly envoi = signal(false);
+  private minuterieMessage?: ReturnType<typeof setTimeout>;
 
   /** Un champ number vidé vaut null (Angular) : il ne doit pas activer l'envoi (#101). */
   notes: Partial<Record<number, number | null>> = {};
@@ -49,6 +52,7 @@ export class RelecturesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.minuterie);
+    clearTimeout(this.minuterieMessage);
   }
 
   /** Aide à la saisie seulement : la règle RG9 est vérifiée par le serveur (NOTE_INVALIDE). */
@@ -64,9 +68,17 @@ export class RelecturesComponent implements OnInit, OnDestroy {
       return;
     }
     this.erreur.set(null);
+    this.envoi.set(true);
     this.api.rendreRelecture(r.id, etudiantId, note, (this.commentaires[r.id] ?? '').trim()).subscribe({
-      next: () => { this.message.set('Relecture envoyée.'); this.charger(); },
-      error: (e: ErreurApi) => this.erreur.set(e),
+      next: () => {
+        this.envoi.set(false);
+        this.message.set('Relecture envoyée.');
+        // #106 : le message s'efface tout seul, il ne doit pas rester au-dessus des listes rafraîchies.
+        clearTimeout(this.minuterieMessage);
+        this.minuterieMessage = setTimeout(() => this.message.set(''), 5000);
+        this.charger();
+      },
+      error: (e: ErreurApi) => { this.envoi.set(false); this.erreur.set(e); },
     });
   }
 
@@ -76,11 +88,12 @@ export class RelecturesComponent implements OnInit, OnDestroy {
       return;
     }
     this.api.relectures(etudiantId, 'A_FAIRE').subscribe({
-      next: l => this.relectures.set(l),
+      // #106 : un rafraîchissement réussi efface l'erreur précédente.
+      next: l => { this.relectures.set(l); this.erreur.set(null); },
       error: (e: ErreurApi) => this.erreur.set(e),
     });
     this.api.relectures(etudiantId, 'RENDUE').subscribe({
-      next: l => this.rendues.set(l),
+      next: l => { this.rendues.set(l); this.erreur.set(null); },
       error: (e: ErreurApi) => this.erreur.set(e),
     });
   }
