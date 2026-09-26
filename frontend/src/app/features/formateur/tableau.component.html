@@ -30,6 +30,8 @@
         </tbody>
       </table>
     }
-    <p><a routerLink="/formateur">← Retour aux sessions</a></p>
+    @if (retour(); as r) {
+      <p><app-bouton-navigation variante="secondaire" [chemin]="r.chemin" [parametres]="r.parametres">{{ r.libelle }}</app-bouton-navigation></p>
+    }
   </section>
 </main>

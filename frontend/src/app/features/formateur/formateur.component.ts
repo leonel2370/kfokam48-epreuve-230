@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { ErreurApi, Promotion, Session, SessionOuverte } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { ErreurComponent } from '../../shared/erreur.component';
+import { cheminTableau } from '../../core/navigation/chemins';
+import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
+import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 const SECONDE = 1000;
 const MINUTE = 60;
@@ -17,13 +18,20 @@ const MINUTE = 60;
 @Component({
   selector: 'app-formateur',
   standalone: true,
-  imports: [FormsModule, DatePipe, RouterLink, ErreurComponent],
+  imports: [FormsModule, DatePipe, ErreurComponent, BoutonNavigationComponent],
   templateUrl: './formateur.component.html',
 })
 export class FormateurComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private minuterie?: ReturnType<typeof setInterval>;
+
+  /**
+   * ?promotionId=… (bouton « Sessions » de l'admin, « Retour » du tableau) : promotion à présélectionner.
+   * Même nom que PARAM_PROMOTION, lié par withComponentInputBinding (vérifié par le test).
+   */
+  readonly promotionId = input<string | undefined>(undefined);
+  readonly cheminTableau = cheminTableau;
 
   readonly promotions = signal<Promotion[]>([]);
   readonly sessions = signal<Session[]>([]);
@@ -40,7 +48,7 @@ export class FormateurComponent implements OnInit, OnDestroy {
   readonly minutes = computed(() => Math.floor(this.restant() / MINUTE));
   readonly secondes = computed(() => this.restant() % MINUTE);
 
-  promotionId: number | null = null;
+  promotionChoisie: number | null = null;
   titre = '';
 
   ngOnInit(): void {
@@ -50,8 +58,10 @@ export class FormateurComponent implements OnInit, OnDestroy {
         // Le formateur ne voit que ses promotions (RG26) ; l'admin les voit toutes.
         const visibles = moi?.role === 'FORMATEUR' ? toutes.filter(p => moi.promotionIds.includes(p.id)) : toutes;
         this.promotions.set(visibles);
-        if (visibles.length > 0) {
-          this.choisir(visibles[0].id);
+        const demandee = visibles.find(p => p.id === Number(this.promotionId()));
+        const initiale = demandee ?? visibles[0];
+        if (initiale) {
+          this.choisir(initiale.id);
         }
       },
       error: (e: ErreurApi) => this.erreur.set(e),
@@ -64,27 +74,27 @@ export class FormateurComponent implements OnInit, OnDestroy {
   }
 
   choisir(promotionId: number): void {
-    this.promotionId = promotionId;
+    this.promotionChoisie = promotionId;
     this.chargerSessions();
   }
 
   ouvrir(): void {
-    if (!this.promotionId) {
+    if (!this.promotionChoisie) {
       return;
     }
     this.enCours.set(true);
     this.erreur.set(null);
-    this.api.ouvrirSession(this.titre.trim(), this.promotionId).subscribe({
+    this.api.ouvrirSession(this.titre.trim(), this.promotionChoisie).subscribe({
       next: s => { this.session.set(s); this.titre = ''; this.enCours.set(false); this.chargerSessions(); },
       error: (e: ErreurApi) => { this.erreur.set(e); this.enCours.set(false); },
     });
   }
 
   private chargerSessions(): void {
-    if (!this.promotionId) {
+    if (!this.promotionChoisie) {
       return;
     }
-    this.api.sessions(this.promotionId).subscribe({
+    this.api.sessions(this.promotionChoisie).subscribe({
       next: s => this.sessions.set(s),
       error: (e: ErreurApi) => this.erreur.set(e),
     });

@@ -3,17 +3,19 @@
     <h2>Ouvrir une session</h2>
     <form class="ligne" (ngSubmit)="ouvrir()">
       <label>Promotion
-        <select name="promotion" [ngModel]="promotionId" (ngModelChange)="choisir($event)" required>
+        <select name="promotion" [ngModel]="promotionChoisie" (ngModelChange)="choisir($event)" required>
           @for (p of promotions(); track p.id) { <option [ngValue]="p.id">{{ p.nom }}</option> }
         </select>
       </label>
       <label>Titre
         <input name="titre" [(ngModel)]="titre" required maxlength="200" placeholder="TP Spring JPA" />
       </label>
-      <button type="submit" [disabled]="enCours() || !titre.trim() || !promotionId">
+      <button type="submit" [disabled]="enCours() || !titre.trim() || !promotionChoisie">
         {{ enCours() ? 'Ouverture…' : 'Ouvrir' }}
       </button>
-      @if (promotionId) { <a [routerLink]="['/formateur/tableau', promotionId]">Voir le tableau</a> }
+      @if (promotionChoisie) {
+        <app-bouton-navigation variante="secondaire" [chemin]="cheminTableau(promotionChoisie)">Voir le tableau</app-bouton-navigation>
+      }
     </form>
     @if (promotions().length === 0 && !erreur()) {
       <p class="discret">Vous n'êtes rattaché à aucune promotion.</p>

@@ -1,0 +1,4 @@
+<button type="button" [class]="variante()" [class.actif]="actif()" [attr.aria-current]="actif() ? 'page' : null"
+        [attr.title]="titre()" (click)="naviguer()">
+  <ng-content />
+</button>
