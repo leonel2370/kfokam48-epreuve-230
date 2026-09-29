@@ -3,6 +3,7 @@ package com.k48.leonel.presence48.controller;
 import static com.k48.leonel.presence48.support.Connexion.MDP_ETUDIANT;
 import static com.k48.leonel.presence48.support.Connexion.MDP_FORMATEUR;
 import static com.k48.leonel.presence48.support.Connexion.connecter;
+import static com.k48.leonel.presence48.support.Connexion.connecterAvecCsrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,8 +40,24 @@ class UtilisateurIntegrationTest {
   @Autowired
   private JdbcTemplate jdbc;
 
+  private MockHttpSession sessionAdmin;
+
+  /**
+   * admin/admin doit changer son mot de passe (RG23) avant d'agir : le helper fait ce premier changement
+   * puis réutilise la session. Déterministe : un nouvel instance de test par méthode (@DirtiesContext),
+   * donc au premier appel le mot de passe est encore 'admin' ; le login passe toujours par le helper CSRF.
+   */
   private MockHttpSession admin() throws Exception {
-    return connecter(mvc, "admin", "admin");
+    if (sessionAdmin != null) {
+      return sessionAdmin;
+    }
+    var session = connecterAvecCsrf(mvc, "admin", "admin");
+    mvc.perform(put("/api/moi/mot-de-passe").session(session).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"ancien\":\"admin\",\"nouveau\":\"Admin48!x\"}"))
+        .andExpect(status().isNoContent());
+    sessionAdmin = session;
+    return session;
   }
 
   private long etudiant(String nom) {
@@ -66,7 +83,7 @@ class UtilisateurIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.contenu[?(@.login=='awa')].role").value("ETUDIANT"))
         .andExpect(jsonPath("$.contenu[?(@.login=='formateur')].role").value("FORMATEUR"))
-        .andExpect(jsonPath("$.contenu[?(@.login=='admin')].doitChangerMotDePasse").value(true))
+        .andExpect(jsonPath("$.contenu[?(@.login=='paul')].actif").value(true))
         .andExpect(jsonPath("$.total").isNumber());
   }
 
@@ -99,7 +116,7 @@ class UtilisateurIntegrationTest {
         {"login":"clara","nomAffiche":"Clara Ndongo","role":"ETUDIANT",
          "motDePasseInitial":"MotDePasse9","etudiantId":%d}
         """.formatted(etudiant("Sara Ebode"))).andExpect(status().isCreated());
-    var session = connecter(mvc, "clara", "MotDePasse9");
+    var session = connecterAvecCsrf(mvc, "clara", "MotDePasse9");
     mvc.perform(get("/api/moi").session(session))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.doitChangerMotDePasse").value(true));
@@ -118,14 +135,14 @@ class UtilisateurIntegrationTest {
 
   @Test
   void testRg28DesactiverUnCompteCoupeSaConnexion() throws Exception {
-    var formateur2 = creer(admin(), """
+    creer(admin(), """
         {"login":"formateur2","nomAffiche":"Deuxieme Formateur","role":"FORMATEUR",
          "motDePasseInitial":"MotDePasse9"}
-        """).andReturn().getResponse().getContentAsString();
-    org.assertj.core.api.Assertions.assertThat(formateur2).contains("\"id\"");
-    mvc.perform(delete("/api/utilisateurs/6").session(admin()).with(csrf()))
+        """).andExpect(status().isCreated());
+    var id = jdbc.queryForObject("SELECT id FROM utilisateur WHERE login = 'formateur2'", Long.class);
+    mvc.perform(delete("/api/utilisateurs/" + id).session(admin()).with(csrf()))
         .andExpect(status().isNoContent());
-    erreur(mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+    erreur(mvc.perform(post("/api/auth/login").with(csrf()).contentType(MediaType.APPLICATION_JSON)
         .content("{\"login\":\"formateur2\",\"motDePasse\":\"MotDePasse9\"}")), 403, "COMPTE_DESACTIVE");
     // le compte désactivé apparaît inactif dans la liste
     liste(admin()).andExpect(jsonPath("$.contenu[?(@.login=='formateur2')].actif").value(false));
@@ -133,9 +150,10 @@ class UtilisateurIntegrationTest {
 
   @Test
   void testRg28LeDernierAdminActifNePeutPasSeDesactiver() throws Exception {
-    erreur(mvc.perform(delete("/api/utilisateurs/1").session(admin()).with(csrf())), 409,
+    var idAdmin = jdbc.queryForObject("SELECT id FROM utilisateur WHERE login = 'admin'", Long.class);
+    erreur(mvc.perform(delete("/api/utilisateurs/" + idAdmin).session(admin()).with(csrf())), 409,
         "SUPPRESSION_IMPOSSIBLE");
-    mvc.perform(get("/api/moi").session(connecter(mvc, "admin", "admin")))
+    mvc.perform(get("/api/moi").session(connecterAvecCsrf(mvc, "admin", "Admin48!x")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.role").value("ADMIN"));
   }
@@ -165,18 +183,18 @@ class UtilisateurIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"motDePasseInitial\":\"MotDePasse9\"}"))
         .andExpect(status().isNoContent());
-    mvc.perform(get("/api/moi").session(connecter(mvc, "paul", "MotDePasse9")))
+    mvc.perform(get("/api/moi").session(connecterAvecCsrf(mvc, "paul", "MotDePasse9")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.doitChangerMotDePasse").value(true));
   }
 
   @Test
   void testAccesRefuseAuxAutresRoles() throws Exception {
-    var awa = connecter(mvc, "awa", MDP_ETUDIANT);
+    var awa = connecterAvecCsrf(mvc, "awa", MDP_ETUDIANT);
     erreur(liste(awa), 403, "ACCES_REFUSE");
     erreur(creer(awa, "{\"login\":\"x\",\"nomAffiche\":\"X\",\"role\":\"ETUDIANT\",\"motDePasseInitial\":\"MotDePasse9\"}"),
         403, "ACCES_REFUSE");
-    var formateur = connecter(mvc, "formateur", MDP_FORMATEUR);
+    var formateur = connecterAvecCsrf(mvc, "formateur", MDP_FORMATEUR);
     erreur(liste(formateur), 403, "ACCES_REFUSE");
   }
 

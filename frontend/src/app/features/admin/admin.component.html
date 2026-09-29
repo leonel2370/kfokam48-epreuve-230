@@ -12,11 +12,63 @@
     } @empty { <p class="discret">Aucune promotion.</p> }
     <app-erreur [erreur]="erreur()" />
   </section>
+
+  <!-- #60 (SF-20) : gestion des comptes -->
   <section class="carte">
-    <h2>Gestion des comptes, promotions et étudiants</h2>
+    <h2>Comptes</h2>
+    @if (message(); as m) { <p class="discret">{{ m }}</p> }
+    @for (u of comptes(); track u.id) {
+      <p class="ligne">
+        <strong>{{ u.login }}</strong> — {{ u.nomAffiche }}
+        <span class="discret">({{ u.role }}{{ u.actif ? '' : ', désactivé' }})</span>
+        @if (u.actif) {
+          <button type="button" class="secondaire" (click)="desactiver(u)">Désactiver</button>
+          <button type="button" class="secondaire" (click)="reinitialiser(u)">Réinitialiser le mot de passe</button>
+        }
+      </p>
+    } @empty { <p class="discret">Aucun compte.</p> }
+    @if (page() > 0) {
+      <button type="button" class="secondaire" (click)="pagePrecedente()">Page précédente</button>
+    }
+    <span class="discret">{{ total() }} comptes</span>
+    @if ((page() + 1) * 20 < total()) {
+      <button type="button" class="secondaire" (click)="pageSuivante()">Page suivante</button>
+    }
+  </section>
+
+  <section class="carte">
+    <h2>Créer un compte</h2>
+    <form (ngSubmit)="creer()">
+      <label>
+        Identifiant
+        <input name="login" [(ngModel)]="login" required maxlength="50" autocomplete="off" />
+      </label>
+      <label>
+        Nom affiché
+        <input name="nomAffiche" [(ngModel)]="nomAffiche" required maxlength="150" />
+      </label>
+      <label>
+        Rôle
+        <select name="role" [(ngModel)]="role" required>
+          @for (r of ROLES; track r) { <option [value]="r">{{ r }}</option> }
+        </select>
+      </label>
+      @if (role === 'ETUDIANT') {
+        <label>
+          Fiche étudiant (identifiant)
+          <input name="etudiantId" type="number" [(ngModel)]="etudiantIdCreation" required min="1" />
+        </label>
+      }
+      <label>
+        Mot de passe provisoire (8 caractères minimum)
+        <input name="motDePasseInitial" type="password" [(ngModel)]="motDePasseInitial" required minlength="8" />
+      </label>
+      <button type="submit" [disabled]="enCours()">Créer le compte</button>
+    </form>
     <p class="discret">
-      Non livrée dans cette version : reportée au backlog (#60, #61, #62), voir le cahier des charges §7.2 ter.
-      Les comptes de démonstration sont créés au démarrage (README).
+      Le mot de passe provisoire devra être changé à la première connexion (RG23). Un compte désactivé
+      ne peut plus se connecter (RG28) — jamais de suppression physique.
     </p>
+    <app-erreur [erreur]="erreur()" />
   </section>
 </main>

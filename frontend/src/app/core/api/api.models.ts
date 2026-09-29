@@ -1,4 +1,4 @@
-/** Types alignés sur api/contrat.yaml (v2.0). Aucune règle métier côté client (F3). */
+/** Types alignés sur api/contrat.yaml (v2.6). Aucune règle métier côté client (F3). */
 
 export interface ErreurApi {
   code: string;
@@ -94,4 +94,23 @@ export interface ExerciceAuteur {
   noteRetenue: number | null;
   provisoire: boolean;
   commentaires: string[];
+}
+
+/** #60 (SF-20) : un compte — jamais le mot de passe, même haché. */
+export interface Utilisateur {
+  id: number;
+  login: string;
+  nomAffiche: string;
+  role: Role;
+  etudiantId: number | null;
+  actif: boolean;
+  doitChangerMotDePasse: boolean;
+}
+
+/** #60 (SF-20) : page de comptes. */
+export interface PageUtilisateurs {
+  contenu: Utilisateur[];
+  page: number;
+  taille: number;
+  total: number;
 }
