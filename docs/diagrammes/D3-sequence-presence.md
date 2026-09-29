@@ -27,7 +27,10 @@ sequenceDiagram
         C-->>F: 429 {code: "TROP_DE_TENTATIVES"}
     end
     S->>SR: findByCode(code)
-    alt code inconnu
+    alt fiche désactivée (#113, RG28)
+        S-->>C: EtudiantDesactiveException
+        C-->>F: 403 {code: "ETUDIANT_DESACTIVE"}
+    else code inconnu
         S->>T: incrémenter échecs (blocage 2 min au 5e)
         S-->>C: CodeInconnuException
         C-->>F: 400 {code: "CODE_INCONNU"}
