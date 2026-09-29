@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.6"
+  version: "2.7"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,12 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.7 (#61) — GESTION DU RÉFÉRENTIEL (SF-21, SF-22, EF22, EF23)
+      - Les 7 opérations de gestion du référentiel sont livrées : créer/renommer/supprimer une
+        promotion (ADMIN, RG25 ; nom unique → 409 CONFLIT ; RG28 : suppression refusée si
+        étudiants ou sessions), rattacher les formateurs d'une promotion (ADMIN, RG26 : seuls des
+        comptes FORMATEUR), créer/modifier/supprimer une fiche étudiant (ADMIN et FORMATEUR de
+        la promotion, RG26 ; suppression physique sans historique, désactivation sinon — RG28).
     v2.6 (#60) — CRUD DES COMPTES (ADMIN)
       - Les 6 opérations /api/utilisateurs sont livrées (SF-20, EF21) : liste paginée, création
         (mot de passe provisoire RG23, login unique RG27), lecture, modification, désactivation
@@ -666,10 +672,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     put:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: modifierPromotion
-      summary: "Non livré (backlog #61) — Renommer une promotion (ADMIN, SF-21)"
+      summary: "Renommer une promotion (ADMIN, SF-21, #61)"
       requestBody:
         required: true
         content:
@@ -687,10 +693,10 @@ paths:
         "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
         "409": { $ref: "#/components/responses/Erreur" }   # CONFLIT (nom déjà pris)
     delete:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: supprimerPromotion
-      summary: "Non livré (backlog #61) — Supprimer une promotion vide (ADMIN)"
+      summary: "Supprimer une promotion vide (ADMIN, RG28, #61)"
       responses:
         "204": { description: Promotion supprimée }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -702,10 +708,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     put:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: rattacherFormateurs
-      summary: "Non livré (backlog #61) — Définir les formateurs d'une promotion (ADMIN, RG26)"
+      summary: "Définir les formateurs d'une promotion (ADMIN, RG26, #61)"
       requestBody:
         required: true
         content:
@@ -726,10 +732,10 @@ paths:
 
   /api/etudiants:
     post:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: creerEtudiant
-      summary: "Non livré (backlog #61) — Créer une fiche étudiant (ADMIN, FORMATEUR de la promotion, SF-22)"
+      summary: "Créer une fiche étudiant (ADMIN, FORMATEUR de la promotion, SF-22, #61)"
       requestBody:
         required: true
         content:
@@ -749,10 +755,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/EtudiantId"
     put:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: modifierEtudiant
-      summary: "Non livré (backlog #61) — Modifier une fiche étudiant (ADMIN, FORMATEUR de la promotion)"
+      summary: "Modifier une fiche étudiant (ADMIN, FORMATEUR de la promotion, #61)"
       requestBody:
         required: true
         content:
@@ -769,10 +775,10 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
     delete:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: desactiverEtudiant
-      summary: "Non livré (backlog #61) — Supprimer une fiche sans historique, sinon la désactiver (RG28)"
+      summary: "Supprimer une fiche sans historique, sinon la désactiver (RG28, #61)"
       responses:
         "204": { description: Fiche supprimée ou désactivée }
         "401": { $ref: "#/components/responses/Erreur" }

@@ -8,4 +8,7 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, Long> {
 
   /** Liste de sélection (Q1, EF1) : les étudiants désactivés n'y figurent plus (RG28). */
   List<Etudiant> findByPromotionIdAndActifTrueOrderByNomAsc(Long promotionId);
+
+  /** #61 / RG28 : une promotion ayant des étudiants n'est pas supprimable. */
+  boolean existsByPromotionId(Long promotionId);
 }

@@ -11,6 +11,9 @@ public interface RelectureRepository extends JpaRepository<Relecture, Long> {
   /** RG6 v3 : jusqu'à deux relectures par exercice. */
   List<Relecture> findByExerciceIdOrderByIdAsc(Long exerciceId);
 
+  /** #61 / RG28 : l'étudiant est relecteur au moins une fois — historique. */
+  boolean existsByRelecteurId(Long relecteurId);
+
   /** SF-8 : vue du relecteur, sans l'identité de l'auteur (HYP-10), les plus récentes d'abord. */
   @Query("""
       SELECT new com.k48.leonel.presence48.dto.response.RelectureRelecteurReponse(
