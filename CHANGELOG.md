@@ -29,6 +29,7 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 - Une fiche étudiant désactivée ne peut plus marquer sa présence ni déposer : `403 ETUDIANT_DESACTIVE` sur les opérations publiques `POST /api/presences` et `POST /api/exercices`, avant tout autre contrôle (RG28, décision PO — #113, contrat 2.4).
 
 ### Ajouté
+- **CRUD des comptes** (ADMIN, contrat 2.6) : liste paginée, création (mot de passe provisoire à changer à la première connexion, RG23 ; login unique RG27), modification, désactivation RG28 avec protection du dernier admin actif, réinitialisation de mot de passe ; écran « Comptes » dans l'espace ADMIN (#60).
 - **Récapitulatif de l'étudiant connecté** : `GET /api/moi/recap` (contrat 2.5) renvoie sa ligne de tableau — présences, exercices, moyenne des notes retenues (RG16), relectures en attente ; encart « Récapitulatif » dans « Mes notes » (#112).
 
 ## [1.0.0] — 2026-09-25

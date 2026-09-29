@@ -107,7 +107,7 @@ class AuthIntegrationTest {
             .content("{\"ancien\":\"admin\",\"nouveau\":\"Admin-2026!\"}"))
         .andExpect(status().isNoContent());
     mvc.perform(get("/api/utilisateurs").session(session))
-        .andExpect(status().isNotFound());   // la route n'existe pas encore (#60) : le filtre RG23 ne bloque plus
+        .andExpect(status().isOk());   // #60 livrée : après le changement RG23, l'admin liste les comptes
     // Reconnexion depuis un navigateur ayant déjà une session : le jeton CSRF est exigé (et fourni par Angular)
     mvc.perform(post("/api/auth/login").session(session).with(csrf()).contentType(MediaType.APPLICATION_JSON)
             .content(corps("admin", "Admin-2026!")))

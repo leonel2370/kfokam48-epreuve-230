@@ -7,12 +7,15 @@ import {
   ExerciceAuteur,
   ExerciceDepose,
   LigneTableau,
+  PageUtilisateurs,
   Presence,
   Profil,
   Promotion,
   RelectureRelecteur,
+  Role,
   Session,
   SessionOuverte,
+  Utilisateur,
 } from './api.models';
 
 /** Seul point d'accès HTTP de l'application : une méthode par opération du contrat. */
@@ -91,5 +94,33 @@ export class ApiService {
   /** v2 (SF-18) : obligatoire au premier login de l'admin par défaut (RG23). */
   changerMotDePasse(ancien: string, nouveau: string): Observable<void> {
     return this.http.put<void>(`${this.url}/moi/mot-de-passe`, { ancien, nouveau });
+  }
+
+  /** #60 (SF-20) : liste paginée des comptes, réservée à l'ADMIN. */
+  utilisateurs(page = 0, size = 20): Observable<PageUtilisateurs> {
+    return this.http.get<PageUtilisateurs>(`${this.url}/utilisateurs`, { params: { page, size } });
+  }
+
+  /** #60 (EF21) : création par l'ADMIN — mot de passe provisoire (RG23), login unique (RG27). */
+  creerUtilisateur(corps: { login: string; nomAffiche: string; role: Role; motDePasseInitial: string;
+    etudiantId: number | null }): Observable<Utilisateur> {
+    return this.http.post<Utilisateur>(`${this.url}/utilisateurs`, corps);
+  }
+
+  /** #60 : modification (rôle, activation…) — le corps complet est requis par le contrat. */
+  modifierUtilisateur(id: number, corps: { nomAffiche: string; role: Role; actif: boolean;
+    etudiantId: number | null }): Observable<Utilisateur> {
+    return this.http.put<Utilisateur>(`${this.url}/utilisateurs/${id}`, corps);
+  }
+
+  /** #60 (RG28) : désactivation — jamais de suppression physique. */
+  desactiverUtilisateur(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/utilisateurs/${id}`);
+  }
+
+  /** #60 (RG23) : mot de passe provisoire, à changer à la connexion suivante. */
+  reinitialiserMotDePasse(id: number, motDePasseInitial: string): Observable<void> {
+    return this.http.post<void>(`${this.url}/utilisateurs/${id}/reinitialiser-mot-de-passe`,
+      { motDePasseInitial });
   }
 }

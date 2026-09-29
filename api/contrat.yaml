@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.5"
+  version: "2.6"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,10 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.6 (#60) — CRUD DES COMPTES (ADMIN)
+      - Les 6 opérations /api/utilisateurs sont livrées (SF-20, EF21) : liste paginée, création
+        (mot de passe provisoire RG23, login unique RG27), lecture, modification, désactivation
+        (RG28, dernier admin actif protégé), réinitialisation de mot de passe (RG23/RG24).
     v2.5 (#112) — RÉCAPITULATIF DE L'ÉTUDIANT CONNECTÉ
       - GET /api/moi/recap est livré : ligne de tableau (EF10) de l'étudiant connecté, même calcul
         agrégé que le tableau ; 403 pour un compte non étudiant (SF-17).
@@ -548,10 +552,10 @@ paths:
   # ------------------------------------------------------------------ v2 : administration
   /api/utilisateurs:
     get:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: listerUtilisateurs
-      summary: "Non livré (backlog #60) — Lister les comptes (ADMIN, SF-20)"
+      summary: "Lister les comptes (ADMIN, SF-20, #60)"
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Taille"
@@ -564,10 +568,10 @@ paths:
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE, CHANGEMENT_MOT_DE_PASSE_REQUIS
     post:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: creerUtilisateur
-      summary: "Non livré (backlog #60) — Créer un compte (ADMIN, EF21) — mot de passe à changer à la première connexion"
+      summary: "Créer un compte (ADMIN, EF21, #60) — mot de passe à changer à la première connexion"
       requestBody:
         required: true
         content:
@@ -588,10 +592,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/UtilisateurId"
     get:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: lireUtilisateur
-      summary: "Non livré (backlog #60) — Lire un compte (ADMIN)"
+      summary: "Lire un compte (ADMIN, SF-20, #60)"
       responses:
         "200":
           description: Compte
@@ -602,10 +606,10 @@ paths:
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # UTILISATEUR_INTROUVABLE
     put:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: modifierUtilisateur
-      summary: "Non livré (backlog #60) — Modifier nom, rôle, fiche étudiant, activation (ADMIN)"
+      summary: "Modifier nom, rôle, fiche étudiant, activation (ADMIN, SF-20, #60)"
       requestBody:
         required: true
         content:
@@ -623,10 +627,10 @@ paths:
         "404": { $ref: "#/components/responses/Erreur" }
         "409": { $ref: "#/components/responses/Erreur" }   # SUPPRESSION_IMPOSSIBLE (dernier admin actif)
     delete:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: desactiverUtilisateur
-      summary: "Non livré (backlog #60) — Désactiver un compte (ADMIN, RG28) — jamais de suppression physique"
+      summary: "Désactiver un compte (ADMIN, RG28, #60) — jamais de suppression physique"
       responses:
         "204": { description: Compte désactivé }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -638,10 +642,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/UtilisateurId"
     post:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: reinitialiserMotDePasse
-      summary: "Non livré (backlog #60) — Donner un mot de passe provisoire (ADMIN) — à changer à la connexion suivante"
+      summary: "Donner un mot de passe provisoire (ADMIN, SF-20, #60) — à changer à la connexion suivante"
       requestBody:
         required: true
         content:
