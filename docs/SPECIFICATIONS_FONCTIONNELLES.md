@@ -129,6 +129,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
   | Cas | HTTP | code |
   |---|---|---|
+  | fiche étudiant désactivée (#113, RG28) | 403 | `ETUDIANT_DESACTIVE` |
   | champ absent, étudiant inconnu | 400 | `CHAMP_MANQUANT`, `ETUDIANT_INCONNU` |
   | étudiant bloqué | 429 | `TROP_DE_TENTATIVES` |
   | code inconnu (incrémente le compteur) | 400 | `CODE_INCONNU` |
@@ -157,7 +158,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 - **Acteur :** Étudiant.
 - **Flux nominal :** 1) choix de la session parmi celles de sa promotion ; 2) `POST /api/exercices {sessionId, etudiantId, lien}` ; 3) contrôles : lien http(s) valide (RG17) → session et étudiant existants → même promotion (RG19) → session non clôturée (RG18) → pas déjà déposé (RG13) ; 4) création avec le statut `DEPOSE` ; 5) tirage du relecteur (SF-7) ; 6) `201 {id, statut}`, où `statut` vaut `EN_ATTENTE_RELECTURE` ou `DEPOSE`.
-- **Erreurs :** `400 LIEN_INVALIDE | CHAMP_MANQUANT | SESSION_INTROUVABLE | ETUDIANT_INCONNU | ETUDIANT_HORS_PROMOTION`, `409 EXERCICE_DEJA_DEPOSE | SESSION_CLOTUREE`.
+- **Erreurs :** `403 ETUDIANT_DESACTIVE` (#113, fiche désactivée, avant tout autre contrôle), `400 LIEN_INVALIDE | CHAMP_MANQUANT | SESSION_INTROUVABLE | ETUDIANT_INCONNU | ETUDIANT_HORS_PROMOTION`, `409 EXERCICE_DEJA_DEPOSE | SESSION_CLOTUREE`.
 - **Remarque :** la présence de l'auteur n'est pas exigée (HYP-8, Q12).
 
 ### SF-7 — Tirer le relecteur au sort · EF7 · Must
@@ -658,6 +659,7 @@ Scénario: tiers non autorisé
 | CODE_INCONNU | 400 | Ce code de présence n'existe pas. | POST presences |
 | ETUDIANT_INCONNU | 400 / 404 | Cet étudiant n'existe pas. | 400 en corps, 404 en chemin |
 | ETUDIANT_HORS_PROMOTION | 400 | Cet étudiant n'appartient pas à la promotion de la session. | presences, exercices |
+| ETUDIANT_DESACTIVE | 403 | Cette fiche étudiant est désactivée. | presences, exercices (#113, RG28) |
 | DEJA_PRESENT | 409 | Présence déjà enregistrée pour cette session. | presences |
 | CODE_EXPIRE | 410 | Le code de présence a expiré. | POST presences |
 | TROP_DE_TENTATIVES | 429 | Trop de codes erronés, réessayez dans 2 minutes. | POST presences |

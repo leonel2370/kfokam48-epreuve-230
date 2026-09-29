@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.3"
+  version: "2.4"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,9 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.4 (#113) — UNE FICHE DÉSACTIVÉE NE PEUT PLUS AGIR
+      - POST /api/presences et POST /api/exercices refusent une fiche étudiant désactivée :
+        403 ETUDIANT_DESACTIVE (RG28), contrôlé avant les autres règles.
     v2.3 (#111) — ÉTAT DE LA LIVRAISON
       - Chaque opération porte x-livre: true (livrée) ou x-livre: false + « Non livré (backlog #n) »
         en tête de son résumé : Swagger UI ne présente plus comme disponibles les 24 opérations
@@ -269,7 +272,7 @@ paths:
         "400": { $ref: "#/components/responses/Erreur" }   # CODE_INCONNU, CHAMP_MANQUANT, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
         "409": { $ref: "#/components/responses/Erreur" }   # DEJA_PRESENT, SESSION_CLOTUREE
         "410": { $ref: "#/components/responses/Erreur" }   # CODE_EXPIRE
-        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (v2, uniquement avec une session)
+        "403": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_DESACTIVE (#113, RG28) ; IDENTITE_DIFFERENTE (v2, uniquement avec une session)
         "429": { $ref: "#/components/responses/Erreur" }   # TROP_DE_TENTATIVES (ajout, Q4)
 
   # ------------------------------------------------------------------ Exercices
@@ -303,7 +306,7 @@ paths:
                   id: { type: integer, format: int64 }
                   statut: { type: string }
         "400": { $ref: "#/components/responses/Erreur" }   # LIEN_INVALIDE, CHAMP_MANQUANT, SESSION_INTROUVABLE, ETUDIANT_INCONNU, ETUDIANT_HORS_PROMOTION
-        "403": { $ref: "#/components/responses/Erreur" }   # IDENTITE_DIFFERENTE (v2, uniquement avec une session)
+        "403": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_DESACTIVE (#113, RG28) ; IDENTITE_DIFFERENTE (v2, uniquement avec une session)
         "409": { $ref: "#/components/responses/Erreur" }   # EXERCICE_DEJA_DEPOSE, SESSION_CLOTUREE
 
   /api/exercices/{exerciceId}:
