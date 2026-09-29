@@ -70,6 +70,10 @@ public class ExerciceService {
         new MetierException(HttpStatus.BAD_REQUEST, "SESSION_INTROUVABLE", "Cette session n'existe pas."));
     var etudiant = etudiants.findById(etudiantId).orElseThrow(() ->
         new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
+    // #113 (RG28) : une fiche désactivée ne peut plus agir, avant tout autre contrôle métier.
+    if (!etudiant.isActif()) {
+      throw new MetierException(HttpStatus.FORBIDDEN, "ETUDIANT_DESACTIVE", "Cette fiche étudiant est désactivée.");
+    }
     if (!session.getPromotionId().equals(etudiant.getPromotionId())) {
       throw new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_HORS_PROMOTION",
           "Cette session n'est pas celle de votre promotion.");
