@@ -23,7 +23,7 @@ Puis ouvrir **http://localhost:4200**. L'API est aussi exposée sur http://local
 Les routes protégées demandent une session : se connecter d'abord avec `POST /api/auth/login` dans la même fenêtre.
 
 - Aucun fichier à créer : sans `.env`, les valeurs de démonstration de `docker-compose.yml` s'appliquent. Pour les changer : `cp .env.example .env`, puis éditer.
-- La base PostgreSQL est créée par les migrations Flyway (`V1` schéma, `V2` données de démonstration, `V3` comptes et sécurité).
+- La base PostgreSQL est créée par les migrations Flyway (`V1` schéma, `V2` données de démonstration, `V3` comptes et sécurité, `V4` double relecture).
 - Arrêt : `docker compose down` (ajouter `-v` pour repartir d'une base vide de démonstration).
 
 ## Données et comptes de démonstration
@@ -76,9 +76,10 @@ cd frontend && npx ng test --watch=false --browsers=ChromeHeadless
 ## Structure
 
 ```text
-api/contrat.yaml      Contrat OpenAPI 3 (v2.0) — les opérations imposées sont inchangées
+api/contrat.yaml      Contrat OpenAPI 3 (v2.3) — les opérations imposées sont inchangées ; x-livre : état de la livraison
 backend/              Spring Boot : controller / service / repository / entity / dto / exception / securite
-frontend/             Angular 17 : core/api (seul accès HTTP), features (formateur, etudiant, relecteur)
+frontend/             Angular 17 : core (api, auth, navigation, intercepteurs), features (connexion, formateur,
+                      etudiant : presence, notes, relectures, profil, admin), shared (navigation, erreurs)
 docs/                 Cahier des charges, spécifications, diagrammes D1–D5, plans, backlog, journal
 docker-compose.yml    PostgreSQL + backend + frontend (nginx, même origine)
 ```
