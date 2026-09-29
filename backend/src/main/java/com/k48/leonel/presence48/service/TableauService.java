@@ -22,7 +22,8 @@ public class TableauService {
 
   private static final int DECIMALES_MOYENNE = 2;
 
-  private static final String SQL = """
+  /** Ligne unique (EF10) ; la clause WHERE distingue le tableau d'une promotion et le récapitulatif (#112). */
+  private static final String LIGNE = """
       SELECT e.id, e.nom,
         (SELECT COUNT(*) FROM presence p JOIN session s ON s.id = p.session_id
           WHERE p.etudiant_id = e.id AND s.promotion_id = e.promotion_id) AS presences,
@@ -32,8 +33,9 @@ public class TableauService {
           FROM exercice x WHERE x.auteur_id = e.id) AS moyenne,
         (SELECT COUNT(*) FROM relecture r WHERE r.relecteur_id = e.id AND r.rendue_at IS NULL) AS en_attente
       FROM etudiant e
-      WHERE e.promotion_id = ?
-      ORDER BY e.nom""";
+      """;
+
+  private static final String SQL = LIGNE + "WHERE e.promotion_id = ? ORDER BY e.nom";
 
   private final JdbcTemplate jdbc;
   private final PromotionRepository promotions;
@@ -55,6 +57,18 @@ public class TableauService {
     return jdbc.query(SQL, (rs, i) -> new LigneTableauReponse(rs.getLong("id"), rs.getString("nom"),
         rs.getInt("presences"), rs.getInt("exercices"), arrondir(rs.getBigDecimal("moyenne")),
         rs.getInt("en_attente")), promotionId);
+  }
+
+  /** #112 / SF-17 : la ligne de tableau de l'étudiant connecté — même calcul agrégé que la promotion (F3). */
+  @Transactional(readOnly = true)
+  public LigneTableauReponse recap(Long etudiantId) {
+    var lignes = jdbc.query(LIGNE + "WHERE e.id = ?", (rs, i) -> new LigneTableauReponse(rs.getLong("id"),
+        rs.getString("nom"), rs.getInt("presences"), rs.getInt("exercices"),
+        arrondir(rs.getBigDecimal("moyenne")), rs.getInt("en_attente")), etudiantId);
+    if (lignes.isEmpty()) {
+      throw new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas.");
+    }
+    return lignes.get(0);
   }
 
   /** RG16 : arrondi à 2 décimales, null s'il n'y a aucune note. */

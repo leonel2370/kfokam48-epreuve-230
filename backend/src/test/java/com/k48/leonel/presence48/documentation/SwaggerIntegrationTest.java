@@ -79,7 +79,7 @@ class SwaggerIntegrationTest {
             .as("description de %s", chemin).isNotBlank();
       }
     }
-    org.assertj.core.api.Assertions.assertThat(nombre).as("les 13 opérations livrées").isEqualTo(13);
+    org.assertj.core.api.Assertions.assertThat(nombre).as("les 14 opérations livrées").isEqualTo(14);
   }
 
   /** #105 : cookieAuth déclaré, opérations imposées publiques, erreurs métier documentées avec exemples. */
