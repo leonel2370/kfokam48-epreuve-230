@@ -180,7 +180,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG25 *(v2)* | Un utilisateur n'accède qu'aux ressources de son rôle (§2 bis) → sinon 403 ACCES_REFUSE | PO 25/09 |
 | RG26 *(v2)* | Un formateur n'agit que sur les promotions auxquelles il est rattaché | [HYP-14] |
 | RG27 *(v2)* | L'identifiant de connexion est unique → 409 LOGIN_DEJA_UTILISE | PO 25/09 |
-| RG28 *(v2)* | Un compte ou un étudiant ayant un historique n'est jamais supprimé physiquement : il est désactivé ; un compte désactivé ne se connecte plus (403 COMPTE_DESACTIVE) | [HYP-16] |
+| RG28 *(v2, v3.2)* | Un compte ou un étudiant ayant un historique n'est jamais supprimé physiquement : il est désactivé ; un compte désactivé ne se connecte plus (403 COMPTE_DESACTIVE) et une fiche étudiant désactivée ne peut plus marquer sa présence ni déposer (403 ETUDIANT_DESACTIVE, #113, avant tout autre contrôle) | [HYP-16], décision PO #113 |
 | RG29 *(v2)* | Une session ayant des présences ou des exercices ne peut pas être supprimée → 409 SUPPRESSION_IMPOSSIBLE | [HYP-16] |
 | RG30 *(v2)* | Une pièce jointe par exercice, 10 Mo maximum, types pdf, zip, txt, md, java, ts, png, jpg ; remplaçable tant que l'exercice n'est pas RELU ; téléchargeable par l'auteur, le relecteur assigné, le formateur de la promotion et l'administrateur | PO 25/09, [HYP-19] |
 | RG31 *(v3)* | Tant qu'un seul des deux relecteurs a rendu, sa note est affichée comme note retenue **marquée provisoire** ; elle devient définitive quand les deux ont rendu (exercice `RELU`) | client, enveloppe étape 3 (#85) |
