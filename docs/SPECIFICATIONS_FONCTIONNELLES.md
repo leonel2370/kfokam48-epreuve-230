@@ -253,13 +253,15 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 - **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver le dernier admin actif).
 - **Livrée (#60) :** les 6 opérations + écran ADMIN (liste, création, désactivation, réinitialisation). Traçabilité réelle : `UtilisateurIntegrationTest` — `testRg27LoginDejaUtiliseRenvoie409`, `testRg28DesactiverUnCompteCoupeSaConnexion`, `testRg28LeDernierAdminActifNePeutPasSeDesactiver`, `testRg23LeCompteCreeDoitChangerSonMotDePasseAvantTout`.
 
-### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2)*
+### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2, livrée #61)*
 
 - **ADMIN :** `POST/PUT/DELETE /api/promotions[/{id}]` (DELETE refusé si étudiants ou sessions → `409 SUPPRESSION_IMPOSSIBLE`) ; `PUT /api/promotions/{id}/formateurs {utilisateurIds[]}`. Lecture : ADMIN toutes, FORMATEUR les siennes, ETUDIANT la sienne.
+- **Livrée (#61) :** les 4 opérations + écran ADMIN (créer, renommer, supprimer, rattacher). Nom UNIQUE (V1) → `409 CONFLIT`. Traçabilité réelle : `ReferentielAdminIntegrationTest` — `testAdminCreeRenommeEtSupprimeUnePromotionVide`, `testNomDejaPrisRenvoie409`, `testSuppressionRefuseeSiEtudiantsOuSessions`, `testRattacherUnFormateurLuiOuvreLaPromotion`, `testAccesRefuseAuxNonAdminsSurLesPromotions`, `testSansSessionRenvoie401SurLesEcritures`.
 
-### SF-22 — Gérer les fiches étudiants · EF23 · Should *(v2)*
+### SF-22 — Gérer les fiches étudiants · EF23 · Should *(v2, livrée #61)*
 
 - **ADMIN et FORMATEUR (dans ses promotions) :** `POST /api/etudiants {nom, promotionId}` · `PUT /api/etudiants/{id}` · `DELETE /api/etudiants/{id}` = désactivation si historique (RG28). Un étudiant désactivé n'apparaît plus dans les listes de sélection mais reste dans le tableau.
+- **Livrée (#61) :** les 3 opérations + écran ADMIN (créer, modifier, supprimer/désactiver). Traçabilité réelle : `ReferentielAdminIntegrationTest` — `testAdminEtFormateurDeLaPromotionCreeUneFicheEtudiant`, `testModifierUneFicheEtudiant`, `testRg28SupprimerUneFicheSansHistoriqueDesactiverSinon`.
 
 ### SF-23 — Modifier ou supprimer une session · EF24 · Should *(v2)*
 
@@ -720,8 +722,8 @@ Scénario: tiers non autorisé
 | EF19 | US-19 | RG25, RG26 | toutes les routes protégées | SF-19 | IT `testRg25EtudiantSurRouteFormateur403` · `testRg26FormateurHorsPromotion403` |
 | EF20 | US-20 | RG22 | 5 opérations imposées | SF-19 | IT `testRg22OperationsImposeesSansSession` · `testIdentiteDifferente403` |
 | EF21 | US-21 | RG27, RG28 | /utilisateurs | SF-20 | IT `testRg27LoginDejaUtiliseRenvoie409` · `testRg28DesactiverUnCompteCoupeSaConnexion` · `testRg28LeDernierAdminActifNePeutPasSeDesactiver` (#60) |
-| EF22 | US-22 | RG26 | /promotions | SF-21 | IT |
-| EF23 | US-23 | RG28 | /etudiants | SF-22 | IT |
+| EF22 | US-22 | RG26 | /promotions | SF-21 | IT `testSuppressionRefuseeSiEtudiantsOuSessions` · `testRattacherUnFormateurLuiOuvreLaPromotion` (#61) |
+| EF23 | US-23 | RG28 | /etudiants | SF-22 | IT `testRg28SupprimerUneFicheSansHistoriqueDesactiverSinon` (#61) |
 | EF24 | US-24 | RG29 | PUT/DELETE /sessions/{id} | SF-23 | IT `testRg29SuppressionSessionAvecHistorique409` |
 | EF25 | US-25 | RG30 | /exercices/{id}/fichier | SF-24 | IT `testRg30FichierTropVolumineux413` · `testRg30TiersNonAutorise403` |
 | EF26 | US-26 | RG21 | POST /presences | SF-3 | IT `testRg21PresenceVisibleSansValidation` |

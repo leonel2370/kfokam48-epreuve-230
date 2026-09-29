@@ -85,7 +85,7 @@ class ReferentielAdminIntegrationTest {
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.nom").value("P3-2026"))
         .andReturn().getResponse().getContentAsString();
-    long id = com.jayway.jsonpath.JsonPath.read(cree, "$.id");
+    long id = ((Number) com.jayway.jsonpath.JsonPath.read(cree, "$.id")).longValue();
     // la liste publique (EF1) la montre
     mvc.perform(get("/api/promotions")).andExpect(jsonPath("$[?(@.nom=='P3-2026')]").exists());
     mvc.perform(put("/api/promotions/" + id).session(s).with(csrf())

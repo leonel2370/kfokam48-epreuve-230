@@ -40,6 +40,21 @@ public class ControleAcces {
     });
   }
 
+  /**
+   * #61 : variante stricte de {@link #verifierGestionPromotion} pour les opérations de gestion
+   * (SF-21, SF-22) : sans session c'est 401 NON_AUTHENTIFIE ; ADMIN ou FORMATEUR rattaché à la
+   * promotion (RG26), sinon 403 ACCES_REFUSE.
+   */
+  public void verifierGestionPromotionStrict(Long promotionId) {
+    var u = connecte().orElseThrow(() ->
+        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", "Connectez-vous d'abord."));
+    var autorise = u.role() == Role.ADMIN
+        || (u.role() == Role.FORMATEUR && utilisateurs.promotionsDuFormateur(u.id()).contains(promotionId));
+    if (!autorise) {
+      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
+    }
+  }
+
   /** #112 : le récapitulatif personnel exige un compte étudiant lié à une fiche (RG25) ; renvoie son identifiant. */
   public Long exigerEtudiantConnecte() {
     var u = connecte().orElseThrow(() ->
