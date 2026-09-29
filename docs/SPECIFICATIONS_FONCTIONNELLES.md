@@ -247,10 +247,11 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 - **Opérations imposées** (`POST /api/sessions`, `POST /api/presences`, `POST /api/exercices`, `POST /api/relectures/{id}`, `GET /api/tableau`) : **sans session**, comportement v1 inchangé (B2). **Avec une session**, les contrôles s'ajoutent : identité (`etudiantId` du corps, `X-Etudiant-Id`) = utilisateur connecté, sinon `403 IDENTITE_DIFFERENTE` ; ouverture de session et tableau réservés à ADMIN et au FORMATEUR de la promotion, sinon `403 ACCES_REFUSE` (atténuation de RISQUE-1).
 - **CSRF :** routes protégées en écriture → en-tête `X-XSRF-TOKEN` exigé (Angular l'ajoute automatiquement) → sinon `403 ACCES_REFUSE`. Pas de CSRF sur les routes publiques.
 
-### SF-20 — Gérer les comptes · EF21 · Should *(v2)*
+### SF-20 — Gérer les comptes · EF21 · Should *(v2, livrée #60)*
 
 - **Acteur :** ADMIN. `GET /api/utilisateurs?page&size` · `POST /api/utilisateurs {login, nomAffiche, role, motDePasseInitial, etudiantId?}` (compte créé avec `doitChangerMotDePasse=true`) · `PUT /api/utilisateurs/{id} {nomAffiche, role, actif, etudiantId?}` · `POST /api/utilisateurs/{id}/reinitialiser-mot-de-passe {motDePasseInitial}` · `DELETE /api/utilisateurs/{id}` = désactivation (RG28).
 - **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver le dernier admin actif).
+- **Livrée (#60) :** les 6 opérations + écran ADMIN (liste, création, désactivation, réinitialisation). Traçabilité réelle : `UtilisateurIntegrationTest` — `testRg27LoginDejaUtiliseRenvoie409`, `testRg28DesactiverUnCompteCoupeSaConnexion`, `testRg28LeDernierAdminActifNePeutPasSeDesactiver`, `testRg23LeCompteCreeDoitChangerSonMotDePasseAvantTout`.
 
 ### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2)*
 
@@ -718,7 +719,7 @@ Scénario: tiers non autorisé
 | EF18 | US-18 | RG23 | — | SF-18 | IT `testRg23AdminDoitChangerSonMotDePasse` |
 | EF19 | US-19 | RG25, RG26 | toutes les routes protégées | SF-19 | IT `testRg25EtudiantSurRouteFormateur403` · `testRg26FormateurHorsPromotion403` |
 | EF20 | US-20 | RG22 | 5 opérations imposées | SF-19 | IT `testRg22OperationsImposeesSansSession` · `testIdentiteDifferente403` |
-| EF21 | US-21 | RG27, RG28 | /utilisateurs | SF-20 | IT `testRg27LoginDejaUtilise409` · `testRg28CompteDesactive403` |
+| EF21 | US-21 | RG27, RG28 | /utilisateurs | SF-20 | IT `testRg27LoginDejaUtiliseRenvoie409` · `testRg28DesactiverUnCompteCoupeSaConnexion` · `testRg28LeDernierAdminActifNePeutPasSeDesactiver` (#60) |
 | EF22 | US-22 | RG26 | /promotions | SF-21 | IT |
 | EF23 | US-23 | RG28 | /etudiants | SF-22 | IT |
 | EF24 | US-24 | RG29 | PUT/DELETE /sessions/{id} | SF-23 | IT `testRg29SuppressionSessionAvecHistorique409` |
