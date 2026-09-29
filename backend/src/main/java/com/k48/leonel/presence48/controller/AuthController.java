@@ -2,9 +2,12 @@ package com.k48.leonel.presence48.controller;
 
 import com.k48.leonel.presence48.dto.request.ChangementMotDePasseRequete;
 import com.k48.leonel.presence48.dto.request.ConnexionRequete;
+import com.k48.leonel.presence48.dto.response.LigneTableauReponse;
 import com.k48.leonel.presence48.dto.response.ProfilReponse;
+import com.k48.leonel.presence48.securite.ControleAcces;
 import com.k48.leonel.presence48.securite.UtilisateurConnecte;
 import com.k48.leonel.presence48.service.AuthService;
+import com.k48.leonel.presence48.service.TableauService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -36,10 +39,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
   private final AuthService auth;
+  private final TableauService tableau;
+  private final ControleAcces acces;
   private final SecurityContextRepository depotDeContexte;
 
-  public AuthController(AuthService auth, SecurityContextRepository depotDeContexte) {
+  public AuthController(AuthService auth, TableauService tableau, ControleAcces acces,
+      SecurityContextRepository depotDeContexte) {
     this.auth = auth;
+    this.tableau = tableau;
+    this.acces = acces;
     this.depotDeContexte = depotDeContexte;
   }
 
@@ -86,6 +94,26 @@ public class AuthController {
   @GetMapping("/moi")
   public ProfilReponse moi(@AuthenticationPrincipal UtilisateurConnecte u) {
     return auth.profil(u.id());
+  }
+
+  @Operation(summary = "Récapitulatif de l'étudiant connecté (SF-17, #112)",
+      description = "Route protégée (RG25) : la ligne de tableau (EF10) de l'étudiant lié au compte — présences, "
+          + "exercices déposés, moyenne des notes retenues (RG16 v3, null sans note), relectures en attente. "
+          + "403 pour un compte non étudiant.",
+      security = @SecurityRequirement(name = "cookieAuth"),
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Récapitulatif personnel",
+              content = @Content(schema = @Schema(implementation = LigneTableauReponse.class))),
+          @ApiResponse(responseCode = "401", description = "Non connecté",
+              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+          @ApiResponse(responseCode = "403", description = "Compte non étudiant",
+              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+                  examples = @ExampleObject(value = "{\"code\":\"ACCES_REFUSE\","
+                      + "\"message\":\"Vous n'avez pas les droits pour cette action.\"}"))),
+      })
+  @GetMapping("/moi/recap")
+  public LigneTableauReponse recap(@AuthenticationPrincipal UtilisateurConnecte u) {
+    return tableau.recap(acces.exigerEtudiantConnecte());
   }
 
   @Operation(summary = "Changer son mot de passe (SF-18)",

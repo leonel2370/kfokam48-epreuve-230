@@ -232,7 +232,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 ### SF-17 — Voir son profil · EF16 · Must *(v2)*
 
 - `GET /api/moi` → `200 {id, login, nomAffiche, role, etudiantId, promotionIds, doitChangerMotDePasse}` ; sans session → `401`. Sert au frontend à savoir « qui est qui » et quels menus afficher.
-- `GET /api/moi/recap` (ETUDIANT) → sa propre ligne de tableau (présences, exercices, moyenne, relectures en attente).
+- `GET /api/moi/recap` (ETUDIANT, **livré #112**) → sa propre ligne de tableau (présences, exercices, moyenne des notes retenues RG16 v3, relectures en attente), même calcul agrégé que le tableau (F3) ; `401` sans session, `403 ACCES_REFUSE` pour un compte non étudiant.
 
 ### SF-18 — Changer son mot de passe · EF17, EF18 · Must *(v2)*
 

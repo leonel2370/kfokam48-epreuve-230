@@ -3,6 +3,14 @@
     <h2>Mes exercices et mes notes</h2>
     <button type="button" class="secondaire" (click)="charger()">Actualiser</button>
   </div>
+  @if (recap(); as r) {
+    <p class="discret" data-testid="recap">
+      Récapitulatif : {{ r.presences }} présence{{ r.presences > 1 ? 's' : '' }} ·
+      {{ r.exercicesDeposes }} exercice{{ r.exercicesDeposes > 1 ? 's' : '' }} déposé{{ r.exercicesDeposes > 1 ? 's' : '' }} ·
+      moyenne {{ r.moyenne === null ? '—' : (r.moyenne | number: '1.0-2') }} / 20 ·
+      {{ r.relecturesEnAttente }} relecture{{ r.relecturesEnAttente > 1 ? 's' : '' }} en attente
+    </p>
+  }
   @for (x of exercices(); track x.id) {
     <div class="ligne">
       <strong>{{ x.sessionTitre }}</strong>
