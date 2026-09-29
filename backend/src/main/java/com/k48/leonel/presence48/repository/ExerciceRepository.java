@@ -10,6 +10,9 @@ public interface ExerciceRepository extends JpaRepository<Exercice, Long> {
   /** RG13 : un exercice par étudiant et par session. */
   boolean existsBySessionIdAndAuteurId(Long sessionId, Long auteurId);
 
+  /** #61 / RG28 : l'auteur a déposé au moins un exercice — historique. */
+  boolean existsByAuteurId(Long auteurId);
+
   /** HYP-3, HYP-20 : exercices auxquels il peut manquer un relecteur, à retenter à chaque nouvelle présence. */
   List<Exercice> findBySessionIdAndStatutIn(Long sessionId, List<StatutExercice> statuts);
 
