@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.4"
+  version: "2.5"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,9 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.5 (#112) — RÉCAPITULATIF DE L'ÉTUDIANT CONNECTÉ
+      - GET /api/moi/recap est livré : ligne de tableau (EF10) de l'étudiant connecté, même calcul
+        agrégé que le tableau ; 403 pour un compte non étudiant (SF-17).
     v2.4 (#113) — UNE FICHE DÉSACTIVÉE NE PEUT PLUS AGIR
       - POST /api/presences et POST /api/exercices refusent une fiche étudiant désactivée :
         403 ETUDIANT_DESACTIVE (RG28), contrôlé avant les autres règles.
@@ -529,10 +532,10 @@ paths:
 
   /api/moi/recap:
     get:
-      x-livre: false
+      x-livre: true
       tags: [securite]
       operationId: monRecapitulatif
-      summary: "Non livré (backlog #112) — Ligne de tableau de l'étudiant connecté (SF-17)"
+      summary: "Ligne de tableau de l'étudiant connecté (SF-17, #112)"
       responses:
         "200":
           description: Récapitulatif personnel

@@ -25,6 +25,12 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 ### Refactoré
 - Chaque composant a son template et ses styles dans des fichiers séparés (#103, PR #114).
 
+### Sécurité
+- Une fiche étudiant désactivée ne peut plus marquer sa présence ni déposer : `403 ETUDIANT_DESACTIVE` sur les opérations publiques `POST /api/presences` et `POST /api/exercices`, avant tout autre contrôle (RG28, décision PO — #113, contrat 2.4).
+
+### Ajouté
+- **Récapitulatif de l'étudiant connecté** : `GET /api/moi/recap` (contrat 2.5) renvoie sa ligne de tableau — présences, exercices, moyenne des notes retenues (RG16), relectures en attente ; encart « Récapitulatif » dans « Mes notes » (#112).
+
 ## [1.0.0] — 2026-09-25
 
 ### Ajouté

@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { ErreurApi, ExerciceAuteur } from '../../core/api/api.models';
+import { ErreurApi, ExerciceAuteur, LigneTableau } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
@@ -25,6 +25,7 @@ export class MesNotesComponent implements OnInit, OnDestroy {
   /** Écran routé (#104) : l'étudiant est celui du compte connecté (HYP-15). */
   readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
   readonly exercices = signal<ExerciceAuteur[]>([]);
+  readonly recap = signal<LigneTableau | null>(null);
   readonly erreur = signal<ErreurApi | null>(null);
 
   /** #101 : une note rendue pendant que la page est ouverte apparaît sans recharger. */
@@ -46,6 +47,11 @@ export class MesNotesComponent implements OnInit, OnDestroy {
       // #106 : des données à jour ne doivent pas cohabiter avec une vieille erreur.
       next: l => { this.exercices.set(l); this.erreur.set(null); },
       error: (e: ErreurApi) => this.erreur.set(e),
+    });
+    // #112 : le récapitulatif suit les mêmes rafraîchissements (note arrivée = moyenne à jour).
+    this.api.monRecap().subscribe({
+      next: r => this.recap.set(r),
+      error: () => { /* l'encart reste absent, l'erreur est déjà visible via la liste */ },
     });
   }
 }
