@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +29,9 @@ class RecapIntegrationTest {
   @Autowired
   private MockMvc mvc;
 
+  @Autowired
+  private JdbcTemplate jdbc;
+
   @Test
   void testRg16RecapDeLEtudiantConnecte() throws Exception {
     mvc.perform(get("/api/moi/recap").session(connecter(mvc, "awa", MDP_ETUDIANT)))
@@ -41,12 +45,30 @@ class RecapIntegrationTest {
   }
 
   @Test
-  void testRecapSansNoteEtAvecRelecturesEnAttente() throws Exception {
+  void testRecapSansAucuneNoteRenvoieMoyenneNull() throws Exception {
+    // Lina : exercice EN_ATTENTE_RELECTURE, aucune note rendue (V2)
     mvc.perform(get("/api/moi/recap").session(connecter(mvc, "lina", MDP_ETUDIANT)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.presences").value(1))
         .andExpect(jsonPath("$.exercicesDeposes").value(1))
-        .andExpect(jsonPath("$.moyenne").value(org.hamcrest.Matchers.contains((Object) null)))
+        .andExpect(jsonPath("$.moyenne").value(org.hamcrest.Matchers.nullValue()))
+        .andExpect(jsonPath("$.relecturesEnAttente").value(0));
+  }
+
+  @Test
+  void testRg31CompteLesRelecturesAssigneesNonRendues() throws Exception {
+    // une relecture supplémentaire, assignée à Awa et non rendue (les non rendues de V2 appartiennent
+    // à des étudiants sans compte) ; sa moyenne reste 14.00 — la relecture d'Awa sur son propre
+    // exercice compte pour elle, pas pour l'exercice de Paul (double relecture, RG6 v3)
+    jdbc.update("""
+        INSERT INTO relecture (exercice_id, relecteur_id, assignee_at)
+        SELECT x.id, r.id, CURRENT_TIMESTAMP FROM exercice x
+        JOIN etudiant a ON a.id = x.auteur_id CROSS JOIN etudiant r
+        WHERE a.nom = 'Paul Mbarga' AND r.nom = 'Awa Ndiaye'
+        """);
+    mvc.perform(get("/api/moi/recap").session(connecter(mvc, "awa", MDP_ETUDIANT)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.moyenne").value(14.0))
         .andExpect(jsonPath("$.relecturesEnAttente").value(1));
   }
 

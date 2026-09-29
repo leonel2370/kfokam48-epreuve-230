@@ -40,6 +40,16 @@ public class ControleAcces {
     });
   }
 
+  /** #112 : le récapitulatif personnel exige un compte étudiant lié à une fiche (RG25) ; renvoie son identifiant. */
+  public Long exigerEtudiantConnecte() {
+    var u = connecte().orElseThrow(() ->
+        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", "Connectez-vous d'abord."));
+    if (u.role() != Role.ETUDIANT || u.etudiantId() == null) {
+      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
+    }
+    return u.etudiantId();
+  }
+
   /** Sur une opération imposée appelée connecté, l'identité envoyée doit être celle de l'étudiant connecté. */
   public void verifierIdentite(Long etudiantId) {
     connecte().ifPresent(u -> {

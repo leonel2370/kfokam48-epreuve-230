@@ -83,6 +83,11 @@ export class ApiService {
     return this.http.get<Profil>(`${this.url}/moi`);
   }
 
+  /** #112 : récapitulatif personnel de l'étudiant connecté — ligne de tableau calculée par le serveur (F3). */
+  monRecap(): Observable<LigneTableau> {
+    return this.http.get<LigneTableau>(`${this.url}/moi/recap`);
+  }
+
   /** v2 (SF-18) : obligatoire au premier login de l'admin par défaut (RG23). */
   changerMotDePasse(ancien: string, nouveau: string): Observable<void> {
     return this.http.put<void>(`${this.url}/moi/mot-de-passe`, { ancien, nouveau });
