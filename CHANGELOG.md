@@ -3,6 +3,28 @@
 Toutes les évolutions notables de Présence48. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions : [SemVer](https://semver.org/lang/fr/).
 Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en est la source.
 
+## [1.1.0] — 2026-09-25/26
+
+### Sécurité
+- La liste des sessions ne révèle plus le code de présence aux étudiants (#98, PR #99) : le code est réservé au formateur.
+- Un étudiant connecté ne peut plus savoir si un autre identifiant d'étudiant existe : le contrôle d'identité passe avant le contrôle d'existence (#109, PR #117) ; le contrat documente ces réponses (2.3).
+
+### Corrigé
+- Relecture : les listes se mettent à jour, les relectures rendues restent visibles, l'envoi est bloqué sans note valide (#101, PR #102).
+- Espace étudiant : la liste des sessions se recharge après une présence ou un dépôt, avec une zone d'erreur dédiée (#107, PR #118).
+- Les erreurs sont effacées après un rafraîchissement réussi et les boutons ne peuvent plus envoyer deux fois (#106, PR #119) ; les messages de succès s'effacent aussi (5 s).
+- Libellés trompeurs : statuts et rôle en français, texte honnête après expiration du code, tableau titré avec sa promotion, adresse de promotion invalide gérée sans appel serveur (#108, PR #120).
+- L'analyse (cahier, spécifications, D2, README) est à jour de la livraison réelle : migrations V1–V4, #59 livré, hypothèses remplacées en v2 signalées, contrat 2.3 (#110).
+
+### Ajouté
+- **Swagger UI** : documentation de l'API générée, annotée (descriptions, codes d'erreur réels, authentification cookieAuth), avec deux définitions (contrat de référence et implémentation) et guide `docs/GUIDE_API.md` (#96, PR #97 ; annotations #105, PR #121).
+- **Connexion et menus par rôle** (frontend de la sécurité v2) : login/logout, gardes de routes, navigation par rôle (#59, PR #100).
+- **Navigation par boutons et écran relecteur distinct** (#104, PR #116) : l'espace étudiant devient trois écrans (`presence`, `notes`, `relectures`), bouton « Ouvrir l'exercice », composants partagés `bouton-navigation`.
+- Contrat d'API **2.3** : `x-livre` sur chaque opération (les non livrées préfixées « Non livré (backlog #n) »), réponses 400/401/403 manquantes, descriptions à jour (#111, PR #122).
+
+### Refactoré
+- Chaque composant a son template et ses styles dans des fichiers séparés (#103, PR #114).
+
 ## [1.0.0] — 2026-09-25
 
 ### Ajouté

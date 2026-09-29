@@ -1,6 +1,6 @@
 # D2 — Modèle de données
 
-**Doit correspondre exactement aux migrations Flyway** (`V1__init.sql`, puis **v2** : `V3__securite.sql` pour `UTILISATEUR`, `FORMATEUR_PROMOTION` et `etudiant.actif`, `V4__piece_jointe.sql` pour les colonnes `fichier_*`). Toute migration qui change le schéma met ce diagramme à jour dans la même PR. Dictionnaire complet : [CAHIER_DES_CHARGES.md](../CAHIER_DES_CHARGES.md), annexe B.
+**Doit correspondre exactement aux migrations Flyway** (`V1__init.sql`, puis **v2** : `V3__securite.sql` pour `UTILISATEUR`, `FORMATEUR_PROMOTION` et `etudiant.actif`, **v3** : `V4__double_relecture.sql` pour `UNIQUE(exercice_id, relecteur_id)`). **Aucune colonne de pièce jointe (`fichier_*`) n'existe** : la pièce jointe (#63) est non livrée et passera en V5 si elle revient. Toute migration qui change le schéma met ce diagramme à jour dans la même PR. Dictionnaire complet : [CAHIER_DES_CHARGES.md](../CAHIER_DES_CHARGES.md), annexe B.
 
 ```mermaid
 erDiagram
@@ -74,11 +74,6 @@ erDiagram
         varchar statut "DEPOSE | EN_ATTENTE_RELECTURE | RELU"
         timestamptz depose_at "NOT NULL"
         timestamptz modifie_at "NULL"
-        varchar fichier_nom "v2, NULL (RG30)"
-        varchar fichier_type "v2, NULL"
-        bigint fichier_taille "v2, NULL, <= 10 Mo"
-        varchar fichier_chemin "v2, NULL, relatif à UPLOAD_DIR"
-        timestamptz fichier_depose_at "v2, NULL"
     }
     RELECTURE {
         bigint id PK
