@@ -12,14 +12,18 @@ Ordre de reprise, du plus utile au correcteur et au client au moins utile. Les t
 |---|---|---|
 | 1 | #30 Présence ajoutée par le formateur | Demandée explicitement (Q14) ; seul scénario de recette non couvert (R3) |
 | 2 | #32 Clôture de session | Fige la session (RG18) ; aujourd'hui seule la session de démonstration est clôturée |
-| 3 | #59 Connexion et menus par rôle (frontend) | L'API v2 est prête et testée ; seuls les écrans manquent |
-| 4 | #31 Exercices en attente d'une session | Visibilité du formateur sur RG11 (Q11) |
-| 5 | #33 Remplacement du lien avant relecture | Confort (Q13, RG14) |
-| 6 | #35 CI : lint du contrat | Backend et frontend déjà vérifiés en CI ; reste `redocly lint` |
-| 7 | #36 Collection Bruno | Les codes d'erreur sont déjà couverts par les tests d'intégration |
-| 8 | #62, #61, #60 CRUD sessions, promotions/étudiants, comptes | Sacrifiés pour la double relecture (cahier §7.2 ter) ; les données de démonstration suffisent |
-| 9 | #63 Pièce jointe | Sacrifiée (§7.2 ter) ; demandera une migration **V5** |
-| 10 | #37, #38 | Could, hors engagement |
+| 3 | #31 Exercices en attente d'une session | Visibilité du formateur sur RG11 (Q11) |
+| 4 | #33 Remplacement du lien avant relecture | Confort (Q13, RG14) |
+| 5 | #35 CI : lint du contrat | Backend et frontend déjà vérifiés en CI ; reste `redocly lint` |
+| 6 | #36 Collection Bruno | Les codes d'erreur sont déjà couverts par les tests d'intégration |
+| 7 | #62, #61, #60 CRUD sessions, promotions/étudiants, comptes | Sacrifiés pour la double relecture (cahier §7.2 ter) ; les données de démonstration suffisent |
+| 8 | #63 Pièce jointe | Sacrifiée (§7.2 ter) ; demandera une migration **V5** |
+| 9 | #37, #38 | Could, hors engagement |
+
+### État de la reprise (mis à jour le 25/09, après v1.0 — audit #110)
+
+- **Livré depuis ce tri** : #59 connexion et menus par rôle (PR #100) ; la correction du bug #98 (PR #99) ; le refactoring #103 (PR #114) ; le jalon **v1.1** (#104–#111 : navigation, sécurité, bugs frontend, doc Swagger, contrat 2.3, analyse à jour).
+- **Décision de reprise (post-v1.0)** : les restants du v1.0 — #30, #31, #32, #33, #35, #36 ci-dessus — sont **ramenés dans le jalon GitHub `v1.1`** et traités dans l'ordre de ce tableau (démarré avec #30). « v1.1 » désigne donc tout ce qui est livré après v1.0 ; les sacrifiés (#60–#63) et les Could (#37, #38) restent hors jalon.
 
 ## Cadre et analyse (étape 1)
 

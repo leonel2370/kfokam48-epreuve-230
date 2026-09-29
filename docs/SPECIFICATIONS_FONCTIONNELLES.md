@@ -1,6 +1,6 @@
 # Spécifications fonctionnelles détaillées — PRESENCE48
 
-**Version :** 2 · **Date :** 2026-09-25 (v2 : sécurité, rôles, CRUD, pièce jointe — #54) · **Auteur :** nono leonel (230)
+**Version :** 3.1 · **Date :** 2026-09-25 (v2 : sécurité, rôles, CRUD, pièce jointe — #54 · v3 : double relecture — #85 · v3.1 : navigation par boutons — #104 ; mise à jour de la livraison — #110) · **Auteur :** nono leonel (230)
 **Référence :** [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md). En cas de divergence, **le cahier des charges fait foi** ; ce document le détaille sans rien y ajouter.
 
 ## Sommaire
@@ -85,8 +85,8 @@ En-tête : nom et rôle de la personne connectée, **menus de son rôle uniqueme
 ┌─ ÉCRAN RELECTEUR ─────────────────────────────┐   ┌─ TABLEAU (formateur) ───────────┐
 │ Relectures à faire (2)                        │   │ Nom | Prés. | Dép. | Moy. | Rel.│
 │  « Spring JPA »  [Ouvrir l'exercice]          │   │ Awa |   3   |  2   | 13,5 |  0  │
-│   Note [__] /20  Commentaire [__________]     │   │ Paul|   2   |  1   |  —   |  1 ⚠│
-│   [Envoyer — définitif]                       │   │ (— = aucune note, ⚠ = retard)   │
+│   Note [__] /20  Commentaire [__________]     │   │ Paul|   2   |  1   |  —   |  1   │
+│   [Envoyer — définitif]                       │   │ (— = aucune note ; relectures en attente = relectures assignées non rendues, Q11) │
 │ Relectures rendues                            │   └─────────────────────────────────┘
 └───────────────────────────────────────────────┘
 ```
@@ -99,15 +99,19 @@ Chaque écran gère trois états : **chargement** (indicateur), **erreur** (mess
 
 Format de chaque fiche : **acteur · priorité · préconditions · flux nominal · erreurs · règles · endpoint · postconditions**.
 
-### SF-1 — Choisir son identité · EF1 · Must
+### SF-1 — Choisir son identité · EF1 · Must *(v2 : remplacée par la connexion — SF-15)*
+
+> **v2 (#54, décision du PO) :** chaque personne a un compte ; l'identité vient de la connexion (SF-15, HYP-15),
+> plus du choix d'un nom dans une liste. Cette fiche ne vaut plus que pour les **opérations imposées appelées
+> sans session** (RG22), qui utilisent toujours `etudiantId` / `X-Etudiant-Id`.
 
 - **Acteur :** Étudiant (ou Formateur, qui choisit seulement la promotion).
 - **Préconditions :** des promotions et des étudiants existent (données de démonstration).
 - **Flux nominal :** 1) l'écran charge `GET /api/promotions` ; 2) l'étudiant choisit sa promotion ; 3) l'écran charge `GET /api/promotions/{id}/etudiants` ; 4) il choisit son nom ; 5) l'identité est mémorisée dans le navigateur et envoyée ensuite comme `etudiantId` ou `X-Etudiant-Id`.
 - **Erreurs :** `404 PROMOTION_INCONNUE`.
-- **Règles :** Q1 (pas de mot de passe), RG19.
+- **Règles :** Q1 (pas de mot de passe, remplacée par le PO en v2), RG19.
 - **Postconditions :** aucune écriture en base.
-- **Limite signalée :** l'identité est déclarative (HYP-2).
+- **Limite signalée :** l'identité est déclarative (HYP-2, limitée aux opérations imposées depuis la v2).
 
 ### SF-2 — Ouvrir une session · EF2 · Must
 
@@ -140,7 +144,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 - **Acteur :** Système.
 - **Flux :** chaque `CODE_INCONNU` incrémente `echecs_consecutifs`. Au 5ᵉ échec, `bloque_jusqu_a = maintenant + 2 min` et le compteur repasse à 0. Tant que `maintenant < bloque_jusqu_a`, toute tentative répond `429`. Un succès remet le compteur à 0.
-- **Règles :** RG4, HYP-5. **Limite signalée :** contournable en changeant de nom, puisqu'il n'y a pas d'authentification.
+- **Règles :** RG4, HYP-5. **Limite signalée :** contournable en changeant de nom pour les opérations imposées publiques (RG22) ; avec une session, le blocage porte sur le compte (RG24, même logique).
 
 ### SF-5 — Ajouter une présence à la main · EF5 · Should
 
@@ -173,7 +177,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 ### SF-9 — Rendre une relecture · EF9 · Must
 
 - **Acteur :** Relecteur.
-- **Flux nominal :** 1) saisie de la note et du commentaire, avec confirmation « envoi définitif » ; 2) `POST /api/relectures/{id}` avec l'en-tête `X-Etudiant-Id` ; 3) contrôles : en-tête présent → note entière entre 0 et 20 et commentaire présent (RG9) → relecture existante → appelant ≠ auteur (RG5) → appelant = relecteur assigné → session non clôturée (RG18) → pas déjà rendue (RG10) ; 4) enregistrement de la note, du commentaire et de `rendue_at` ; exercice → `RELU` ; 5) `200`.
+- **Flux nominal :** 1) saisie de la note et du commentaire, avec confirmation « envoi définitif » ; 2) `POST /api/relectures/{id}` avec l'en-tête `X-Etudiant-Id` ; 3) contrôles : en-tête présent → note entière entre 0 et 20 et commentaire présent (RG9) → relecture existante → appelant ≠ auteur (RG5) → appelant = relecteur assigné → session non clôturée (RG18) → pas déjà rendue (RG10) ; 4) enregistrement de la note, du commentaire et de `rendue_at` ; l'exercice passe `RELU` seulement quand **ses deux relecteurs** ont rendu (RG6 v3) — sinon la note retenue reste **provisoire** (RG31) ; 5) `200`.
 - **Erreurs :** `400 NOTE_INVALIDE | CHAMP_MANQUANT`, `403 AUTO_RELECTURE | RELECTEUR_NON_ASSIGNE`, `404 RELECTURE_INTROUVABLE`, `409 SESSION_CLOTUREE | RELECTURE_DEJA_RENDUE`.
 - **Note :** RG5 est aussi garantie à l'assignation (SF-7). Le contrôle `403 AUTO_RELECTURE` est une défense en profondeur, exigée par le contrat.
 
@@ -186,7 +190,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
   |---|---|
   | `presences` | nombre de présences, toutes sources confondues, sur les sessions de la promotion |
   | `exercicesDeposes` | nombre d'exercices dont il est l'auteur |
-  | `moyenne` | moyenne des notes **rendues** sur ses exercices, arrondie à 2 décimales ; `null` s'il n'en a aucune (RG16) |
+  | `moyenne` | moyenne des notes **retenues** de ses exercices (moyenne des deux relecteurs par exercice, RG16 v3), arrondie à 2 décimales ; `null` s'il n'en a aucune |
   | `relecturesEnAttente` | relectures qui lui sont assignées et pas encore rendues |
 
 - **Erreurs :** `404 PROMOTION_INCONNUE`.
@@ -339,7 +343,10 @@ flowchart TD
     G -- oui --> X2[409 SESSION_CLOTUREE]
     G -- non --> H{Déjà rendue ?}
     H -- oui --> X3[409 RELECTURE_DEJA_RENDUE]
-    H -- non --> OK[200 : exercice RELU]
+    H -- non --> OK[200 : note enregistrée]
+    OK --> R2{Les deux relecteurs ont rendu ?}
+    R2 -- oui --> RELU[Exercice RELU, note définitive]
+    R2 -- non --> PROV[Note retenue provisoire (RG31)]
 ```
 
 Diagrammes de référence : [D1 cas d'utilisation](diagrammes/D1-cas-utilisation.md) · [D2 données](diagrammes/D2-modele-donnees.md) · [D3 séquence présence](diagrammes/D3-sequence-presence.md) · [D4 états exercice](diagrammes/D4-etats-exercice.md).
@@ -477,16 +484,16 @@ Scénario: dépôt après expiration du code (Q12)
 **US-07 · Tirage au sort d'un relecteur** · Must · EF7 · RG5, RG6, RG7
 
 ```gherkin
-Scénario: relecteur parmi les présents, jamais l'auteur
+Scénario: deux relecteurs parmi les présents, jamais l'auteur (RG6 v3)
   Étant donné Awa, Paul et Lina présents à la session 1 et Marc absent
   Quand Awa dépose son exercice
-  Alors le relecteur est Paul ou Lina
+  Alors deux relecteurs différents sont tirés parmi Paul et Lina
   Et jamais Awa ni Marc
-Scénario: aucun candidat
+Scénario: aucun candidat en nombre suffisant
   Étant donné qu'Awa est seule présente
   Quand elle dépose
   Alors le statut est "DEPOSE"
-  Et quand Paul marque sa présence, Paul devient le relecteur
+  Et quand Paul marque sa présence, Paul devient l'un des relecteurs (le second dès qu'un autre étudiant arrive, HYP-20)
 ```
 
 **US-13 · Remplacer mon lien** · Should · EF13 · RG14
@@ -508,7 +515,9 @@ Scénario: anonymat du relecteur
 ```gherkin
 Scénario: relecture nominale
   Quand Paul envoie {"note":14,"commentaire":"Bon découpage"} sur sa relecture
-  Alors il reçoit 200 et l'exercice passe à "RELU"
+  Alors il reçoit 200
+  Et l'exercice passe à "RELU" seulement quand ses deux relecteurs ont rendu (RG6 v3)
+  Mais tant qu'un seul a rendu, la note retenue est provisoire (RG31)
 Scénario: note hors bornes ou non entière (RG9)
   Quand Paul envoie la note 21, puis 12.5
   Alors il reçoit 400 {"code":"NOTE_INVALIDE"} à chaque fois
@@ -526,10 +535,11 @@ Scénario: relecture définitive (RG10)
 **US-10 · Consulter le tableau de la promotion** · Must · EF10 · RG11, RG16
 
 ```gherkin
-Scénario: moyenne calculée par l'API
-  Étant donné qu'Awa a reçu 12 et 15
+Scénario: moyenne calculée par l'API (RG16 v3)
+  Étant donné qu'Awa a reçu 12 et 17 sur le même exercice (note retenue 14,5)
+  Et qu'elle a reçu 14 sur un autre exercice relu
   Quand le formateur consulte le tableau de P1
-  Alors la ligne d'Awa indique moyenne 13.5
+  Alors la ligne d'Awa indique la moyenne de ses notes retenues, soit 14.25
 Scénario: aucune note
   Alors la ligne de Marc indique moyenne null, affichée "—"
 Scénario: promotion inconnue
@@ -694,7 +704,7 @@ Scénario: tiers non autorisé
 | EF6 | US-06 | RG12, RG13, RG17 | POST /exercices | SF-6 | IT `testRg13DoubleDepot409` · `testRg17LienInvalide400` |
 | EF7 | US-07 | RG5, RG6, RG7 | (interne) | SF-7 | UT `testRg7RelecteurParmiPresentsJamaisAuteur` |
 | EF8 | US-08 | — | GET /etudiants/{id}/relectures | SF-8 | IT `testRelecturesAFaireSansAuteur` |
-| EF9 | US-09 | RG5, RG9, RG10, RG18 | POST /relectures/{id} | SF-9 | UT `testRg5AutoRelectureRefusee` · IT `testRg9Note21Renvoie400` · `testRg10SecondEnvoi409` |
+| EF9 | US-09 | RG5, RG9, RG10, RG18, RG31 | POST /relectures/{id} | SF-9 | UT `testRg5AutoRelectureRefusee` · IT `testRg9Note21Renvoie400` · `testRg10SecondEnvoi409` · `testRg6Rg16Rg31DeuxRelecteursMoyenneEtNoteProvisoire` |
 | EF10 | US-10 | RG11, RG16 | GET /tableau | SF-10 | IT `testRg16MoyenneNullSansNote` |
 | EF11 | US-11 | RG11 | GET /sessions/{id}/exercices | SF-11 | IT |
 | EF12 | US-12 | RG18 | POST /sessions/{id}/cloture | SF-12 | IT `testRg18DepotApresCloture409` |
@@ -724,8 +734,8 @@ Données de démonstration : P1 = Awa, Paul, Lina, Marc, … ; P2 = 6 étudiants
 | R1 | Le formateur ouvre « TP Flyway » pour P1 | Code affiché, expiration à +15 min |
 | R2 | Awa, Paul et Lina saisissent le code | 3 × 201 ; le tableau affiche +1 présence chacun |
 | R3 | Marc saisit le code à +16 min | 410 CODE_EXPIRE ; le formateur l'ajoute à la main → source FORMATEUR |
-| R4 | Awa dépose son lien | 201, EN_ATTENTE_RELECTURE, relecteur ∈ {Paul, Lina, Marc} |
-| R5 | Le relecteur note 21, puis 16 | 400 puis 200 ; l'exercice est RELU |
+| R4 | Awa dépose son lien | 201, EN_ATTENTE_RELECTURE, deux relecteurs distincts parmi les présents (RG6 v3) |
+| R5 | Le relecteur note 21, puis 16 | 400 puis 200 ; l'exercice est RELU seulement après la seconde relecture (RG31) |
 | R6 | Le relecteur renvoie une note | 409 RELECTURE_DEJA_RENDUE |
 | R7 | Awa consulte sa note | 16 et commentaire, sans relecteur |
 | R8 | Le formateur clôture, puis Lina tente de déposer | 409 SESSION_CLOTUREE |
