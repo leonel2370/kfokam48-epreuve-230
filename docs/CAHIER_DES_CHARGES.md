@@ -1,7 +1,7 @@
 # Cahier des charges — PRESENCE48 (présence et relecture par les pairs)
 
 **Auteur :** nono leonel · matricule 230
-**Version :** 2 · **Date :** 2026-09-25 (v2 : sécurité, rôles, CRUD, pièce jointe — issue #54)
+**Version :** 3.1 · **Date :** 2026-09-25/26 (v3.1 : navigation #104 et état réel de la livraison, audit #110 ; v3 : double relecture #85 ; v2 : sécurité, rôles, CRUD, pièce jointe — issue #54)
 **Frontend choisi :** Angular 17, parce que son architecture imposée (services injectables, `HttpClient`, intercepteurs) isole naturellement la couche d'appels API exigée par F3.
 
 > Documents liés : [SPECIFICATIONS_FONCTIONNELLES.md](SPECIFICATIONS_FONCTIONNELLES.md) (fiches détaillées, flows, user stories) ·
@@ -55,7 +55,9 @@ Les **5 opérations imposées** par le contrat restent **publiques** (décision 
 | Comptes utilisateurs (CRUD, rôle, désactivation, réinitialisation du mot de passe) | CRUD | — | — |
 | Promotions + rattachement des formateurs | CRUD | lecture des siennes | lecture de la sienne |
 | Fiches étudiants | CRUD | lecture ; création et modification dans ses promotions | lecture de sa fiche |
+| Promotions | tout | CRUD (admin) · rattachement des formateurs (admin) | lecture des siennes (formateur, RG26) · lecture de la sienne (étudiant) |
 | Sessions | tout | CRUD dans ses promotions (suppression seulement sans présence ni exercice) | lecture des sessions de sa promotion |
+| Code de session | tout | — | jamais renvoyé à un étudiant : `GET /api/sessions` masque le code (règle ajoutée en v1.1, #98) |
 | Présences | lecture | lecture ; ajout manuel ; suppression d'une présence manuelle | créer la sienne (opération imposée) ; lire les siennes |
 | Exercices + pièce jointe | lecture | lecture dans ses promotions | CRUD du sien (création imposée ; remplacement, pièce jointe, suppression tant que non relu) |
 | Relectures | lecture | lecture, avec le relecteur | lire et rendre celles assignées ; voir sa note sans le relecteur |
@@ -101,7 +103,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 
 | Réf | Exigence | Critère d'acceptation (quand … alors …) | Priorité | RG |
 |---|---|---|---|---|
-| EF1 | L'utilisateur choisit sa promotion puis son nom dans une liste | Quand j'ouvre l'écran Étudiant et choisis la promotion « P1 », alors je vois la liste des étudiants de P1 et je peux m'identifier sans mot de passe | Must | RG19 |
+| EF1 *(remplacée en v2)* | L'utilisateur choisit sa promotion puis son nom dans une liste | Quand j'ouvre l'écran Étudiant et choisis la promotion « P1 », alors je vois la liste des étudiants de P1 et je peux m'identifier sans mot de passe. *(v2 : identité venant du compte connecté ; la liste de noms ne sert plus qu'aux opérations imposées publiques — SF-15, HYP-15)* | Must | RG19 |
 | EF2 | Le formateur ouvre une session et obtient un code | Quand j'envoie `{titre, promotionId}` valides, alors je reçois `201` avec un `code` et un `expirationAt` égal à `ouvertureAt` + 15 min | Must | RG1 |
 | EF3 | L'étudiant marque sa présence avec le code | Quand je saisis un code valide non expiré, alors je reçois `201` avec `source = ETUDIANT` et ma présence est comptée dans le tableau | Must | RG1, RG2, RG3, RG19 |
 | EF4 | Les tentatives de code erronées sont limitées | Quand je saisis 5 codes inconnus d'affilée, alors la 6ᵉ tentative dans les 2 minutes est refusée avec `429 TROP_DE_TENTATIVES`, même si le code est bon | Should | RG4 |
@@ -172,6 +174,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG20 | Le code est unique parmi les sessions dont le code n'a pas expiré | [HYP-6] |
 | RG21 *(v2)* | La présence est **validée automatiquement** : un code valide soumis par l'étudiant crée immédiatement la présence (source ETUDIANT) ; aucune validation par le formateur n'existe | PO 25/09 (confirme SF-3) |
 | RG22 *(v2)* | Sont publiques : les 5 opérations imposées, la connexion, et les deux listes de sélection `GET /api/promotions` et `GET /api/promotions/{id}/etudiants` (identifiants et noms seulement, nécessaires pour appeler les opérations imposées sans session). Toute autre route exige une session, sinon 401 NON_AUTHENTIFIE | PO 25/09, B2 |
+| RG30a *(v1.1, #98)* | Le code d'une session n'est jamais renvoyé à un étudiant : `GET /api/sessions` masque le `code` (et son expiration) pour le rôle ETUDIANT ; seul le formateur de la promotion (ou l'admin) voit le code | Bug sécurité #98, PR #97 |
 | RG23 *(v2)* | Un compte `admin` existe par défaut ; tant que son mot de passe initial n'est pas changé, toute route autre que profil, changement de mot de passe et déconnexion renvoie 403 CHANGEMENT_MOT_DE_PASSE_REQUIS | PO 25/09, [HYP-18] |
 | RG24 *(v2)* | Un mot de passe fait au moins 8 caractères ; 5 échecs de connexion consécutifs bloquent le compte 2 minutes (même logique que RG4) | [HYP-17] |
 | RG25 *(v2)* | Un utilisateur n'accède qu'aux ressources de son rôle (§2 bis) → sinon 403 ACCES_REFUSE | PO 25/09 |
@@ -195,17 +198,17 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | Id | Point | Réponse client (Qx) ou hypothèse | Décision retenue | Conséquence |
 |---|---|---|---|---|
 | HYP-1 | **« Fin de session » et « clôture » ne sont définies nulle part** (Q3, Q10, Q12), et **aucune opération de clôture** n'existe dans la demande ni dans le contrat | *Trou identifié* | La session a deux états, `OUVERTE` puis `CLOTUREE`. La « fin » au sens de Q3 correspond à l'expiration du code (RG2). La clôture est une action explicite du formateur : `POST /api/sessions/{id}/cloture` | Nouvelle opération dans le contrat ; RG18 |
-| HYP-2 | **Identité de l'appelant sur `POST /api/relectures/{id}`** : le corps imposé `{note, commentaire}` ne dit pas qui rend la relecture, alors que `403 AUTO_RELECTURE` suppose de connaître l'appelant | *Trou identifié dans le contrat* | L'identité choisie à l'écran (Q1) est transmise dans l'en-tête `X-Etudiant-Id`. `403 AUTO_RELECTURE` si cet étudiant est l'auteur de l'exercice ; `403 RELECTEUR_NON_ASSIGNE` s'il n'est pas le relecteur assigné. Le corps imposé reste inchangé | En-tête documenté dans le contrat. **À signaler :** sans authentification (Q1), cette identité est déclarative et ne protège pas contre la triche |
+| HYP-2 | **Identité de l'appelant sur `POST /api/relectures/{id}`** : le corps imposé `{note, commentaire}` ne dit pas qui rend la relecture, alors que `403 AUTO_RELECTURE` suppose de connaître l'appelant | *Trou identifié dans le contrat* | L'identité choisie à l'écran (Q1) est transmise dans l'en-tête `X-Etudiant-Id`. `403 AUTO_RELECTURE` si cet étudiant est l'auteur de l'exercice ; `403 RELECTEUR_NON_ASSIGNE` s'il n'est pas le relecteur assigné. Le corps imposé reste inchangé | En-tête documenté dans le contrat. **À signaler :** sans authentification (Q1), cette identité est déclarative et ne protège pas contre la triche. **v2 : remplacée par la session connectée (HYP-15)** — l'en-tête ne sert plus que pour les opérations imposées publiques et doit alors correspondre à l'appelant (`403 IDENTITE_DIFFERENTE`) |
 | HYP-3 | **Quand le relecteur est-il tiré ?** Et que faire si personne d'autre n'est présent ? (Q7, Q11) | *Non tranché* | Tirage **au dépôt**, parmi les présents de la session auteur exclu. Si aucun candidat : l'exercice reste `DEPOSE` (sans relecteur), il est visible « en attente » (Q11) et le tirage est retenté automatiquement à chaque nouvelle présence enregistrée pour cette session | Les statuts `DEPOSE` → `EN_ATTENTE_RELECTURE` → `RELU` (D4) |
 | HYP-4 | **« Tant que personne n'a commencé à le relire » (Q13)** : l'application ne peut pas savoir qu'une lecture a commencé, puisqu'il n'y a pas de brouillon | *Non mesurable tel quel* | « Commencé » est assimilé à « relecture rendue ». Le lien est remplaçable tant que le statut ≠ `RELU` | **Risque signalé :** le relecteur peut lire une version puis noter la suivante. Acceptable en V1 |
-| HYP-5 | **Q4 : que compte-t-on comme erreur, et par qui ?** | Q4 | Seul `CODE_INCONNU` compte, par `etudiantId`, sur 5 échecs **consécutifs** ; blocage de 2 min à partir du 5ᵉ échec ; code HTTP `429` ajouté au contrat | Table `tentative_code`. **À signaler :** sans authentification, un étudiant bloqué peut choisir un autre nom (limite connue) |
+| HYP-5 | **Q4 : que compte-t-on comme erreur, et par qui ?** | Q4 | Seul `CODE_INCONNU` compte, par `etudiantId`, sur 5 échecs **consécutifs** ; blocage de 2 min à partir du 5ᵉ échec ; code HTTP `429` ajouté au contrat | Table `tentative_code`. **À signaler :** sans authentification, un étudiant bloqué peut choisir un autre nom (limite connue). **v2 : remplacée par RG24** — avec une session, le blocage porte sur le compte |
 | HYP-6 | Format et unicité du code | *Non précisé* | 6 caractères parmi `A-Z` et `2-9`, sans `O/0/I/1` ; unique parmi les codes non expirés | RG20, ENF4 |
 | HYP-7 | Un étudiant d'une autre promotion peut-il utiliser le code ? | *Non précisé* | Non : `400 ETUDIANT_HORS_PROMOTION`. Le contrat n'autorise que 400/409/410 sur cette opération, d'où l'emploi de 400 | RG19 |
 | HYP-8 | Un étudiant **absent** peut-il déposer un exercice ? | Q12 laisse entendre que oui (« pas de connexion le soir même ») | Oui : le dépôt ne dépend pas de la présence. Seul le **relecteur** doit être présent (Q7) | Un absent peut être noté mais ne peut pas relire |
 | HYP-9 | Le formateur voit-il le nom du relecteur ? | Q8 ne concerne que l'étudiant relu | Oui, dans la vue des exercices d'une session (EF11) : il doit savoir qui est en retard (Q16, « relectures qu'il doit encore faire ») | Seul le DTO « auteur » masque le relecteur |
 | HYP-10 | Le relecteur voit-il le nom de l'auteur ? | *Non précisé* | Non : il ne voit que le lien et le titre de la session. C'est symétrique de Q8 et limite les biais | DTO relecteur sans auteur |
 | HYP-11 | Q16 demande « sa présence **à chaque session** », alors que le contrat renvoie un simple entier `presences` | Q16 ↔ CONTRAT | Le contrat imposé fait foi : `presences` est un total. Le détail session par session est hors `v0.1` (Could : `GET /api/sessions/{id}/presences`) | Écart signalé au client |
-| HYP-12 | Plusieurs formateurs ? Qui est le formateur ? | Q1 n'en parle pas | Un seul formateur implicite, sans identification | Pas de table `formateur` |
+| HYP-12 | Plusieurs formateurs ? Qui est le formateur ? | Q1 n'en parle pas | Un seul formateur implicite, sans identification | Pas de table `formateur`. **v2 : remplacée** — compte FORMATEUR lié à ses promotions (RG26) |
 | HYP-13 | Plusieurs sessions ouvertes en même temps pour une promotion ? | *Non précisé* | Autorisé ; le code identifie la session | RG20 |
 
 ### 7.2 bis Changement de besoin v2 (25/09, #54) — contradictions, risques et manques
@@ -235,7 +238,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 - **Seul présent / un seul candidat (HYP-20)** : un relecteur est assigné tout de suite, le second est tiré à la présence suivante (même mécanisme que HYP-3).
 - **Données existantes (HYP-21)** : les exercices `RELU` avec une seule relecture (données v1) restent `RELU` avec cette note ; la règle s'applique aux dépôts postérieurs à V4. Aucune ligne n'est supprimée par la migration.
 - **Clôture (Q11)** : un exercice clôturé avec une seule note garde une note retenue provisoire, visible comme telle.
-- **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, #59 menus par rôle côté frontend, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs.
+- **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs. **v1.1 (#110) : #59 (connexion, gardes et menus par rôle) est livré — PR #100 ; voir BACKLOG.md.**
 
 ### 7.3 Questions du client peu utiles au développement
 
@@ -265,7 +268,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 - *(v2)* pièces jointes sur disque dans `UPLOAD_DIR` (variable de `.env`, volume Docker), jamais servies en statique ;
 - **PostgreSQL 16** en exécution (Docker), **H2 en mode PostgreSQL** pour les tests (pour tourner sur un poste vierge, B6) ;
 - migrations `backend/src/main/resources/db/migration/V{n}__{description}.sql`, jamais modifiées une fois poussées ;
-- Angular 17 en composants standalone, structure `core/ features/ shared/ layout/` ;
+- Angular 17 en composants standalone, structure `core/` (api, auth, navigation, intercepteurs) `features/` `shared/` ;
 - `docker-compose.yml` à la racine : postgres, backend, frontend.
 
 ## 9. Livrables
@@ -395,3 +398,4 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 | 2 | 2026-09-25 15h | Changement de besoin du PO (#54) : authentification, rôles ADMIN/FORMATEUR/ETUDIANT, compte admin par défaut, CRUD par profil, pièce jointe, présence validée automatiquement rendue explicite. Ajouts : §2 bis, EF15–EF26, ENF10–ENF13, RG21–RG30, §7.2 bis, annexe B. Audit retiré. Q1 remplacée. |
 | 3 | 2026-09-25 19h | **Enveloppe, étape 3 (#85)** : double relecture. RG6 remplacée (Q6 caduque), RG16 précisée (note retenue), RG31 (note provisoire), EF7/EF9, §7.2 ter (HYP-20, HYP-21, sacrifice de périmètre), dictionnaire (V4). Bug #83 corrigé sans changement d'analyse. |
 | 3.1 | 2026-09-25 | **Navigation par boutons et écran relecteur distinct (#104, demande du PO)** : l'espace étudiant devient trois écrans (`/etudiant/presence`, `/etudiant/notes`, `/etudiant/relectures`) pour respecter F2 sans ambiguïté ; toute navigation interne se fait par des boutons, le lien d'un exercice par un bouton « Ouvrir l'exercice ». Aucune règle métier ni endpoint modifié. Détail : spécifications §1.2 et §1.2 bis, DESIGN_SYSTEM §3. |
+| 3.2 | 2026-09-25/26 | **Mise à jour de l'analyse après la livraison (#110)** : hypothèses remplacées en v2 signalées (HYP-2, HYP-5, HYP-12, EF1) ; ajout de RG30a (code de session masqué à l'étudiant, #98) et de la ligne « Code de session » en §2 bis ; `GET /api/sessions` référencé vers SF-2/SF-4 ; #59 marqué livré (PR #100) ; cohérence avec le contrat 2.3 (#111) et le CHANGELOG [1.1.0]. |

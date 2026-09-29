@@ -1,27 +1,34 @@
-# FRONTEND
+# Frontend Présence48 — Angular 17
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.11.
+Client web de Présence48 (suivi de présence et relecture par les pairs). Angular 17 en composants **standalone**, TypeScript strict. La documentation du projet (démarrage, comptes de démonstration, parcours, architecture complète) est à la racine : [README.md](../README.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [CONTRIBUTING.md](../docs/CONTRIBUTING.md).
 
-## Development server
+## Commandes
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```bash
+npm ci                    # installation
+npm start                 # serveur de développement sur http://localhost:4200 (proxy /api → :8080, proxy.conf.json)
+npm run build             # build de production dans dist/
+npx ng test --watch=false --browsers=ChromeHeadless   # tests unitaires (Karma)
+```
 
-## Code scaffolding
+La même chose sans installer Node : `docker compose up --build` depuis la racine.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Organisation
 
-## Build
+```text
+src/app/
+  core/
+    api/            Seule couche autorisée à appeler HttpClient (F3) — un service typé par ressource
+    auth/           Session, profil, gardes de routes par rôle
+    navigation/     Libellés partagés (rôles, statuts) et chemins
+    interceptors/   XSRF, erreurs au format {code, message}
+  features/
+    connexion/      Écran de connexion
+    etudiant/       Espace étudiant : espace-etudiant, presence, mes-notes, relectures (F2, trois écrans)
+    formateur/      Sessions et tableau de la promotion
+    profil/         Profil connecté, changement de mot de passe
+    admin/          Administration des promotions
+  shared/           Composants réutilisables : barre-navigation, bouton-navigation, bouton-exercice, erreur
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Règles du projet (F3) : aucune règle métier dans le frontend (le serveur calcule), les post-conditions sont testées sur les signaux Angular dans les `.spec.ts` (helpers de test dans `src/app/testing`).
