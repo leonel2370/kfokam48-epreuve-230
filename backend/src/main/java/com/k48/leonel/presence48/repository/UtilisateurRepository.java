@@ -1,8 +1,11 @@
 package com.k48.leonel.presence48.repository;
 
+import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.entity.Utilisateur;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +13,17 @@ import org.springframework.data.repository.query.Param;
 public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> {
 
   Optional<Utilisateur> findByLogin(String login);
+
+  /** #60 : liste triée par login, paginée. */
+  Page<Utilisateur> findAllByOrderByLoginAsc(Pageable pageable);
+
+  /** RG27 : la fiche étudiant liée à un compte doit être unique. */
+  boolean existsByEtudiantId(Long etudiantId);
+
+  Optional<Utilisateur> findByEtudiantId(Long etudiantId);
+
+  /** RG28 : le dernier admin actif ne peut pas être désactivé. */
+  long countByRoleAndActifTrue(Role role);
 
   /** Promotions d'un formateur (RG26). */
   @Query(value = "SELECT promotion_id FROM formateur_promotion WHERE utilisateur_id = :id ORDER BY promotion_id",

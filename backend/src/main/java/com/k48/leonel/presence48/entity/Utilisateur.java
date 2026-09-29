@@ -55,6 +55,18 @@ public class Utilisateur {
     // instancié par Hibernate
   }
 
+  /** #60 : création d'un compte par l'ADMIN (mot de passe déjà haché). */
+  public Utilisateur(String login, String motDePasseHash, Role role, String nomAffiche, Long etudiantId,
+      boolean doitChangerMotDePasse, Instant creeAt) {
+    this.login = login;
+    this.motDePasseHash = motDePasseHash;
+    this.role = role;
+    this.nomAffiche = nomAffiche;
+    this.etudiantId = etudiantId;
+    this.doitChangerMotDePasse = doitChangerMotDePasse;
+    this.creeAt = creeAt;
+  }
+
   public Long getId() {
     return id;
   }
