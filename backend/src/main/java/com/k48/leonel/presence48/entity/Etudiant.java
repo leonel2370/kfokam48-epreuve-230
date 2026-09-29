@@ -29,6 +29,13 @@ public class Etudiant {
     // instancié par Hibernate
   }
 
+  /** #61 : création d'une fiche étudiant par l'ADMIN ou le FORMATEUR de la promotion. */
+  public Etudiant(String nom, Long promotionId) {
+    this.nom = nom;
+    this.promotionId = promotionId;
+    this.actif = true;
+  }
+
   public Long getId() {
     return id;
   }
@@ -37,11 +44,23 @@ public class Etudiant {
     return nom;
   }
 
+  public void setNom(String nom) {
+    this.nom = nom;
+  }
+
   public Long getPromotionId() {
     return promotionId;
   }
 
+  public void setPromotionId(Long promotionId) {
+    this.promotionId = promotionId;
+  }
+
   public boolean isActif() {
     return actif;
+  }
+
+  public void setActif(boolean actif) {
+    this.actif = actif;
   }
 }

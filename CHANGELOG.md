@@ -30,6 +30,7 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 
 ### Ajouté
 - **CRUD des comptes** (ADMIN, contrat 2.6) : liste paginée, création (mot de passe provisoire à changer à la première connexion, RG23 ; login unique RG27), modification, désactivation RG28 avec protection du dernier admin actif, réinitialisation de mot de passe ; écran « Comptes » dans l'espace ADMIN (#60).
+- **Gestion du référentiel** (contrat 2.7) : promotions par l'ADMIN — créer, renommer, supprimer (RG28 : refusée si étudiants ou sessions ; nom unique → 409 CONFLIT), rattachement des formateurs (RG26 : seuls des comptes FORMATEUR, le rattachement ouvre la promotion) ; fiches étudiants par l'ADMIN et le formateur de la promotion (RG26) — créer, modifier, supprimer sans historique ou désactiver (RG28, l'historique reste au tableau) ; volet « Gérer » dans l'écran ADMIN (#61).
 - **Récapitulatif de l'étudiant connecté** : `GET /api/moi/recap` (contrat 2.5) renvoie sa ligne de tableau — présences, exercices, moyenne des notes retenues (RG16), relectures en attente ; encart « Récapitulatif » dans « Mes notes » (#112).
 
 ## [1.0.0] — 2026-09-25

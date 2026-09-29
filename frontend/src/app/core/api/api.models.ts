@@ -1,4 +1,4 @@
-/** Types alignés sur api/contrat.yaml (v2.6). Aucune règle métier côté client (F3). */
+/** Types alignés sur api/contrat.yaml (v2.7). Aucune règle métier côté client (F3). */
 
 export interface ErreurApi {
   code: string;
@@ -13,6 +13,7 @@ export interface Promotion {
 export interface Etudiant {
   id: number;
   nom: string;
+  promotionId: number;
 }
 
 export type StatutSession = 'OUVERTE' | 'CLOTUREE';
@@ -113,4 +114,9 @@ export interface PageUtilisateurs {
   page: number;
   taille: number;
   total: number;
+}
+
+/** #61 (SF-22) : la liste ADMIN montre aussi les fiches désactivées (RG28). */
+export interface EtudiantAdmin extends Etudiant {
+  actif: boolean;
 }

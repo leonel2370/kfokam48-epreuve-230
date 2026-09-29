@@ -23,11 +23,20 @@ public class Promotion {
     // instancié par Hibernate
   }
 
+  /** #61 : création d'une promotion par l'ADMIN. */
+  public Promotion(String nom) {
+    this.nom = nom;
+  }
+
   public Long getId() {
     return id;
   }
 
   public String getNom() {
     return nom;
+  }
+
+  public void setNom(String nom) {
+    this.nom = nom;
   }
 }

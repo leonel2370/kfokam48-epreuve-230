@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Etudiant,
+  EtudiantAdmin,
   ExerciceAuteur,
   ExerciceDepose,
   LigneTableau,
@@ -122,5 +123,43 @@ export class ApiService {
   reinitialiserMotDePasse(id: number, motDePasseInitial: string): Observable<void> {
     return this.http.post<void>(`${this.url}/utilisateurs/${id}/reinitialiser-mot-de-passe`,
       { motDePasseInitial });
+  }
+
+  // --- #61 (SF-21, SF-22) : gestion du référentiel ---
+
+  /** Vue ADMIN d'une promotion : toutes les fiches, désactivées comprises (RG28). */
+  etudiantsAdmin(promotionId: number): Observable<EtudiantAdmin[]> {
+    return this.http.get<EtudiantAdmin[]>(`${this.url}/promotions/${promotionId}/etudiants?admin=true`);
+  }
+
+  creerPromotion(nom: string): Observable<Promotion> {
+    return this.http.post<Promotion>(`${this.url}/promotions`, { nom });
+  }
+
+  renommerPromotion(id: number, nom: string): Observable<Promotion> {
+    return this.http.put<Promotion>(`${this.url}/promotions/${id}`, { nom });
+  }
+
+  /** RG28 : refusée (409) si la promotion a des étudiants ou des sessions. */
+  supprimerPromotion(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/promotions/${id}`);
+  }
+
+  /** RG26 : remplace la liste des formateurs rattachés ; seuls des comptes FORMATEUR sont admis. */
+  rattacherFormateurs(promotionId: number, utilisateurIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.url}/promotions/${promotionId}/formateurs`, { utilisateurIds });
+  }
+
+  creerEtudiant(corps: { nom: string; promotionId: number }): Observable<Etudiant> {
+    return this.http.post<Etudiant>(`${this.url}/etudiants`, corps);
+  }
+
+  modifierEtudiant(id: number, corps: { nom: string; promotionId: number }): Observable<Etudiant> {
+    return this.http.put<Etudiant>(`${this.url}/etudiants/${id}`, corps);
+  }
+
+  /** RG28 : suppression physique sans historique, désactivation sinon. */
+  supprimerEtudiant(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/etudiants/${id}`);
   }
 }
