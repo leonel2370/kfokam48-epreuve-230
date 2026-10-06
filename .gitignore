@@ -36,3 +36,7 @@ uploads/
 
 # Analyse SonarQube locale
 .scannerwork/
+
+# Configuration et état locaux des outils d'assistance (peuvent contenir des variables d'environnement)
+.mcp.json
+.agentsroom/
