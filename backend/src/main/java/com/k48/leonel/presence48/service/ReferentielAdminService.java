@@ -126,11 +126,16 @@ public class ReferentielAdminService {
     return new EtudiantReponse(e.getId(), e.getNom(), e.getPromotionId());
   }
 
+  /**
+   * RG26 (#129) : il faut gérer la promotion ACTUELLE de la fiche et la promotion d'arrivée ; sans le
+   * premier contrôle, un formateur déplaçait vers sa promotion la fiche d'un étudiant d'une autre.
+   */
   @Transactional
   public EtudiantReponse modifierEtudiant(Long id, String nom, Long promotionId) {
-    acces.verifierGestionPromotionStrict(promotionId);
     var e = etudiants.findById(id).orElseThrow(() ->
         new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
+    acces.verifierGestionPromotionStrict(e.getPromotionId());
+    acces.verifierGestionPromotionStrict(promotionId);
     chargerPromotionDuCorps(promotionId);
     e.setNom(nom);
     e.setPromotionId(promotionId);
