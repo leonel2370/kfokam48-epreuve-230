@@ -1,6 +1,6 @@
 # Spécifications fonctionnelles détaillées — PRESENCE48
 
-**Version :** 3.1 · **Date :** 2026-09-25 (v2 : sécurité, rôles, CRUD, pièce jointe — #54 · v3 : double relecture — #85 · v3.1 : navigation par boutons — #104 ; mise à jour de la livraison — #110) · **Auteur :** nono leonel (230)
+**Version :** 3.3 · **Date :** 2026-10-07 (v3.3 : administration lisible et décisions du PO — #134, #140 · v2 : sécurité, rôles, CRUD, pièce jointe — #54 · v3 : double relecture — #85 · v3.1 : navigation par boutons — #104 ; mise à jour de la livraison — #110) · **Auteur :** nono leonel (230)
 **Référence :** [CAHIER_DES_CHARGES.md](CAHIER_DES_CHARGES.md). En cas de divergence, **le cahier des charges fait foi** ; ce document le détaille sans rien y ajouter.
 
 ## Sommaire
@@ -167,6 +167,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 - **Algorithme :** candidats = étudiants **présents** à la session de l'exercice, **auteur exclu** (RG5, RG7). S'il y a au moins un candidat : tirage aléatoire uniforme (`SecureRandom`), création de la `relecture` (note NULL), exercice → `EN_ATTENTE_RELECTURE`. Sinon, l'exercice reste `DEPOSE` (RG11) et le tirage sera retenté à la prochaine présence enregistrée dans la session.
 - **v3 (enveloppe, #85) :** jusqu'à **deux** relecteurs distincts par exercice (RG6 v3), tirés sans remise parmi les candidats ; s'il en manque, tirage retenté à chaque nouvelle présence (HYP-20). La ligne de l'exercice est verrouillée pendant le tirage (#83).
 - **Invariant :** au plus deux relectures par exercice, jamais deux fois le même relecteur : `UNIQUE(exercice_id, relecteur_id)` (V4) et contrôle du service.
+- **v3.3 (RG33, #140) :** une fiche étudiant **désactivée** n'est jamais candidate au tirage, même si elle était présente. Les relectures qui lui étaient déjà assignées restent rendables.
 - **Non retenu :** l'équilibrage de charge entre relecteurs ; Q7 dit « au hasard », rien de plus. C'est une évolution possible, à valider avec le client.
 
 ### SF-8 — Consulter ses relectures · EF8 · Must
@@ -249,18 +250,21 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 
 ### SF-20 — Gérer les comptes · EF21 · Should *(v2, livrée #60)*
 
-- **Acteur :** ADMIN. `GET /api/utilisateurs?page&size` · `POST /api/utilisateurs {login, nomAffiche, role, motDePasseInitial, etudiantId?}` (compte créé avec `doitChangerMotDePasse=true`) · `PUT /api/utilisateurs/{id} {nomAffiche, role, actif, etudiantId?}` · `POST /api/utilisateurs/{id}/reinitialiser-mot-de-passe {motDePasseInitial}` · `DELETE /api/utilisateurs/{id}` = désactivation (RG28).
-- **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver le dernier admin actif).
+- **Acteur :** ADMIN. `GET /api/utilisateurs?page&size&role` (page ≥ 0, taille de 1 à 100, `role` facultatif pour ne lister qu'un rôle — v3.3) · `GET /api/utilisateurs/{id}` · `POST /api/utilisateurs {login, nomAffiche, role, motDePasseInitial, etudiantId?}` (compte créé avec `doitChangerMotDePasse=true`) · `PUT /api/utilisateurs/{id} {nomAffiche, role, actif, etudiantId?}` · `POST /api/utilisateurs/{id}/reinitialiser-mot-de-passe {motDePasseInitial}` · `DELETE /api/utilisateurs/{id}` = désactivation (RG28).
+- **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `409 FICHE_DEJA_LIEE` (la fiche a déjà un compte — v3.3) · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche, pagination hors bornes) · `400 ETUDIANT_INCONNU` (fiche inexistante — v3.3) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver **ou rétrograder** le dernier admin actif, #130).
+- **Effets (v3.3) :** un compte désactivé ou dont le rôle change perd ou change ses droits dès sa requête suivante (#131) ; un compte qui quitte le rôle FORMATEUR perd ses rattachements (#130).
 - **Livrée (#60) :** les 6 opérations + écran ADMIN (liste, création, désactivation, réinitialisation). Traçabilité réelle : `UtilisateurIntegrationTest` — `testRg27LoginDejaUtiliseRenvoie409`, `testRg28DesactiverUnCompteCoupeSaConnexion`, `testRg28LeDernierAdminActifNePeutPasSeDesactiver`, `testRg23LeCompteCreeDoitChangerSonMotDePasseAvantTout`.
 
 ### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2, livrée #61)*
 
-- **ADMIN :** `POST/PUT/DELETE /api/promotions[/{id}]` (DELETE refusé si étudiants ou sessions → `409 SUPPRESSION_IMPOSSIBLE`) ; `PUT /api/promotions/{id}/formateurs {utilisateurIds[]}`. Lecture : ADMIN toutes, FORMATEUR les siennes, ETUDIANT la sienne.
+- **ADMIN :** `POST/PUT/DELETE /api/promotions[/{id}]` (DELETE refusé si étudiants ou sessions → `409 SUPPRESSION_IMPOSSIBLE`) ; `PUT /api/promotions/{id}/formateurs {utilisateurIds[]}` remplace la liste (liste vide = plus aucun formateur — v3.3) ; `GET /api/promotions/{id}/formateurs` rend la liste actuelle (v3.3, #134). Lecture : ADMIN toutes, FORMATEUR les siennes, ETUDIANT la sienne.
+- **Erreurs du rattachement (v3.3) :** `404 UTILISATEUR_INTROUVABLE` · `400 ROLE_INCOMPATIBLE` (compte non FORMATEUR ou désactivé) · `400 CHAMP_MANQUANT` (identifiant nul).
 - **Livrée (#61) :** les 4 opérations + écran ADMIN (créer, renommer, supprimer, rattacher). Nom UNIQUE (V1) → `409 CONFLIT`. Traçabilité réelle : `ReferentielAdminIntegrationTest` — `testAdminCreeRenommeEtSupprimeUnePromotionVide`, `testNomDejaPrisRenvoie409`, `testSuppressionRefuseeSiEtudiantsOuSessions`, `testRattacherUnFormateurLuiOuvreLaPromotion`, `testAccesRefuseAuxNonAdminsSurLesPromotions`, `testSansSessionRenvoie401SurLesEcritures`.
 
 ### SF-22 — Gérer les fiches étudiants · EF23 · Should *(v2, livrée #61)*
 
 - **ADMIN et FORMATEUR (dans ses promotions) :** `POST /api/etudiants {nom, promotionId}` · `PUT /api/etudiants/{id}` · `DELETE /api/etudiants/{id}` = désactivation si historique (RG28). Un étudiant désactivé n'apparaît plus dans les listes de sélection mais reste dans le tableau.
+- **v3.3 (#134, #140) :** `GET /api/promotions/{id}/fiches` rend toutes les fiches de la promotion, désactivées comprises, avec `actif` et `compteLogin` (ADMIN et FORMATEUR de la promotion). **Historique** = présence, exercice, relecture, tentative de code (#133) ou compte lié. Changer la promotion d'une fiche avec historique → `409 DEPLACEMENT_IMPOSSIBLE` (RG32) ; le formateur doit gérer la promotion actuelle **et** celle d'arrivée (RG26, #129). Désactiver une fiche désactive son compte (RG34).
 - **Livrée (#61) :** les 3 opérations + écran ADMIN (créer, modifier, supprimer/désactiver). Traçabilité réelle : `ReferentielAdminIntegrationTest` — `testAdminEtFormateurDeLaPromotionCreeUneFicheEtudiant`, `testModifierUneFicheEtudiant`, `testRg28SupprimerUneFicheSansHistoriqueDesactiverSinon`.
 
 ### SF-23 — Modifier ou supprimer une session · EF24 · Should *(v2)*
@@ -692,7 +696,10 @@ Scénario: tiers non autorisé
 | MOT_DE_PASSE_TROP_FAIBLE *(v2)* | 400 | Le mot de passe doit contenir au moins 8 caractères. | RG24 |
 | LOGIN_DEJA_UTILISE *(v2)* | 409 | Cet identifiant est déjà utilisé. | RG27 |
 | UTILISATEUR_INTROUVABLE *(v2)* | 404 | Cet utilisateur n'existe pas. | CRUD comptes |
-| SUPPRESSION_IMPOSSIBLE *(v2)* | 409 | Cet élément a un historique : désactivez-le plutôt. | RG28, RG29 |
+| SUPPRESSION_IMPOSSIBLE *(v2)* | 409 | Message propre au cas : dernier administrateur actif, promotion ayant des étudiants ou des sessions, session ayant un historique. | RG28, RG29 |
+| FICHE_DEJA_LIEE *(v3.3)* | 409 | Cette fiche étudiant a déjà un compte. | HYP-15, SF-20 |
+| ROLE_INCOMPATIBLE *(v3.3)* | 400 | Seul un compte FORMATEUR actif peut être rattaché à une promotion. | RG26, SF-21 |
+| DEPLACEMENT_IMPOSSIBLE *(v3.3)* | 409 | Cette fiche a un historique : elle ne peut pas changer de promotion. | RG32 |
 | FICHIER_TROP_VOLUMINEUX *(v2)* | 413 | Le fichier dépasse 10 Mo. | RG30 |
 | TYPE_FICHIER_REFUSE *(v2)* | 415 | Ce type de fichier n'est pas accepté. | RG30 |
 | FICHIER_INTROUVABLE *(v2)* | 404 | Aucun fichier joint à cet exercice. | RG30 |
