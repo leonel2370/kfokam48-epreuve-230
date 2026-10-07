@@ -1,0 +1,53 @@
+<section class="carte">
+  <h2>Créer un compte</h2>
+  <form class="formulaire" (ngSubmit)="creer()">
+    <label>
+      Rôle
+      <select name="role" [(ngModel)]="role" required>
+        @for (r of roles; track r) { <option [ngValue]="r">{{ libelles[r] }}</option> }
+      </select>
+    </label>
+    @if (role === 'ETUDIANT') {
+      <label>
+        Promotion de l'étudiant
+        <select name="promotionDeLaFiche" [ngModel]="promotionId" (ngModelChange)="choisirPromotion($event)" required>
+          <option [ngValue]="null" disabled>Choisir…</option>
+          @for (p of promotions(); track p.id) { <option [ngValue]="p.id">{{ p.nom }}</option> }
+        </select>
+      </label>
+      <label>
+        Fiche étudiant
+        <select name="fiche" [ngModel]="ficheId" (ngModelChange)="choisirFiche($event)" required
+                [disabled]="promotionId === null">
+          <option [ngValue]="null" disabled>Choisir…</option>
+          @for (f of fiches(); track f.id) { <option [ngValue]="f.id">{{ f.nom }}</option> }
+        </select>
+      </label>
+      @if (promotionId !== null && fiches().length === 0) {
+        <p class="discret">Aucune fiche sans compte dans cette promotion : créez la fiche dans « Gérer ».</p>
+      }
+    }
+    <label>
+      Identifiant
+      <input name="login" [(ngModel)]="login" required maxlength="50" autocomplete="off" />
+    </label>
+    <label>
+      Nom affiché
+      <input name="nomAffiche" [(ngModel)]="nomAffiche" required maxlength="150" />
+    </label>
+    <label>
+      Mot de passe provisoire (8 caractères minimum)
+      <input name="motDePasseInitial" type="password" [(ngModel)]="motDePasseInitial" required
+             autocomplete="new-password" />
+    </label>
+    <button type="submit" [disabled]="enCours() || !complet()">
+      {{ enCours() ? 'Création…' : 'Créer le compte' }}
+    </button>
+  </form>
+  @if (message(); as m) { <output class="succes">{{ m }}</output> }
+  <app-erreur [erreur]="erreur()" />
+  <p class="discret">
+    Le mot de passe provisoire devra être changé à la première connexion. Un compte n'est jamais
+    supprimé : il est désactivé et ne peut plus se connecter.
+  </p>
+</section>
