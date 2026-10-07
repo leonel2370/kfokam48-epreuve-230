@@ -5,13 +5,14 @@ import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { CHEMINS, EntreeNavigation, PARAM_PROMOTION } from '../../core/navigation/chemins';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
+import { BadgeComponent } from '../../shared/badge/badge.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /** SF-10 / EF10 : affichage brut du tableau calculé par le serveur, aucun recalcul (F3). */
 @Component({
   selector: 'app-tableau',
   standalone: true,
-  imports: [DecimalPipe, ErreurComponent, BoutonNavigationComponent],
+  imports: [DecimalPipe, ErreurComponent, BoutonNavigationComponent, BadgeComponent],
   templateUrl: './tableau.component.html',
 })
 export class TableauComponent implements OnInit {

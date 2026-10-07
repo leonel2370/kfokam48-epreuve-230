@@ -3,11 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { ErreurApi, RelectureRelecteur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { DialogueService } from '../../core/dialogue/dialogue.service';
 import { Lecture } from '../../core/etat/lecture';
 import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { EtatListeComponent } from '../../shared/etat-liste/etat-liste.component';
 
-/** #101 : les listes se rafraîchissent seules, une relecture ou une note peut arriver pendant que la page est ouverte. */
+/** #101 : les listes se rafraîchissent seules ; une relecture ou une note peut arriver, page ouverte. */
 export const RAFRAICHISSEMENT_MS = 15_000;
 /** Durée d'affichage du message de succès après un envoi. */
 const DUREE_MESSAGE_MS = 5_000;
@@ -26,12 +28,13 @@ function noteSaisieValide(note: number | null | undefined): note is number {
 @Component({
   selector: 'app-relectures',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, BoutonExerciceComponent],
+  imports: [FormsModule, ErreurComponent, BoutonExerciceComponent, EtatListeComponent],
   templateUrl: './relectures.component.html',
 })
 export class RelecturesComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly dialogue = inject(DialogueService);
   private minuterie?: ReturnType<typeof setInterval>;
 
   /** Écran RELECTEUR routé (F2, #104) : le relecteur est l'étudiant du compte connecté (HYP-15). */
@@ -67,11 +70,19 @@ export class RelecturesComponent implements OnInit, OnDestroy {
     return noteSaisieValide(this.notes[id]) && (this.commentaires[id] ?? '').trim().length > 0;
   }
 
-  rendre(r: RelectureRelecteur): void {
+  /** RG10 : l'envoi est définitif, il passe par une confirmation à l'écran. */
+  async rendre(r: RelectureRelecteur): Promise<void> {
     const note = this.notes[r.id];
     const etudiantId = this.etudiantId();
-    if (etudiantId === null || !noteSaisieValide(note)
-      || !confirm('Envoi définitif : la note ne pourra plus être modifiée. Continuer ?')) {
+    if (etudiantId === null || !noteSaisieValide(note)) {
+      return;
+    }
+    const confirme = await this.dialogue.confirmer({
+      titre: 'Envoyer la relecture ?',
+      message: 'La note est définitive : elle ne pourra plus être modifiée.',
+      confirmer: "Confirmer l'envoi",
+    });
+    if (!confirme) {
       return;
     }
     this.erreur.set(null);

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ErreurApi } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { libelleRole } from '../../core/navigation/libelles';
+import { libelleRole } from '../../core/libelles/libelles';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 const LONGUEUR_MIN = 8;

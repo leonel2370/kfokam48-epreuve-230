@@ -8,9 +8,11 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier avec la 1.1.0.
 
 ### Ajouté
+- Administration : réactiver un compte désactivé et changer le rôle d'un compte sans fiche étudiant (#138, PR #158).
 - Administration lisible (contrat 2.8) : formateurs rattachés à une promotion, fiches d'une promotion avec leur état et leur compte, liste des comptes filtrable par rôle ; le rattachement accepte une liste vide et refuse proprement un compte inconnu, désactivé ou non formateur (#134, PR #148 pour l'analyse, PR #150).
 
 ### Modifié
+- Écran d'administration découpé en composants (volet d'une promotion, liste des comptes, création de compte) ; composants partagés `dialogue`, `pagination`, `etat-liste` et `badge` ; les dialogues de l'écran remplacent `confirm` et `prompt` du navigateur, et le mot de passe provisoire n'est plus saisi en clair ; libellés typés sur le contrat (#138, PR #157 pour la maquette, PR #158).
 - Règles décidées par le PO le 07/10 (#140) : une fiche qui a un historique ne change plus de promotion (`409 DEPLACEMENT_IMPOSSIBLE`, RG32) ; une fiche désactivée n'est plus tirée au sort comme relectrice, ses relectures déjà assignées restent rendables (RG33) ; désactiver une fiche désactive son compte, et une fiche liée à un compte est désactivée au lieu de renvoyer 409 (RG34) (#149, PR #151).
 - Codes d'erreur de la gestion des comptes alignés sur le catalogue : `MOT_DE_PASSE_TROP_FAIBLE` pour un mot de passe provisoire trop court, `FICHE_DEJA_LIEE` pour une fiche qui a déjà un compte, `ETUDIANT_INCONNU` pour une fiche inexistante, `ROLE_INCOMPATIBLE` au rattachement (#134, PR #150).
 

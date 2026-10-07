@@ -2,15 +2,16 @@ import { Component, computed, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { CHEMINS, EntreeNavigation } from './core/navigation/chemins';
-import { libelleRole } from './core/navigation/libelles';
+import { libelleRole } from './core/libelles/libelles';
 import { BarreNavigationComponent } from './shared/barre-navigation/barre-navigation.component';
 import { BoutonNavigationComponent } from './shared/bouton-navigation/bouton-navigation.component';
+import { DialogueComponent } from './shared/dialogue/dialogue.component';
 
 /** En-tête v3 (#104) : menus du rôle, profil et déconnexion, tous en boutons ; aucun lien texte. */
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, BarreNavigationComponent, BoutonNavigationComponent],
+  imports: [RouterOutlet, BarreNavigationComponent, BoutonNavigationComponent, DialogueComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

@@ -6,9 +6,11 @@ import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Lecture } from '../../core/etat/lecture';
 import { cheminTableau } from '../../core/navigation/chemins';
-import { LIBELLES_STATUT_SESSION } from '../../core/navigation/libelles';
+import { LIBELLES_STATUT_SESSION, TONS_STATUT_SESSION } from '../../core/libelles/libelles';
+import { BadgeComponent } from '../../shared/badge/badge.component';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { EtatListeComponent } from '../../shared/etat-liste/etat-liste.component';
 
 const SECONDE = 1000;
 const MINUTE = 60;
@@ -20,7 +22,7 @@ const MINUTE = 60;
 @Component({
   selector: 'app-formateur',
   standalone: true,
-  imports: [FormsModule, DatePipe, ErreurComponent, BoutonNavigationComponent],
+  imports: [FormsModule, DatePipe, ErreurComponent, BoutonNavigationComponent, BadgeComponent, EtatListeComponent],
   templateUrl: './formateur.component.html',
 })
 export class FormateurComponent implements OnInit, OnDestroy {
@@ -55,10 +57,8 @@ export class FormateurComponent implements OnInit, OnDestroy {
   promotionChoisie: number | null = null;
   titre = '';
 
-  /** #108 : libellés français des statuts — le code brut n'est plus affiché. */
-  libelleSession(statut: string): string {
-    return LIBELLES_STATUT_SESSION[statut] ?? statut;
-  }
+  readonly libellesSession = LIBELLES_STATUT_SESSION;
+  readonly tonsSession = TONS_STATUT_SESSION;
 
   ngOnInit(): void {
     const moi = this.auth.profil();

@@ -37,8 +37,7 @@
 
   <section class="carte">
     <h2>Sessions de la promotion</h2>
-    <app-erreur [erreur]="lectureSessions.erreur()" />
-    @if (lectureSessions.lue() && sessions().length === 0) { <p class="discret">Aucune session.</p> }
+    <app-etat-liste [lecture]="lectureSessions" [nombre]="sessions().length" vide="Aucune session." />
     @if (sessions().length > 0) {
       <table>
         <thead><tr><th>Titre</th><th>Ouverte le</th><th>Code</th><th>Statut</th></tr></thead>
@@ -48,7 +47,7 @@
               <td>{{ s.titre }}</td>
               <td>{{ s.ouvertureAt | date: 'dd/MM HH:mm' }}</td>
               <td><code>{{ s.code }}</code></td>
-              <td><span class="badge" [class.CLOTUREE]="s.statut === 'CLOTUREE'">{{ libelleSession(s.statut) }}</span></td>
+              <td><app-badge [ton]="tonsSession[s.statut]">{{ libellesSession[s.statut] }}</app-badge></td>
             </tr>
           }
         </tbody>

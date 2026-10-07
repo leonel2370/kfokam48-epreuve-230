@@ -3,7 +3,6 @@
     <h2>Mes relectures à faire</h2>
     <button type="button" class="secondaire" (click)="charger()">Actualiser</button>
   </div>
-  @if (aFaire.enAttente()) { <p class="discret">Chargement…</p> }
   @for (r of relectures(); track r.id) {
     <form class="carte" (ngSubmit)="rendre(r)">
       <p><strong>{{ r.sessionTitre }}</strong></p>
@@ -15,15 +14,13 @@
       <button type="submit" [disabled]="!peutEnvoyer(r.id) || envoi()">Envoyer (définitif)</button>
     </form>
   }
-  @if (aFaire.lue() && relectures().length === 0) { <p class="discret">Aucune relecture en attente.</p> }
+  <app-etat-liste [lecture]="aFaire" [nombre]="relectures().length" vide="Aucune relecture en attente." />
   @if (message()) { <output class="succes">{{ message() }}</output> }
-  <app-erreur [erreur]="aFaire.erreur()" />
   <app-erreur [erreur]="erreur()" />
 </section>
 
 <section class="carte">
   <h2>Relectures rendues</h2>
-  @if (dejaRendues.enAttente()) { <p class="discret">Chargement…</p> }
   @for (r of rendues(); track r.id) {
     <p class="ligne">
       <strong>{{ r.sessionTitre }}</strong>
@@ -31,6 +28,5 @@
       <span class="discret">« {{ r.commentaire }} »</span>
     </p>
   }
-  @if (dejaRendues.lue() && rendues().length === 0) { <p class="discret">Aucune relecture rendue.</p> }
-  <app-erreur [erreur]="dejaRendues.erreur()" />
+  <app-etat-liste [lecture]="dejaRendues" [nombre]="rendues().length" vide="Aucune relecture rendue." />
 </section>

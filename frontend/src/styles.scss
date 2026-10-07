@@ -62,8 +62,6 @@ button.secondaire { background: transparent; color: inherit; border: 1px solid h
 .discret { color: hsl(var(--muted-foreground)); font-size: .875rem; }
 
 .badge { display: inline-block; padding: .125rem .625rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; border: 1px solid hsl(var(--border)); }
-.badge.RELU { background: hsl(var(--succes) / .15); }
-.badge.EN_ATTENTE_RELECTURE { background: hsl(var(--attente) / .2); }
 
 table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 th, td { text-align: left; padding: .625rem .5rem; border-bottom: 1px solid hsl(var(--border)); }

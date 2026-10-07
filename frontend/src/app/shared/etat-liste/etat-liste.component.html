@@ -1,0 +1,3 @@
+@if (lecture().enAttente()) { <p class="discret">Chargement…</p> }
+@if (lecture().lue() && nombre() === 0) { <p class="discret">{{ vide() }}</p> }
+<app-erreur [erreur]="lecture().erreur()" />

@@ -2,6 +2,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Type } from '@angular/core';
 import { AuthService } from './core/auth/auth.service';
+import { DialogueService } from './core/dialogue/dialogue.service';
 import { AdminComponent } from './features/admin/admin.component';
 import { MesNotesComponent } from './features/etudiant/mes-notes.component';
 import { RelecturesComponent } from './features/etudiant/relectures.component';
@@ -53,19 +54,21 @@ describe('États et erreurs des écrans (#137)', () => {
     fixture.destroy();
   });
 
-  it('administration : « Désactiver » ne peut pas partir deux fois', () => {
+  it('administration : « Désactiver » ne peut pas partir deux fois', async () => {
     const { fixture, page } = creer(AdminComponent);
     fixture.detectChanges();
     http.expectOne('/api/promotions').flush([]);
     http.expectOne('/api/utilisateurs?page=0&size=20').flush(PAGE);
     fixture.detectChanges();
-    spyOn(window, 'confirm').and.returnValue(true);
+    spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(true);
     const bouton = () => Array.from(page.querySelectorAll('button'))
       .find(b => b.textContent?.trim() === 'Désactiver') as HTMLButtonElement;
     bouton().click();
+    await fixture.whenStable();
     fixture.detectChanges();
     expect(bouton().disabled).toBeTrue();
     bouton().click();
+    await fixture.whenStable();
     expect(http.match('/api/utilisateurs/2').length).withContext('une seule requête de désactivation').toBe(1);
     fixture.destroy();
   });

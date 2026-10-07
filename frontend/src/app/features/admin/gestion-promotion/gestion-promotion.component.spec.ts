@@ -1,5 +1,6 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { DialogueService } from '../../../core/dialogue/dialogue.service';
 import { FOURNISSEURS_TEST } from '../../../testing';
 import { GestionPromotionComponent } from './gestion-promotion.component';
 
@@ -57,10 +58,11 @@ describe('GestionPromotionComponent — fiches d’une promotion (SF-22, #135)',
     fixture.destroy();
   });
 
-  it('retire une fiche après confirmation et affiche l’état rendu par le serveur', () => {
+  it('retire une fiche après confirmation et affiche l’état rendu par le serveur', async () => {
     const { ligne, fixture } = ouvrir();
-    spyOn(window, 'confirm').and.returnValue(true);
+    spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(true);
     (ligne('Awa Ndiaye').querySelectorAll('button')[1] as HTMLButtonElement).click();
+    await fixture.whenStable();
     const retrait = http.expectOne('/api/etudiants/10');
     expect(retrait.request.method).toBe('DELETE');
     retrait.flush(null);
@@ -70,10 +72,11 @@ describe('GestionPromotionComponent — fiches d’une promotion (SF-22, #135)',
     fixture.destroy();
   });
 
-  it('renomme une fiche sans la changer de promotion', () => {
+  it('renomme une fiche sans la changer de promotion', async () => {
     const { ligne, fixture } = ouvrir();
-    spyOn(window, 'prompt').and.returnValue('Awa Ndiaye-Meli');
+    spyOn(TestBed.inject(DialogueService), 'saisir').and.resolveTo(' Awa Ndiaye-Meli ');
     (ligne('Awa Ndiaye').querySelectorAll('button')[0] as HTMLButtonElement).click();
+    await fixture.whenStable();
     const modification = http.expectOne('/api/etudiants/10');
     expect(modification.request.body).toEqual({ nom: 'Awa Ndiaye-Meli', promotionId: 1 });
     modification.flush({ id: 10, nom: 'Awa Ndiaye-Meli', promotionId: 1 });

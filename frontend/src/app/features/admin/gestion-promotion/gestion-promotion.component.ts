@@ -2,11 +2,14 @@ import { Component, computed, effect, inject, input, signal, untracked } from '@
 import { FormsModule } from '@angular/forms';
 import { ErreurApi, FicheEtudiant, Promotion, Utilisateur } from '../../../core/api/api.models';
 import { ApiService } from '../../../core/api/api.service';
+import { DialogueService } from '../../../core/dialogue/dialogue.service';
 import { Ecriture } from '../../../core/etat/ecriture';
 import { ErreurComponent } from '../../../shared/erreur/erreur.component';
 
 /** Taille maximale d'une page côté serveur : tous les formateurs tiennent dans une seule lecture. */
 const TAILLE_MAX = 100;
+/** Longueur maximale du nom d'une fiche (contrat EtudiantEcriture). */
+const LONGUEUR_NOM = 150;
 
 /** Un compte FORMATEUR et son lien avec la promotion affichée. */
 interface LigneFormateur {
@@ -27,6 +30,7 @@ interface LigneFormateur {
 })
 export class GestionPromotionComponent {
   private readonly api = inject(ApiService);
+  private readonly dialogue = inject(DialogueService);
 
   readonly promotion = input.required<Promotion>();
 
@@ -47,6 +51,7 @@ export class GestionPromotionComponent {
       .map(compte => ({ compte, rattache: ids.has(compte.id) }));
   });
 
+  readonly longueurNom = LONGUEUR_NOM;
   nomFiche = '';
 
   constructor() {
@@ -80,8 +85,13 @@ export class GestionPromotionComponent {
     });
   }
 
-  renommerFiche(fiche: FicheEtudiant): void {
-    const nom = prompt(`Nouveau nom de l'étudiant « ${fiche.nom} » :`, fiche.nom)?.trim();
+  async renommerFiche(fiche: FicheEtudiant): Promise<void> {
+    const saisie = await this.dialogue.saisir({
+      titre: `Renommer la fiche de « ${fiche.nom} »`,
+      confirmer: 'Enregistrer',
+      champ: { libelle: 'Nouveau nom', type: 'text', valeur: fiche.nom, longueurMax: LONGUEUR_NOM },
+    });
+    const nom = saisie?.trim();
     if (!nom || nom === fiche.nom) {
       return;
     }
@@ -92,9 +102,15 @@ export class GestionPromotionComponent {
     });
   }
 
-  supprimerFiche(fiche: FicheEtudiant): void {
-    if (!confirm(`Retirer la fiche de « ${fiche.nom} » ? Sans aucune trace elle est supprimée ; `
-      + 'sinon elle est désactivée, avec son compte, et reste au tableau.')) {
+  async supprimerFiche(fiche: FicheEtudiant): Promise<void> {
+    const confirme = await this.dialogue.confirmer({
+      titre: `Retirer la fiche de « ${fiche.nom} » ?`,
+      message: 'Sans aucune trace elle est supprimée ; sinon elle est désactivée, avec son compte, '
+        + 'et reste au tableau.',
+      confirmer: 'Retirer la fiche',
+      danger: true,
+    });
+    if (!confirme) {
       return;
     }
     const { id } = this.promotion();

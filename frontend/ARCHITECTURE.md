@@ -12,11 +12,15 @@ src/app/
 │   ├── auth/              auth.service.ts (profil connecté) · acces.guard.ts (gardes par rôle)
 │   ├── interceptors/      erreur (toute erreur → { code, message }) · session (401 → connexion)
 │   ├── etat/              lecture.ts (données, chargement, erreur d'une lecture) · ecriture.ts (une écriture à la fois)
+│   ├── dialogue/          dialogue.service.ts : confirmation et saisie à l'écran, jamais confirm ni prompt (#138)
+│   ├── libelles/          libelles.ts : libellés et tons des énumérations du contrat, typés
 │   └── navigation/        chemins.ts : seule source des adresses de l'application (#104)
 ├── shared/                composants réutilisables, un dossier chacun, sans appel HTTP :
-│                          bouton-navigation · barre-navigation · bouton-exercice · erreur
-├── features/              un dossier par espace : connexion, profil, admin, formateur,
-│                          etudiant (espace-etudiant + écrans presence, mes-notes, relectures)
+│                          bouton-navigation · barre-navigation · bouton-exercice · erreur · badge ·
+│                          dialogue · pagination · etat-liste
+├── features/              un dossier par espace : connexion, profil, formateur,
+│                          etudiant (espace-etudiant + écrans presence, mes-notes, relectures),
+│                          admin (écran + gestion-promotion, liste-comptes, creation-compte)
 ├── app.component.*        en-tête (menus du rôle, profil, déconnexion, en boutons) + <router-outlet>
 ├── app.routes.ts          routes et gardes
 └── app.config.ts          routeur, HttpClient, intercepteurs, XSRF (cookie XSRF-TOKEN, même origine)
@@ -49,6 +53,10 @@ src/app/
   ses données, son premier chargement et son erreur ; seule la réussite de cette même lecture efface l'erreur.
   Les actions passent par une `Ecriture` : une seule à la fois, boutons inactifs pendant l'envoi. Après une
   écriture, l'écran relit le serveur au lieu de corriger sa liste lui-même.
+- **Dialogues de l'écran** (#138) : jamais `confirm`, `prompt` ni `alert`. Une confirmation ou une saisie se
+  demande par `DialogueService` (`await dialogue.confirmer({…})`), affichée par `app-dialogue` à la racine.
+- **Listes** : `app-etat-liste` porte le chargement, le texte de liste vide et l'erreur d'une `Lecture` ;
+  `app-pagination` pour une liste lue page par page ; `app-badge` pour un état.
 - **États obligatoires** de chaque écran : chargement, erreur (message de l'API tel quel), vide, données
   (docs/design/DESIGN_SYSTEM.md).
 - **Styles** : tokens du système de design (thème shadcn « zinc ») en variables CSS dans `src/styles.scss`.
