@@ -50,7 +50,9 @@ Couleurs **métier** (ajout PRESENCE48, pour les badges de statut) : succès `14
 | Badge | statuts | `DEPOSE` neutre · `EN_ATTENTE_RELECTURE` attente · `RELU` succès · `FORMATEUR` contour |
 | Alert | tous | `destructive` pour `{code, message}` de l'API ; affiche `message`, `code` en petit pour le support |
 | Skeleton | listes et tableau | état de chargement |
-| Dialog (alert-dialog) | relecture, clôture | confirmation d'une action **définitive** (RG10, RG18) |
+| Dialog (alert-dialog) | relecture, clôture, administration | confirmation d'une action **définitive** (RG10, RG18) ou d'un retrait (RG28) ; variante avec **un champ** (renommer, mot de passe provisoire). **Jamais** `confirm`, `prompt` ni `alert` du navigateur (#138) : non stylables, non accessibles de façon fiable, et `prompt` affiche un mot de passe en clair |
+| Pagination *(v3.3, #138)* | liste des comptes | « Page précédente » · « N comptes · page P » (annoncé, `aria-live`) · « Page suivante » ; les boutons n'apparaissent que s'il y a une page |
+| État d'une liste *(v3.3, #137)* | toutes les listes | Chargement (avant la première réponse) · vide (texte explicatif) · erreur de CETTE liste, sous la liste |
 | Toast (sonner) | après succès | « Présence enregistrée », disparition automatique |
 | Navigation *(v3, #104)* | en-tête, onglets étudiant, tableau, admin | **toujours un Button**, jamais un lien texte : `ghost` pour les menus et onglets (actif = fond `accent` + `aria-current="page"`), `outline` pour « Retour », « Voir le tableau », « Sessions » |
 | Bouton d'exercice *(v3, #104)* | relecture, mes notes | Button `outline` « Ouvrir l'exercice » (nouvel onglet, `noopener`/`noreferrer`, http(s) seulement) + adresse en `muted-foreground` dessous, coupée proprement sur mobile |
@@ -76,6 +78,7 @@ Couleurs **métier** (ajout PRESENCE48, pour les badges de statut) : succès `14
 | [login.html](templates/login.html) *(v2)* | Connexion | Identifiant, mot de passe, erreur 401, blocage (RG24) |
 | [profil.html](templates/profil.html) *(v2)* | Tous | Qui suis-je (nom, identifiant, rôle, promotion), changement de mot de passe, bandeau « changement obligatoire » (RG23) |
 | [admin-utilisateurs.html](templates/admin-utilisateurs.html) *(v2)* | Administrateur | Liste des comptes, rôles, désactivation, dialogue de création avec erreur 409 |
+| [admin-referentiel.html](templates/admin-referentiel.html) *(v3.3, #138)* | Administrateur | Promotions (tableau, sessions, gérer, renommer, supprimer), volet d'une promotion (formateurs rattachés, fiches et leur état), dialogues de confirmation et de saisie, pagination des comptes |
 
 **En-tête v3 (#104) :** menus du rôle, nom et rôle de l'utilisateur connecté (bouton vers le profil) et bouton « Se déconnecter » : **aucun lien texte**, tout est bouton (§3, ligne Navigation). L'espace étudiant ajoute sous l'en-tête une barre de trois boutons-onglets : Présence et dépôt · Mes notes · Mes relectures (écran relecteur, F2). Dans les templates, la barre de navigation liste **tous** les écrans pour faciliter la revue ; l'application réelle n'affiche **que les menus du rôle** (§2 bis du cahier). L'écran Étudiant gagne un champ **pièce jointe** (fichier ou .zip, 10 Mo, RG30).
 
