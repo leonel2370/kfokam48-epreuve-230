@@ -131,7 +131,8 @@ class AuthIntegrationTest {
   @Test
   void testEcritureProtegeeSansJetonCsrfRefusee() throws Exception {
     mvc.perform(put("/api/moi/mot-de-passe").session(connecter("awa", "Etudiant48"))
-            .contentType(MediaType.APPLICATION_JSON).content("{\"ancien\":\"Etudiant48\",\"nouveau\":\"NouveauMdp48\"}"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"ancien\":\"Etudiant48\",\"nouveau\":\"NouveauMdp48\"}"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.code").value("ACCES_REFUSE"));
   }

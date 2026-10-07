@@ -2,6 +2,7 @@ package com.k48.leonel.presence48.controller;
 
 import com.k48.leonel.presence48.dto.request.PresenceRequete;
 import com.k48.leonel.presence48.dto.response.PresenceReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.PresenceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,19 +37,19 @@ public class PresenceController {
           @ApiResponse(responseCode = "201", description = "Présence enregistrée",
               content = @Content(schema = @Schema(implementation = PresenceReponse.class))),
           @ApiResponse(responseCode = "400", description = "Code inconnu ou étudiant hors promotion",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"CODE_INCONNU\","
                       + "\"message\":\"Ce code ne correspond à aucune session.\"}"))),
           @ApiResponse(responseCode = "409", description = "Déjà présent ou session clôturée",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"DEJA_PRESENT\","
                       + "\"message\":\"Votre présence est déjà enregistrée.\"}"))),
           @ApiResponse(responseCode = "410", description = "Code expiré (RG1)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"CODE_EXPIRE\","
                       + "\"message\":\"Le code a expiré : demandez au formateur de vous ajouter.\"}"))),
           @ApiResponse(responseCode = "429", description = "Bloqué après 5 codes erronés (RG4)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"TROP_DE_TENTATIVES\","
                       + "\"message\":\"Trop de codes erronés : réessayez dans 2 minutes.\"}"))),
       })

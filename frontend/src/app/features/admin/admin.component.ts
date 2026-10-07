@@ -81,11 +81,11 @@ export class AdminComponent implements OnInit {
   }
 
   renommerPromotion(p: Promotion): void {
-    const nom = prompt(`Nouveau nom de la promotion « ${p.nom} » :`, p.nom);
-    if (!nom || !nom.trim() || nom.trim() === p.nom) {
+    const nom = prompt(`Nouveau nom de la promotion « ${p.nom} » :`, p.nom)?.trim();
+    if (!nom || nom === p.nom) {
       return;
     }
-    this.api.renommerPromotion(p.id, nom.trim()).subscribe({
+    this.api.renommerPromotion(p.id, nom).subscribe({
       next: modifiee => {
         this.chargerPromotions(this.promotions().map(x => (x.id === p.id ? modifiee : x)));
         if (this.promotionSelectionnee()?.id === p.id) {

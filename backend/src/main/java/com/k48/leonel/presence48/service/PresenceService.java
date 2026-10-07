@@ -15,11 +15,13 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;  /**
-   * SF-3 : présence par code, validée automatiquement (RG21). Contrôles dans l'ordre du diagramme D3 :
-   * étudiant (#113 : actif, RG28) → blocage (RG4) → code connu → session non clôturée (RG18)
-   * → code non expiré (RG1) → promotion (RG19) → pas déjà présent (RG3).
-   */
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * SF-3 : présence par code, validée automatiquement (RG21). Contrôles dans l'ordre du diagramme D3 :
+ * étudiant (#113 : actif, RG28) → blocage (RG4) → code connu → session non clôturée (RG18)
+ * → code non expiré (RG1) → promotion (RG19) → pas déjà présent (RG3).
+ */
 @Service
 public class PresenceService {
 

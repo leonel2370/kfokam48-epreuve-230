@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -90,7 +91,7 @@ public class UtilisateurController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<UtilisateurReponse> creer(@Valid @RequestBody CreationUtilisateurRequete requete) {
     var cree = service.creer(requete);
-    return ResponseEntity.status(201).body(cree);
+    return ResponseEntity.status(HttpStatus.CREATED).body(cree);
   }
 
   @Operation(summary = "Lire un compte (SF-20, #60)",

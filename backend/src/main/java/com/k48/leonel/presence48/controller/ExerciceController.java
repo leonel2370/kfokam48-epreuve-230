@@ -3,6 +3,7 @@ package com.k48.leonel.presence48.controller;
 import com.k48.leonel.presence48.dto.request.DepotExerciceRequete;
 import com.k48.leonel.presence48.dto.response.ExerciceAuteurReponse;
 import com.k48.leonel.presence48.dto.response.ExerciceDeposeReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.ExerciceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,11 +41,11 @@ public class ExerciceController {
           @ApiResponse(responseCode = "201", description = "Exercice déposé, statut initial",
               content = @Content(schema = @Schema(implementation = ExerciceDeposeReponse.class))),
           @ApiResponse(responseCode = "400", description = "Lien invalide (RG17), session ou étudiant inconnu",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"LIEN_INVALIDE\","
                       + "\"message\":\"Le lien doit être une adresse http ou https complète.\"}"))),
           @ApiResponse(responseCode = "409", description = "Exercice déjà déposé (RG13) ou session clôturée (RG18)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"EXERCICE_DEJA_DEPOSE\","
                       + "\"message\":\"Vous avez déjà déposé un exercice pour cette session.\"}"))),
       })
@@ -64,11 +65,11 @@ public class ExerciceController {
           @ApiResponse(responseCode = "200", description = "Exercices, du plus récent",
               content = @Content(schema = @Schema(implementation = ExerciceAuteurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Étudiant autre que soi, ou promotion hors des droits",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "Étudiant inconnu (formateur/admin seulement)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/api/etudiants/{etudiantId}/exercices")
   public List<ExerciceAuteurReponse> mesExercices(@PathVariable Long etudiantId) {

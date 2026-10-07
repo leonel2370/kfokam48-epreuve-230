@@ -9,6 +9,8 @@ import java.util.Objects;
 @Embeddable
 public class FormateurPromotionId implements Serializable {
 
+  private static final long serialVersionUID = 1L;
+
   @Column(name = "utilisateur_id")
   private Long utilisateurId;
 

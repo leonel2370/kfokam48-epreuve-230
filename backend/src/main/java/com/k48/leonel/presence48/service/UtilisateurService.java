@@ -65,8 +65,9 @@ public class UtilisateurService {
     }
     PolitiqueMotDePasse.exigerLongueur(requete.motDePasseInitial());
     verifierFiche(requete.role(), requete.etudiantId(), null);
+    // RG23 : le mot de passe est provisoire, à changer à la première connexion.
     var u = new Utilisateur(requete.login(), encodeur.encode(requete.motDePasseInitial()), requete.role(),
-        requete.nomAffiche(), requete.etudiantId(), true, horloge.instant()); // RG23 : mot de passe provisoire
+        requete.nomAffiche(), requete.etudiantId(), true, horloge.instant());
     return UtilisateurReponse.de(utilisateurs.save(u));
   }
 

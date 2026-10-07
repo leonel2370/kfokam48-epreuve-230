@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 
 /** ENF5 : les données de démonstration sont chargées et respectent les règles de gestion. */
 @SpringBootTest
+// Vérifie les données de démonstration exactes : part d'une base neuve, quel que soit l'ordre des classes.
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class DonneesDemoTest {
 
   /** Session de démonstration : la base H2 est partagée, on ne compte que ses données. */

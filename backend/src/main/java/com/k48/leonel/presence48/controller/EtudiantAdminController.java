@@ -2,6 +2,7 @@ package com.k48.leonel.presence48.controller;
 
 import com.k48.leonel.presence48.dto.request.EtudiantEcriture;
 import com.k48.leonel.presence48.dto.response.EtudiantReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.ReferentielAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,16 +45,16 @@ public class EtudiantAdminController {
           @ApiResponse(responseCode = "201", description = "Fiche créée",
               content = @Content(schema = @Schema(implementation = EtudiantReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou promotion inconnue",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PostMapping
   public ResponseEntity<EtudiantReponse> creer(@Valid @RequestBody EtudiantEcriture requete) {
     var creee = admin.creerEtudiant(requete.promotionId(), requete.nom());
-    return ResponseEntity.status(201).body(creee);
+    return ResponseEntity.status(HttpStatus.CREATED).body(creee);
   }
 
   @Operation(operationId = "modifierEtudiant", summary = "Modifier une fiche étudiant (SF-22, #61)",
@@ -63,13 +65,13 @@ public class EtudiantAdminController {
           @ApiResponse(responseCode = "200", description = "Fiche modifiée",
               content = @Content(schema = @Schema(implementation = EtudiantReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou promotion inconnue",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "ETUDIANT_INCONNU",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PutMapping("/{etudiantId}")
   public ResponseEntity<EtudiantReponse> modifier(@PathVariable Long etudiantId,
@@ -85,13 +87,13 @@ public class EtudiantAdminController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Fiche supprimée ou désactivée"),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "ETUDIANT_INCONNU",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "SUPPRESSION_IMPOSSIBLE — fiche liée à un compte",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @DeleteMapping("/{etudiantId}")
   public ResponseEntity<Void> supprimer(@PathVariable Long etudiantId) {

@@ -2,6 +2,7 @@ package com.k48.leonel.presence48.controller;
 
 import com.k48.leonel.presence48.dto.request.RenduRelectureRequete;
 import com.k48.leonel.presence48.dto.response.RelectureRelecteurReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.RelectureService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,9 +41,9 @@ public class RelectureController {
           @ApiResponse(responseCode = "200", description = "Relectures du relecteur",
               content = @Content(schema = @Schema(implementation = RelectureRelecteurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Étudiant autre que soi, ou promotion hors des droits",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/api/etudiants/{etudiantId}/relectures")
   public List<RelectureRelecteurReponse> lister(@PathVariable Long etudiantId,
@@ -58,17 +59,18 @@ public class RelectureController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Note enregistrée, définitive"),
           @ApiResponse(responseCode = "400", description = "Note hors 0–20 ou non entière, ou champ manquant",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"NOTE_INVALIDE\","
                       + "\"message\":\"La note doit être un entier de 0 à 20.\"}"))),
-          @ApiResponse(responseCode = "403", description = "Relecture de son propre exercice (RG5) ou relecteur non assigné",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+          @ApiResponse(responseCode = "403",
+              description = "Relecture de son propre exercice (RG5) ou relecteur non assigné",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"AUTO_RELECTURE\","
                       + "\"message\":\"Vous ne pouvez pas relire votre exercice.\"}"))),
           @ApiResponse(responseCode = "404", description = "Relecture inconnue",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "Relecture déjà rendue (RG10) ou session clôturée (RG18)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"RELECTURE_DEJA_RENDUE\","
                       + "\"message\":\"Cette relecture est déjà rendue.\"}"))),
       })

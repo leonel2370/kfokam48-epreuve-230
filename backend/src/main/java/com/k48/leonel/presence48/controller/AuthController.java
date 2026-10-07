@@ -4,6 +4,7 @@ import com.k48.leonel.presence48.dto.request.ChangementMotDePasseRequete;
 import com.k48.leonel.presence48.dto.request.ConnexionRequete;
 import com.k48.leonel.presence48.dto.response.LigneTableauReponse;
 import com.k48.leonel.presence48.dto.response.ProfilReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.securite.CompteAJourFiltre;
 import com.k48.leonel.presence48.securite.ControleAcces;
 import com.k48.leonel.presence48.securite.UtilisateurConnecte;
@@ -56,13 +57,13 @@ public class AuthController {
           @ApiResponse(responseCode = "200", description = "Connecté, profil renvoyé",
               content = @Content(schema = @Schema(implementation = ProfilReponse.class))),
           @ApiResponse(responseCode = "400", description = "Identifiants invalides",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"IDENTIFIANTS_INVALIDES\","
                       + "\"message\":\"Identifiant ou mot de passe incorrect.\"}"))),
           @ApiResponse(responseCode = "403", description = "Compte désactivé",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "429", description = "Bloqué après 5 échecs (RG24)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PostMapping("/auth/login")
   public ProfilReponse connecter(@Valid @RequestBody ConnexionRequete corps, HttpServletRequest requete,
@@ -85,7 +86,7 @@ public class AuthController {
           @ApiResponse(responseCode = "200", description = "Profil connecté",
               content = @Content(schema = @Schema(implementation = ProfilReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/moi")
   public ProfilReponse moi(@AuthenticationPrincipal UtilisateurConnecte u) {
@@ -101,9 +102,9 @@ public class AuthController {
           @ApiResponse(responseCode = "200", description = "Récapitulatif personnel",
               content = @Content(schema = @Schema(implementation = LigneTableauReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Compte non étudiant",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"ACCES_REFUSE\","
                       + "\"message\":\"Vous n'avez pas les droits pour cette action.\"}"))),
       })
@@ -119,11 +120,11 @@ public class AuthController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Mot de passe changé"),
           @ApiResponse(responseCode = "400", description = "Nouveau mot de passe trop faible (RG24)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"MOT_DE_PASSE_TROP_FAIBLE\","
                       + "\"message\":\"Le mot de passe doit faire au moins 8 caractères.\"}"))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PutMapping("/moi/mot-de-passe")
   public ResponseEntity<Void> changerMotDePasse(@AuthenticationPrincipal UtilisateurConnecte u,

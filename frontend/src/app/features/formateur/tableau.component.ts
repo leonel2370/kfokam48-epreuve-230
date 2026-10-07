@@ -27,8 +27,10 @@ export class TableauComponent implements OnInit {
   readonly promotion = signal<Promotion | null>(null);
   readonly adresseInvalide = signal(false);
 
-  readonly titre = computed(() =>
-    this.promotion() ? `Tableau de la promotion ${this.promotion()!.nom}` : 'Tableau de la promotion');
+  readonly titre = computed(() => {
+    const promotion = this.promotion();
+    return promotion ? `Tableau de la promotion ${promotion.nom}` : 'Tableau de la promotion';
+  });
 
   /** Retour contextuel (spécifications §1.2 bis) : l'admin revient à l'administration, le formateur à ses sessions. */
   readonly retour = computed<EntreeNavigation>(() => this.auth.profil()?.role === 'ADMIN'

@@ -52,8 +52,8 @@ class GlobalExceptionHandlerTest {
 
   @Test
   void testJsonMalFormeRenvoie400() throws Exception {
-    erreur(mvc.perform(post("/test/valide").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{pas du json")),
-        400, "CHAMP_MANQUANT");
+    erreur(mvc.perform(post("/test/valide").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+        .content("{pas du json")), 400, "CHAMP_MANQUANT");
   }
 
   @Test
