@@ -3,6 +3,7 @@ package com.k48.leonel.presence48.controller;
 import com.k48.leonel.presence48.dto.request.OuvertureSessionRequete;
 import com.k48.leonel.presence48.dto.response.SessionOuverteReponse;
 import com.k48.leonel.presence48.dto.response.SessionReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,7 +43,7 @@ public class SessionController {
           @ApiResponse(responseCode = "201", description = "Session ouverte",
               content = @Content(schema = @Schema(implementation = SessionOuverteReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou promotion inconnue",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"PROMOTION_INCONNUE\","
                       + "\"message\":\"Cette promotion n'existe pas.\"}"))),
       })
@@ -61,13 +62,13 @@ public class SessionController {
           @ApiResponse(responseCode = "200", description = "Sessions de la promotion, de la plus récente",
               content = @Content(schema = @Schema(implementation = SessionReponse.class))),
           @ApiResponse(responseCode = "400", description = "Paramètre promotionId manquant ou non numérique",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"NON_AUTHENTIFIE\","
                       + "\"message\":\"Connectez-vous pour continuer.\"}"))),
           @ApiResponse(responseCode = "403", description = "Promotion hors des droits de l'appelant",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping
   public List<SessionReponse> lister(@RequestParam Long promotionId) {

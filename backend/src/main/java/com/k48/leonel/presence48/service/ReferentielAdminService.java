@@ -80,10 +80,10 @@ public class ReferentielAdminService {
 
   @Transactional
   public PromotionReponse modifierPromotion(Long id, String nom) {
-    var p = chargerPromotion(id);
     if (promotions.existsByNomAndIdNot(nom, id)) {
       throw new MetierException(HttpStatus.CONFLICT, "CONFLIT", "Ce nom de promotion est déjà pris.");
     }
+    var p = chargerPromotion(id);
     p.setNom(nom);
     return new PromotionReponse(p.getId(), p.getNom());
   }

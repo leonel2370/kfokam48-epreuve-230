@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -61,8 +60,7 @@ class SwaggerIntegrationTest {
   void testChaqueOperationDocumenteeATagEtResume() throws Exception {
     var racine = lireDocs();
     var nombre = 0;
-    for (Iterator<Map.Entry<String, JsonNode>> it = racine.path("paths").fields(); it.hasNext();) {
-      var entree = it.next();
+    for (Map.Entry<String, JsonNode> entree : racine.path("paths").properties()) {
       var operations = entree.getValue();
       for (var verbe : List.of("get", "post", "put", "delete")) {
         if (!operations.has(verbe)) {

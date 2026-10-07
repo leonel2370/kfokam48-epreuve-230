@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -135,7 +136,7 @@ public class ReferentielController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<PromotionReponse> creer(@Valid @RequestBody PromotionEcriture requete) {
     var creee = admin.creerPromotion(requete.nom());
-    return ResponseEntity.status(201).body(creee);
+    return ResponseEntity.status(HttpStatus.CREATED).body(creee);
   }
 
   @Operation(operationId = "modifierPromotion", summary = "Renommer une promotion (SF-21, #61)",

@@ -2,7 +2,6 @@ package com.k48.leonel.presence48.controller;
 
 import static com.k48.leonel.presence48.support.Connexion.MDP_ETUDIANT;
 import static com.k48.leonel.presence48.support.Connexion.MDP_FORMATEUR;
-import static com.k48.leonel.presence48.support.Connexion.connecter;
 import static com.k48.leonel.presence48.support.Connexion.connecterAvecCsrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -192,8 +191,8 @@ class UtilisateurIntegrationTest {
   void testAccesRefuseAuxAutresRoles() throws Exception {
     var awa = connecterAvecCsrf(mvc, "awa", MDP_ETUDIANT);
     erreur(liste(awa), 403, "ACCES_REFUSE");
-    erreur(creer(awa, "{\"login\":\"x\",\"nomAffiche\":\"X\",\"role\":\"ETUDIANT\",\"motDePasseInitial\":\"MotDePasse9\"}"),
-        403, "ACCES_REFUSE");
+    erreur(creer(awa, "{\"login\":\"x\",\"nomAffiche\":\"X\",\"role\":\"ETUDIANT\","
+        + "\"motDePasseInitial\":\"MotDePasse9\"}"), 403, "ACCES_REFUSE");
     var formateur = connecterAvecCsrf(mvc, "formateur", MDP_FORMATEUR);
     erreur(liste(formateur), 403, "ACCES_REFUSE");
   }
