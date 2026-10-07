@@ -7,6 +7,7 @@ import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
 import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.entity.Utilisateur;
 import com.k48.leonel.presence48.exception.MetierException;
+import com.k48.leonel.presence48.repository.FormateurPromotionRepository;
 import com.k48.leonel.presence48.repository.UtilisateurRepository;
 import java.time.Clock;
 import org.springframework.data.domain.PageRequest;
@@ -18,18 +19,24 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * #60 / SF-20 / EF21 : CRUD des comptes, réservé à l'ADMIN (RG25).
  * RG27 : login unique → 409 LOGIN_DEJA_UTILISE. RG28 : jamais de suppression physique, désactivation ;
- * le dernier admin actif ne peut pas être désactivé (409 SUPPRESSION_IMPOSSIBLE). RG23 : un compte
+ * le dernier admin actif ne peut être ni désactivé ni rétrogradé (409 SUPPRESSION_IMPOSSIBLE, #130). RG23 : un compte
  * créé ou réinitialisé doit changer son mot de passe à la première connexion ; RG24 : 8 caractères minimum.
  */
 @Service
 public class UtilisateurService {
 
+  private static final String DERNIER_ADMIN =
+      "Le dernier administrateur actif ne peut être ni désactivé ni changé de rôle.";
+
   private final UtilisateurRepository utilisateurs;
+  private final FormateurPromotionRepository rattachements;
   private final PasswordEncoder encodeur;
   private final Clock horloge;
 
-  public UtilisateurService(UtilisateurRepository utilisateurs, PasswordEncoder encodeur, Clock horloge) {
+  public UtilisateurService(UtilisateurRepository utilisateurs, FormateurPromotionRepository rattachements,
+      PasswordEncoder encodeur, Clock horloge) {
     this.utilisateurs = utilisateurs;
+    this.rattachements = rattachements;
     this.encodeur = encodeur;
     this.horloge = horloge;
   }
@@ -79,6 +86,14 @@ public class UtilisateurService {
                 "Cette fiche étudiant a déjà un compte.");
           });
     }
+    var resteAdminActif = requete.role() == Role.ADMIN && requete.actif();
+    if (!resteAdminActif) {
+      refuserSiDernierAdminActif(u);
+    }
+    if (u.getRole() == Role.FORMATEUR && requete.role() != Role.FORMATEUR) {
+      // RG26 : seul un compte FORMATEUR est rattaché à des promotions.
+      rattachements.deleteAll(rattachements.findByUtilisateurId(id));
+    }
     u.setNomAffiche(requete.nomAffiche());
     u.setRole(requete.role());
     u.setActif(requete.actif());
@@ -90,10 +105,7 @@ public class UtilisateurService {
   @Transactional
   public void desactiver(Long id) {
     var u = charger(id);
-    if (u.getRole() == Role.ADMIN && u.isActif() && estDernierAdminActif(id)) {
-      throw new MetierException(HttpStatus.CONFLICT, "SUPPRESSION_IMPOSSIBLE",
-          "Le dernier administrateur actif ne peut pas être désactivé.");
-    }
+    refuserSiDernierAdminActif(u);
     u.setActif(false);
     utilisateurs.save(u);
   }
@@ -114,7 +126,13 @@ public class UtilisateurService {
         new MetierException(HttpStatus.NOT_FOUND, "UTILISATEUR_INTROUVABLE", "Ce compte n'existe pas."));
   }
 
-  private boolean estDernierAdminActif(Long id) {
-    return utilisateurs.countByRoleAndActifTrue(Role.ADMIN) <= 1;
+  /** RG28 : le compte s'apprête à ne plus être un administrateur actif ; refusé s'il est le dernier. */
+  private void refuserSiDernierAdminActif(Utilisateur u) {
+    if (u.getRole() != Role.ADMIN || !u.isActif()) {
+      return;
+    }
+    if (utilisateurs.verrouillerActifs(Role.ADMIN).size() <= 1) {
+      throw new MetierException(HttpStatus.CONFLICT, "SUPPRESSION_IMPOSSIBLE", DERNIER_ADMIN);
+    }
   }
 }

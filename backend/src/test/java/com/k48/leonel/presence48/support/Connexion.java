@@ -2,6 +2,7 @@ package com.k48.leonel.presence48.support;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.springframework.http.MediaType;
@@ -13,6 +14,7 @@ public final class Connexion {
 
   public static final String MDP_ETUDIANT = "Etudiant48";
   public static final String MDP_FORMATEUR = "Formateur48";
+  public static final String MDP_ADMIN = "Admin48!x";
 
   private Connexion() {
   }
@@ -34,5 +36,18 @@ public final class Connexion {
             .content("{\"login\":\"" + login + "\",\"motDePasse\":\"" + motDePasse + "\"}"))
         .andExpect(status().isOk())
         .andReturn().getRequest().getSession(false);
+  }
+
+  /**
+   * Session de l'administrateur de démonstration, prête à agir : admin/admin doit d'abord changer
+   * son mot de passe (RG23), sinon toute autre route répond 403.
+   */
+  public static MockHttpSession connecterAdmin(MockMvc mvc) throws Exception {
+    var session = connecterAvecCsrf(mvc, "admin", "admin");
+    mvc.perform(put("/api/moi/mot-de-passe").session(session).with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"ancien\":\"admin\",\"nouveau\":\"" + MDP_ADMIN + "\"}"))
+        .andExpect(status().isNoContent());
+    return session;
   }
 }
