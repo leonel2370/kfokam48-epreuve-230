@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Contrat PRESENCE48 — Épreuve finale KFOKAM48
-  version: "2.7"
+  version: "2.8"
   description: |
     Les cinq opérations imposées (tag « imposé ») existent EXACTEMENT ainsi :
     mêmes chemins, verbes, codes de statut nominaux et format d'erreur.
@@ -15,6 +15,19 @@ info:
 
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
+    v2.8 (#134, décisions PO #140) — L'ADMINISTRATION LIT CE QU'ELLE MODIFIE
+      - Nouvelles lectures, PRÉVUES (x-livre: false tant que le code n'est pas fusionné) :
+        GET /api/promotions/{promotionId}/formateurs (ADMIN) et GET /api/promotions/{promotionId}/fiches
+        (ADMIN, FORMATEUR de la promotion : toutes les fiches, désactivées comprises, avec leur compte).
+        La liste publique GET /api/promotions/{promotionId}/etudiants ne change pas (RG22).
+      - GET /api/utilisateurs : filtre « role » ; 400 pour une pagination hors bornes (#132).
+      - PUT /api/promotions/{promotionId}/formateurs : liste vide acceptée (plus aucun formateur) ;
+        404 UTILISATEUR_INTROUVABLE ; 400 ROLE_INCOMPATIBLE (compte non FORMATEUR ou désactivé).
+      - Comptes : 400 MOT_DE_PASSE_TROP_FAIBLE effectivement renvoyé ; 400 ETUDIANT_INCONNU pour une
+        fiche inexistante ; 409 FICHE_DEJA_LIEE (au lieu de LOGIN_DEJA_UTILISE) pour une fiche déjà liée.
+      - Fiches étudiants : 409 DEPLACEMENT_IMPOSSIBLE si la fiche a un historique (RG32) ; la
+        désactivation d'une fiche désactive aussi son compte (RG34) ; une fiche désactivée n'est plus
+        tirée au sort comme relectrice (RG33, sans effet sur les corps imposés).
     v2.7 (#61) — GESTION DU RÉFÉRENTIEL (SF-21, SF-22, EF22, EF23)
       - Les 7 opérations de gestion du référentiel sont livrées : créer/renommer/supprimer une
         promotion (ADMIN, RG25 ; nom unique → 409 CONFLIT ; RG28 : suppression refusée si
@@ -565,12 +578,18 @@ paths:
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/Taille"
+        - name: role
+          in: query
+          required: false
+          description: "Ne garder que les comptes de ce rôle (v2.8, #134) — par exemple les formateurs à rattacher"
+          schema: { $ref: "#/components/schemas/Role" }
       responses:
         "200":
           description: Page de comptes
           content:
             application/json:
               schema: { $ref: "#/components/schemas/PageUtilisateurs" }
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (page, size ou role hors bornes, #132)
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }   # ACCES_REFUSE, CHANGEMENT_MOT_DE_PASSE_REQUIS
     post:
@@ -589,10 +608,10 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Utilisateur" }
-        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, MOT_DE_PASSE_TROP_FAIBLE
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT, MOT_DE_PASSE_TROP_FAIBLE, ETUDIANT_INCONNU
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }
-        "409": { $ref: "#/components/responses/Erreur" }   # LOGIN_DEJA_UTILISE
+        "409": { $ref: "#/components/responses/Erreur" }   # LOGIN_DEJA_UTILISE, FICHE_DEJA_LIEE
 
   /api/utilisateurs/{utilisateurId}:
     parameters:
@@ -663,7 +682,7 @@ paths:
                 motDePasseInitial: { type: string, format: password, minLength: 8 }
       responses:
         "204": { description: Mot de passe réinitialisé }
-        "400": { $ref: "#/components/responses/Erreur" }
+        "400": { $ref: "#/components/responses/Erreur" }   # MOT_DE_PASSE_TROP_FAIBLE
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }
@@ -707,11 +726,28 @@ paths:
   /api/promotions/{promotionId}/formateurs:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
+    get:
+      x-livre: false
+      tags: [administration]
+      operationId: listerFormateursDeLaPromotion
+      summary: "Non livré (#134) — Formateurs rattachés à une promotion (ADMIN, RG26)"
+      responses:
+        "200":
+          description: Comptes FORMATEUR rattachés, triés par nom affiché
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Utilisateur" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
     put:
       x-livre: true
       tags: [administration]
       operationId: rattacherFormateurs
       summary: "Définir les formateurs d'une promotion (ADMIN, RG26, #61)"
+      description: "Remplace la liste. Une liste vide retire tous les formateurs (v2.8)."
       requestBody:
         required: true
         content:
@@ -725,10 +761,33 @@ paths:
                   items: { type: integer, format: int64 }
       responses:
         "204": { description: Rattachements enregistrés }
-        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (utilisateur non formateur)
+        "400": { $ref: "#/components/responses/Erreur" }   # CHAMP_MANQUANT (identifiant nul), ROLE_INCOMPATIBLE
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }
-        "404": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE, UTILISATEUR_INTROUVABLE
+
+  /api/promotions/{promotionId}/fiches:
+    parameters:
+      - $ref: "#/components/parameters/PromotionId"
+    get:
+      x-livre: false
+      tags: [administration]
+      operationId: listerFichesDeLaPromotion
+      summary: "Non livré (#134) — Fiches étudiants d'une promotion pour la gestion (ADMIN, FORMATEUR de la promotion)"
+      description: >
+        Toutes les fiches, désactivées comprises (RG28), avec l'état et le compte lié.
+        La liste publique GET /api/promotions/{promotionId}/etudiants reste limitée aux fiches actives.
+      responses:
+        "200":
+          description: Fiches triées par nom
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/FicheEtudiant" }
+        "401": { $ref: "#/components/responses/Erreur" }
+        "403": { $ref: "#/components/responses/Erreur" }
+        "404": { $ref: "#/components/responses/Erreur" }   # PROMOTION_INCONNUE
 
   /api/etudiants:
     post:
@@ -774,11 +833,15 @@ paths:
         "401": { $ref: "#/components/responses/Erreur" }
         "403": { $ref: "#/components/responses/Erreur" }
         "404": { $ref: "#/components/responses/Erreur" }   # ETUDIANT_INCONNU
+        "409": { $ref: "#/components/responses/Erreur" }   # DEPLACEMENT_IMPOSSIBLE (fiche avec historique, RG32)
     delete:
       x-livre: true
       tags: [administration]
       operationId: desactiverEtudiant
       summary: "Supprimer une fiche sans historique, sinon la désactiver (RG28, #61)"
+      description: >
+        Une fiche a un historique dès qu'elle a une présence, un exercice, une relecture, une tentative
+        de code (#133) ou un compte lié. La désactiver désactive aussi son compte (RG34, v2.8).
       responses:
         "204": { description: Fiche supprimée ou désactivée }
         "401": { $ref: "#/components/responses/Erreur" }
@@ -967,6 +1030,20 @@ components:
         id: { type: integer, format: int64 }
         nom: { type: string }
         promotionId: { type: integer, format: int64 }
+    FicheEtudiant:
+      description: "Fiche étudiant vue par ceux qui la gèrent (v2.8, #134)"
+      type: object
+      required: [id, nom, promotionId, actif]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        promotionId: { type: integer, format: int64 }
+        actif: { type: boolean, description: "false : fiche désactivée (RG28)" }
+        compteLogin:
+          type: string
+          nullable: true
+          description: "Identifiant du compte lié à la fiche, null si elle n'a pas de compte (HYP-15)"
+
     Session:
       type: object
       required: [id, titre, promotionId, code, ouvertureAt, expirationAt, statut]
