@@ -2,11 +2,13 @@ package com.k48.leonel.presence48.repository;
 
 import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.entity.Utilisateur;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,8 +24,13 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
 
   Optional<Utilisateur> findByEtudiantId(Long etudiantId);
 
-  /** RG28 : le dernier admin actif ne peut pas être désactivé. */
-  long countByRoleAndActifTrue(Role role);
+  /**
+   * RG28 : comptes actifs d'un rôle, verrouillés jusqu'à la fin de la transaction. Deux demandes
+   * simultanées de retrait d'un administrateur ne peuvent donc pas se croire toutes deux autorisées (#130).
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT u FROM Utilisateur u WHERE u.role = :role AND u.actif = true")
+  List<Utilisateur> verrouillerActifs(@Param("role") Role role);
 
   /** Promotions d'un formateur (RG26). */
   @Query(value = "SELECT promotion_id FROM formateur_promotion WHERE utilisateur_id = :id ORDER BY promotion_id",
