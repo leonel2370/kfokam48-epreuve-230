@@ -4,11 +4,6 @@ import { Router } from '@angular/router';
 import { FOURNISSEURS_TEST } from '../../testing';
 import { AdminComponent } from './admin.component';
 
-const FORMATEURS = [
-  { id: 2, login: 'formateur', nomAffiche: 'Formateur P1', role: 'FORMATEUR', etudiantId: null, actif: true,
-    doitChangerMotDePasse: false },
-];
-
 const PAGE = {
   contenu: [
     { id: 1, login: 'admin', nomAffiche: 'Administrateur', role: 'ADMIN', etudiantId: null, actif: true,
@@ -125,32 +120,19 @@ describe('AdminComponent — gestion des comptes (#60)', () => {
   });
 });
 
-describe('AdminComponent — gestion du référentiel (#61)', () => {
-  const PAGE_AVEC_FORMATEUR = { ...PAGE, contenu: [...PAGE.contenu, ...FORMATEURS] };
-
+describe('AdminComponent — promotions (#61)', () => {
   function ouvrir() {
     TestBed.configureTestingModule({ imports: [AdminComponent], providers: FOURNISSEURS_TEST });
     const fixture = TestBed.createComponent(AdminComponent);
     fixture.detectChanges();
     const http = TestBed.inject(HttpTestingController);
     http.expectOne('/api/promotions').flush([{ id: 1, nom: 'P1-2026' }, { id: 2, nom: 'P2-2026' }]);
-    http.expectOne('/api/utilisateurs?page=0&size=20').flush(PAGE_AVEC_FORMATEUR);
+    http.expectOne('/api/utilisateurs?page=0&size=20').flush(PAGE);
     fixture.detectChanges();
     const page = fixture.nativeElement as HTMLElement;
     const bouton = (texte: string, rang = 0) => Array.from(page.querySelectorAll('button'))
       .filter(b => b.textContent?.trim() === texte)[rang];
     return { page, http, fixture, bouton, c: fixture.componentInstance };
-  }
-
-  function gerer(http: HttpTestingController, fixture: import('@angular/core/testing').ComponentFixture<AdminComponent>) {
-    fixture.componentInstance.gerer({ id: 1, nom: 'P1-2026' });
-    const fiches = http.expectOne('/api/promotions/1/etudiants?admin=true');
-    expect(fiches.request.method).toBe('GET');
-    fiches.flush([
-      { id: 10, nom: 'Awa Ndiaye', promotionId: 1, actif: true },
-      { id: 11, nom: 'Boris Nkoulou', promotionId: 1, actif: false },
-    ]);
-    fixture.detectChanges();
   }
 
   it('crée une promotion et l’ajoute à la liste', () => {
@@ -176,58 +158,6 @@ describe('AdminComponent — gestion du référentiel (#61)', () => {
       { status: 409, statusText: 'Conflict' });
     fixture.detectChanges();
     expect(page.textContent).toContain('Ce nom de promotion est déjà pris.');
-    fixture.destroy();
-  });
-
-  it('rattache un formateur et le montre comme rattaché (RG26)', () => {
-    const { page, http, fixture, bouton } = ouvrir();
-    gerer(http, fixture);
-    bouton('Rattacher').click();
-    const requete = http.expectOne('/api/promotions/1/formateurs');
-    expect(requete.request.method).toBe('PUT');
-    expect(requete.request.body).toEqual({ utilisateurIds: [2] });
-    requete.flush(null);
-    fixture.detectChanges();
-    expect(page.textContent).toContain('Détacher');
-    expect(page.textContent).toContain('enregistrés');
-    fixture.destroy();
-  });
-
-  it('crée une fiche étudiant dans la promotion gérée (SF-22)', () => {
-    const { page, http, fixture, c, bouton } = ouvrir();
-    gerer(http, fixture);
-    c.nomFicheCreation = 'Clara Ndongo';
-    bouton('Créer la fiche').click();
-    const creation = http.expectOne('/api/etudiants');
-    expect(creation.request.method).toBe('POST');
-    expect(creation.request.body).toEqual({ nom: 'Clara Ndongo', promotionId: 1 });
-    creation.flush({ id: 12, nom: 'Clara Ndongo', promotionId: 1 });
-    fixture.detectChanges();
-    expect(page.textContent).toContain('Clara Ndongo');
-    expect(page.textContent).toContain('créée dans');
-    fixture.destroy();
-  });
-
-  it('affiche les fiches désactivées et le volet RG28', () => {
-    const { page, http, fixture } = ouvrir();
-    gerer(http, fixture);
-    expect(page.textContent).toContain('(désactivé)');
-    expect(page.textContent).toContain('RG28');
-    fixture.destroy();
-  });
-
-  it('propage le renommage d’une fiche au serveur', () => {
-    const { page, http, fixture } = ouvrir();
-    gerer(http, fixture);
-    const c = fixture.componentInstance;
-    spyOn(window, 'prompt').and.returnValue('Awa Ndiaye-Meli');
-    c.renommerFiche({ id: 10, nom: 'Awa Ndiaye', promotionId: 1, actif: true });
-    const modification = http.expectOne('/api/etudiants/10');
-    expect(modification.request.method).toBe('PUT');
-    expect(modification.request.body).toEqual({ nom: 'Awa Ndiaye-Meli', promotionId: 1 });
-    modification.flush({ id: 10, nom: 'Awa Ndiaye-Meli', promotionId: 1 });
-    fixture.detectChanges();
-    expect(page.textContent).toContain('Awa Ndiaye-Meli');
     fixture.destroy();
   });
 });

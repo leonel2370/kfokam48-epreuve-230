@@ -37,6 +37,7 @@ describe('Administration — référentiel lu sur l’API réelle (#135)', () =>
     const boutons = (texte: string) => Array.from(page.querySelectorAll('button'))
       .filter(b => b.textContent?.trim() === texte);
     boutons('Gérer')[0].click();
+    fixture.detectChanges();
     http.expectOne(URL_FICHES).flush(FICHES);
     http.expectOne(URL_RATTACHES).flush(rattaches);
     http.expectOne(URL_FORMATEURS).flush({ contenu: [ANNE, BRUNO], page: 0, taille: 100, total: 2 });
@@ -88,6 +89,7 @@ describe('Administration — référentiel lu sur l’API réelle (#135)', () =>
   it('ne garde pas les rattachements d’une promotion quand on en ouvre une autre', () => {
     const { boutons, ligne, fixture } = ouvrirLeVolet([ANNE]);
     boutons('Gérer')[1].click();
+    fixture.detectChanges();
     http.expectOne('/api/promotions/2/fiches').flush([]);
     http.expectOne('/api/promotions/2/formateurs').flush([]);
     http.expectOne(URL_FORMATEURS).flush({ contenu: [ANNE, BRUNO], page: 0, taille: 100, total: 2 });

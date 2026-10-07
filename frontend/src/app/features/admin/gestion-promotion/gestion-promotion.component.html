@@ -1,0 +1,43 @@
+<section class="carte">
+  <h2>Gérer « {{ promotion().nom }} »</h2>
+  @if (message(); as m) { <output class="succes">{{ m }}</output> }
+
+  <h3>Formateurs de la promotion</h3>
+  @for (l of formateurs(); track l.compte.id) {
+    <p class="ligne">
+      <strong>{{ l.compte.login }}</strong> — {{ l.compte.nomAffiche }}
+      @if (!l.compte.actif) { <span class="discret">(compte désactivé)</span> }
+      <button type="button" class="secondaire" [disabled]="enCours()" (click)="basculer(l)">
+        {{ l.rattache ? 'Détacher' : 'Rattacher' }}
+      </button>
+    </p>
+  } @empty { <p class="discret">Aucun compte formateur actif : créez-en un dans « Créer un compte ».</p> }
+  <app-erreur [erreur]="erreurFormateurs()" />
+
+  <h3>Fiches étudiants</h3>
+  @for (f of fiches(); track f.id) {
+    <p class="ligne">
+      <strong>{{ f.nom }}</strong>
+      @if (f.compteLogin) { <span class="discret">compte : {{ f.compteLogin }}</span> }
+      @if (!f.actif) { <span class="discret">(désactivée)</span> }
+      <button type="button" class="secondaire" [disabled]="enCours()" (click)="renommerFiche(f)">Renommer</button>
+      @if (f.actif) {
+        <button type="button" class="secondaire" [disabled]="enCours()" (click)="supprimerFiche(f)">
+          Supprimer / désactiver
+        </button>
+      }
+    </p>
+  } @empty { <p class="discret">Aucune fiche dans cette promotion.</p> }
+  <form class="ligne" (ngSubmit)="creerFiche()">
+    <label>
+      Nouvelle fiche étudiant
+      <input name="nomFiche" [(ngModel)]="nomFiche" required maxlength="150" />
+    </label>
+    <button type="submit" class="secondaire" [disabled]="enCours() || !nomFiche.trim()">Créer la fiche</button>
+  </form>
+  <p class="discret">
+    Une fiche sans aucune trace est supprimée. Sinon elle est désactivée avec son compte : ses présences
+    et ses notes restent au tableau et elle disparaît des listes de sélection.
+  </p>
+  <app-erreur [erreur]="erreurFiches()" />
+</section>
