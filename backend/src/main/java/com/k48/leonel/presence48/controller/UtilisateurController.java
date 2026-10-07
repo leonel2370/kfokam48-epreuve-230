@@ -5,6 +5,7 @@ import com.k48.leonel.presence48.dto.request.ModificationUtilisateurRequete;
 import com.k48.leonel.presence48.dto.request.ReinitialisationMotDePasseRequete;
 import com.k48.leonel.presence48.dto.response.PageUtilisateursReponse;
 import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,6 +38,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "administration", description = "CRUD des comptes (#60 — SF-20, EF21, RG27, RG28)")
 public class UtilisateurController {
 
+  /** Bornes de pagination du contrat (#132) : hors bornes, 400 CHAMP_MANQUANT. */
+  private static final String TAILLE_PAR_DEFAUT = "20";
+  private static final long TAILLE_MAX = 100;
+
   private final UtilisateurService service;
 
   public UtilisateurController(UtilisateurService service) {
@@ -47,6 +54,8 @@ public class UtilisateurController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Page de comptes",
               content = @Content(schema = @Schema(implementation = PageUtilisateursReponse.class))),
+          @ApiResponse(responseCode = "400", description = "Page négative ou taille hors de 1 à 100",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
               content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
@@ -54,8 +63,8 @@ public class UtilisateurController {
       })
   @GetMapping
   @PreAuthorize("hasRole('ADMIN')")
-  public PageUtilisateursReponse lister(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size) {
+  public PageUtilisateursReponse lister(@RequestParam(defaultValue = "0") @Min(0) int page,
+      @RequestParam(defaultValue = TAILLE_PAR_DEFAUT) @Min(1) @Max(TAILLE_MAX) int size) {
     return service.lister(page, size);
   }
 

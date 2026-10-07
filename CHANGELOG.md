@@ -7,6 +7,9 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 
 Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier avec la 1.1.0.
 
+### Corrigé
+- La liste des comptes ne renvoie plus d'erreur 500 pour une page négative ou une taille nulle ; la taille est plafonnée à 100, comme le dit le contrat (#132, PR #146).
+
 ### Sécurité
 - Un formateur ne peut plus modifier ni déplacer vers sa promotion la fiche d'un étudiant d'une autre promotion : le contrôle porte sur la promotion actuelle de la fiche et sur la promotion d'arrivée, RG26 (#129, PR #143).
 - Le dernier administrateur actif ne peut plus être désactivé ni changé de rôle par une modification de compte (409 `SUPPRESSION_IMPOSSIBLE`), le comptage est verrouillé contre deux demandes simultanées ; un compte qui quitte le rôle FORMATEUR perd ses rattachements, RG28 et RG26 (#130, PR #144).
