@@ -37,8 +37,9 @@
 
   <section class="carte">
     <h2>Sessions de la promotion</h2>
-    @if (sessions().length === 0) { <p class="discret">Aucune session.</p> }
-    @else {
+    <app-erreur [erreur]="lectureSessions.erreur()" />
+    @if (lectureSessions.lue() && sessions().length === 0) { <p class="discret">Aucune session.</p> }
+    @if (sessions().length > 0) {
       <table>
         <thead><tr><th>Titre</th><th>Ouverte le</th><th>Code</th><th>Statut</th></tr></thead>
         <tbody>

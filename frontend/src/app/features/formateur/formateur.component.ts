@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ErreurApi, Promotion, Session, SessionOuverte } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { Lecture } from '../../core/etat/lecture';
 import { cheminTableau } from '../../core/navigation/chemins';
 import { LIBELLES_STATUT_SESSION } from '../../core/navigation/libelles';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
@@ -35,7 +36,9 @@ export class FormateurComponent implements OnInit, OnDestroy {
   readonly cheminTableau = cheminTableau;
 
   readonly promotions = signal<Promotion[]>([]);
-  readonly sessions = signal<Session[]>([]);
+  /** #137 : la liste des sessions a son propre état ; son erreur ne se mêle pas à celle de l'ouverture. */
+  readonly lectureSessions = new Lecture<Session[]>([]);
+  readonly sessions = this.lectureSessions.donnees;
   readonly session = signal<SessionOuverte | null>(null);
   readonly erreur = signal<ErreurApi | null>(null);
   readonly enCours = signal(false);
@@ -100,9 +103,6 @@ export class FormateurComponent implements OnInit, OnDestroy {
     if (!this.promotionChoisie) {
       return;
     }
-    this.api.sessions(this.promotionChoisie).subscribe({
-      next: s => this.sessions.set(s),
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
+    this.lectureSessions.charger(this.api.sessions(this.promotionChoisie));
   }
 }

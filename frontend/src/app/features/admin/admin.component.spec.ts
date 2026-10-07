@@ -99,11 +99,15 @@ describe('AdminComponent — promotions (#61)', () => {
   it('crée une promotion et l’ajoute à la liste', () => {
     const { page, http, fixture, c, bouton } = ouvrir();
     c.nomPromotionCreation = 'P3-2026';
+    fixture.detectChanges();
     bouton('Créer la promotion').click();
     const creation = http.expectOne('/api/promotions');
     expect(creation.request.method).toBe('POST');
     expect(creation.request.body).toEqual({ nom: 'P3-2026' });
     creation.flush({ id: 5, nom: 'P3-2026' });
+    // #137 : la liste est relue sur le serveur, elle n'est plus complétée à l'écran
+    http.expectOne('/api/promotions').flush([{ id: 1, nom: 'P1-2026' }, { id: 2, nom: 'P2-2026' },
+      { id: 5, nom: 'P3-2026' }]);
     fixture.detectChanges();
     expect(page.textContent).toContain('P3-2026');
     expect(page.textContent).toContain('créée');
@@ -113,6 +117,7 @@ describe('AdminComponent — promotions (#61)', () => {
   it('affiche l’erreur quand le nom de promotion est déjà pris (409 CONFLIT)', () => {
     const { page, http, fixture, c, bouton } = ouvrir();
     c.nomPromotionCreation = 'P1-2026';
+    fixture.detectChanges();
     bouton('Créer la promotion').click();
     http.expectOne('/api/promotions').flush(
       { code: 'CONFLIT', message: 'Ce nom de promotion est déjà pris.' },

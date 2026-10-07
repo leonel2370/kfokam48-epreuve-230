@@ -1,6 +1,8 @@
 <main>
   <section class="carte">
     <h2>Promotions</h2>
+    @if (messagePromotions(); as m) { <output class="succes">{{ m }}</output> }
+    @if (lecturePromotions.enAttente()) { <p class="discret">Chargement…</p> }
     @for (p of promotions(); track p.id) {
       <p class="ligne">
         <strong>{{ p.nom }}</strong>
@@ -9,45 +11,64 @@
           Sessions
         </app-bouton-navigation>
         <button type="button" class="secondaire" (click)="gerer(p)">Gérer</button>
-        <button type="button" class="secondaire" (click)="renommerPromotion(p)">Renommer</button>
-        <button type="button" class="secondaire" (click)="supprimerPromotion(p)">Supprimer</button>
+        <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="renommerPromotion(p)">
+          Renommer
+        </button>
+        <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="supprimerPromotion(p)">
+          Supprimer
+        </button>
       </p>
-    } @empty { <p class="discret">Aucune promotion.</p> }
-    <form (ngSubmit)="creerPromotion()">
+    }
+    @if (lecturePromotions.lue() && promotions().length === 0) { <p class="discret">Aucune promotion.</p> }
+    <app-erreur [erreur]="lecturePromotions.erreur()" />
+    <form class="ligne" (ngSubmit)="creerPromotion()">
       <label>
         Nouvelle promotion
         <input name="nomPromotionCreation" [(ngModel)]="nomPromotionCreation" required maxlength="100" />
       </label>
-      <button type="submit" class="secondaire">Créer la promotion</button>
+      <button type="submit" class="secondaire" [disabled]="ecriture.enCours() || !nomPromotionCreation.trim()">
+        Créer la promotion
+      </button>
     </form>
-    <app-erreur [erreur]="erreur()" />
+    <app-erreur [erreur]="erreurPromotions()" />
   </section>
 
   @if (promotionSelectionnee(); as p) {
     <app-gestion-promotion [promotion]="p" />
   }
 
-  <!-- #60 (SF-20) : gestion des comptes -->
   <section class="carte">
     <h2>Comptes</h2>
-    @if (message(); as m) { <p class="discret">{{ m }}</p> }
+    @if (messageComptes(); as m) { <output class="succes">{{ m }}</output> }
+    @if (lectureComptes.enAttente()) { <p class="discret">Chargement…</p> }
     @for (u of comptes(); track u.id) {
       <p class="ligne">
         <strong>{{ u.login }}</strong> — {{ u.nomAffiche }}
-        <span class="discret">({{ u.role }}{{ u.actif ? '' : ', désactivé' }})</span>
+        <span class="discret">({{ libelles[u.role] }}{{ u.actif ? '' : ', désactivé' }})</span>
         @if (u.actif) {
-          <button type="button" class="secondaire" (click)="desactiver(u)">Désactiver</button>
-          <button type="button" class="secondaire" (click)="reinitialiser(u)">Réinitialiser le mot de passe</button>
+          <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="desactiver(u)">
+            Désactiver
+          </button>
+          <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="reinitialiser(u)">
+            Réinitialiser le mot de passe
+          </button>
         }
       </p>
-    } @empty { <p class="discret">Aucun compte.</p> }
-    @if (page() > 0) {
-      <button type="button" class="secondaire" (click)="pagePrecedente()">Page précédente</button>
     }
-    <span class="discret">{{ total() }} comptes</span>
-    @if ((page() + 1) * 20 < total()) {
-      <button type="button" class="secondaire" (click)="pageSuivante()">Page suivante</button>
+    @if (lectureComptes.lue() && comptes().length === 0) { <p class="discret">Aucun compte.</p> }
+    @if (lectureComptes.lue()) {
+      <p class="ligne">
+        @if (page() > 0) {
+          <button type="button" class="secondaire" (click)="pagePrecedente()">Page précédente</button>
+        }
+        <span class="discret" aria-live="polite">{{ total() }} comptes · page {{ page() + 1 }}</span>
+        @if (aUnePageSuivante()) {
+          <button type="button" class="secondaire" (click)="pageSuivante()">Page suivante</button>
+        }
+      </p>
     }
+    <app-erreur [erreur]="lectureComptes.erreur()" />
+    <app-erreur [erreur]="erreurComptes()" />
   </section>
 
   <app-creation-compte [promotions]="promotions()" (cree)="compteCree()" />

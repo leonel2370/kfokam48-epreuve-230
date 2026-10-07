@@ -1,8 +1,8 @@
-import { Component, WritableSignal, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { ErreurApi, FicheEtudiant, Promotion, Utilisateur } from '../../../core/api/api.models';
 import { ApiService } from '../../../core/api/api.service';
+import { Ecriture } from '../../../core/etat/ecriture';
 import { ErreurComponent } from '../../../shared/erreur/erreur.component';
 
 /** Taille maximale d'une page côté serveur : tous les formateurs tiennent dans une seule lecture. */
@@ -36,7 +36,8 @@ export class GestionPromotionComponent {
   private readonly comptesFormateurs = signal<Utilisateur[]>([]);
   readonly erreurFormateurs = signal<ErreurApi | null>(null);
   readonly message = signal<string | null>(null);
-  readonly enCours = signal(false);
+  private readonly ecriture = new Ecriture();
+  readonly enCours = this.ecriture.enCours;
 
   /** Formateurs actifs, plus tout formateur encore rattaché même désactivé, pour pouvoir le détacher. */
   readonly formateurs = computed<LigneFormateur[]>(() => {
@@ -60,7 +61,7 @@ export class GestionPromotionComponent {
     const { id, nom } = this.promotion();
     const actuels = this.rattaches().map(f => f.id);
     const ids = ligne.rattache ? actuels.filter(x => x !== ligne.compte.id) : [...actuels, ligne.compte.id];
-    this.ecrire(this.api.rattacherFormateurs(id, ids), this.erreurFormateurs, () => {
+    this.ecriture.lancer(this.api.rattacherFormateurs(id, ids), this.erreurFormateurs, () => {
       this.message.set(`Formateurs de « ${nom} » enregistrés.`);
       this.chargerRattaches(id);
     });
@@ -72,7 +73,7 @@ export class GestionPromotionComponent {
     if (!nomFiche) {
       return;
     }
-    this.ecrire(this.api.creerEtudiant({ nom: nomFiche, promotionId: id }), this.erreurFiches, () => {
+    this.ecriture.lancer(this.api.creerEtudiant({ nom: nomFiche, promotionId: id }), this.erreurFiches, () => {
       this.message.set(`Fiche « ${nomFiche} » créée dans « ${nom} ».`);
       this.nomFiche = '';
       this.chargerFiches(id);
@@ -85,7 +86,7 @@ export class GestionPromotionComponent {
       return;
     }
     const { id } = this.promotion();
-    this.ecrire(this.api.modifierEtudiant(fiche.id, { nom, promotionId: id }), this.erreurFiches, () => {
+    this.ecriture.lancer(this.api.modifierEtudiant(fiche.id, { nom, promotionId: id }), this.erreurFiches, () => {
       this.message.set(`Fiche renommée en « ${nom} ».`);
       this.chargerFiches(id);
     });
@@ -97,7 +98,7 @@ export class GestionPromotionComponent {
       return;
     }
     const { id } = this.promotion();
-    this.ecrire(this.api.supprimerEtudiant(fiche.id), this.erreurFiches, () => {
+    this.ecriture.lancer(this.api.supprimerEtudiant(fiche.id), this.erreurFiches, () => {
       this.message.set(`Fiche de « ${fiche.nom} » retirée.`);
       this.chargerFiches(id);
     });
@@ -137,15 +138,5 @@ export class GestionPromotionComponent {
     if (this.promotion().id === promotionId) {
       action();
     }
-  }
-
-  /** Une écriture à la fois ; l'erreur va dans la zone de la liste concernée. */
-  private ecrire<T>(requete: Observable<T>, erreur: WritableSignal<ErreurApi | null>, apres: () => void): void {
-    this.enCours.set(true);
-    erreur.set(null);
-    requete.subscribe({
-      next: () => { this.enCours.set(false); apres(); },
-      error: (e: ErreurApi) => { this.enCours.set(false); erreur.set(e); },
-    });
   }
 }

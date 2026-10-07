@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ErreurApi, RelectureRelecteur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { Lecture } from '../../core/etat/lecture';
 import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
@@ -35,8 +36,12 @@ export class RelecturesComponent implements OnInit, OnDestroy {
 
   /** Écran RELECTEUR routé (F2, #104) : le relecteur est l'étudiant du compte connecté (HYP-15). */
   readonly etudiantId = computed(() => this.auth.profil()?.etudiantId ?? null);
-  readonly relectures = signal<RelectureRelecteur[]>([]);
-  readonly rendues = signal<RelectureRelecteur[]>([]);
+  /** #137 : chaque liste a son état ; l'échec de l'une n'est pas effacé par la réussite de l'autre. */
+  readonly aFaire = new Lecture<RelectureRelecteur[]>([]);
+  readonly dejaRendues = new Lecture<RelectureRelecteur[]>([]);
+  readonly relectures = this.aFaire.donnees;
+  readonly rendues = this.dejaRendues.donnees;
+  /** Erreur de l'envoi d'une relecture (les erreurs de lecture sont portées par chaque liste). */
   readonly erreur = signal<ErreurApi | null>(null);
   readonly message = signal('');
   /** #106 : l'envoi en cours désactive le bouton (pas de double envoi définitif). */
@@ -89,14 +94,7 @@ export class RelecturesComponent implements OnInit, OnDestroy {
     if (etudiantId === null) {
       return;
     }
-    this.api.relectures(etudiantId, 'A_FAIRE').subscribe({
-      // #106 : un rafraîchissement réussi efface l'erreur précédente.
-      next: l => { this.relectures.set(l); this.erreur.set(null); },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-    this.api.relectures(etudiantId, 'RENDUE').subscribe({
-      next: l => { this.rendues.set(l); this.erreur.set(null); },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
+    this.aFaire.charger(this.api.relectures(etudiantId, 'A_FAIRE'));
+    this.dejaRendues.charger(this.api.relectures(etudiantId, 'RENDUE'));
   }
 }

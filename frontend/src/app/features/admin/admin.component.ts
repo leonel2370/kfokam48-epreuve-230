@@ -1,18 +1,24 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ErreurApi, Promotion, Utilisateur } from '../../core/api/api.models';
+import { ErreurApi, PageUtilisateurs, Promotion, Utilisateur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
+import { Ecriture } from '../../core/etat/ecriture';
+import { Lecture } from '../../core/etat/lecture';
 import { CHEMINS, PARAM_PROMOTION, cheminTableau } from '../../core/navigation/chemins';
+import { LIBELLES_ROLE } from '../../core/navigation/libelles';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 import { CreationCompteComponent } from './creation-compte/creation-compte.component';
 import { GestionPromotionComponent } from './gestion-promotion/gestion-promotion.component';
 
+const AUCUN_COMPTE: PageUtilisateurs = { contenu: [], page: 0, taille: 0, total: 0 };
+
 /**
- * Espace ADMIN (cahier §2 bis) : toutes les promotions, avec un bouton vers leur tableau et vers leurs sessions.
- * #60 : gestion des comptes — liste, création (mot de passe provisoire RG23), désactivation (RG28),
- * réinitialisation de mot de passe. Aucune règle métier calculée ici (F3) : tout vient de l'API.
- * #61 : promotions (SF-21) ; le volet d'une promotion (formateurs RG26, fiches SF-22) est app-gestion-promotion.
+ * Espace ADMIN (cahier §2 bis) : les promotions (SF-21) avec un bouton vers leur tableau, leurs sessions et
+ * leur volet de gestion (app-gestion-promotion), puis les comptes (SF-20) et leur création
+ * (app-creation-compte). Aucune règle métier ici (F3) : tout vient de l'API.
+ * #137 : promotions et comptes ont chacun leur état de lecture, leur zone d'erreur et leur message ;
+ * une seule écriture à la fois.
  */
 @Component({
   selector: 'app-admin',
@@ -25,27 +31,32 @@ export class AdminComponent implements OnInit {
   private readonly api = inject(ApiService);
   readonly cheminTableau = cheminTableau;
   readonly cheminSessions = CHEMINS.formateur;
-  readonly promotions = signal<Promotion[]>([]);
-  readonly erreur = signal<ErreurApi | null>(null);
+  readonly ecriture = new Ecriture();
+  readonly libelles = LIBELLES_ROLE;
 
-  // --- #60 : comptes ---
-  readonly comptes = signal<Utilisateur[]>([]);
-  readonly total = signal(0);
-  readonly page = signal(0);
-
-  // confirmation d'action
-  readonly message = signal<string | null>(null);
-
-  // --- #61 : référentiel ---
+  // --- Promotions ---
+  readonly lecturePromotions = new Lecture<Promotion[]>([]);
+  readonly promotions = this.lecturePromotions.donnees;
+  readonly erreurPromotions = signal<ErreurApi | null>(null);
+  readonly messagePromotions = signal<string | null>(null);
   readonly promotionSelectionnee = signal<Promotion | null>(null);
   nomPromotionCreation = '';
 
+  // --- Comptes : la page affichée est celle que le serveur a rendue ---
+  readonly lectureComptes = new Lecture<PageUtilisateurs>(AUCUN_COMPTE);
+  readonly comptes = computed(() => this.lectureComptes.donnees().contenu);
+  readonly total = computed(() => this.lectureComptes.donnees().total);
+  readonly page = computed(() => this.lectureComptes.donnees().page);
+  readonly aUnePageSuivante = computed(() => {
+    const { page, taille, total } = this.lectureComptes.donnees();
+    return (page + 1) * taille < total;
+  });
+  readonly erreurComptes = signal<ErreurApi | null>(null);
+  readonly messageComptes = signal<string | null>(null);
+
   ngOnInit(): void {
-    this.api.promotions().subscribe({
-      next: p => this.chargerPromotions(p),
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-    this.chargerComptes();
+    this.chargerPromotions();
+    this.chargerComptes(0);
   }
 
   /** « Sessions » ouvre l'espace formateur sur la promotion cliquée, pas sur la première (#104). */
@@ -53,7 +64,7 @@ export class AdminComponent implements OnInit {
     return { [PARAM_PROMOTION]: promotionId };
   }
 
-  /** #61 : ouvre le volet de gestion d'une promotion (formateurs et fiches), porté par app-gestion-promotion. */
+  /** Ouvre le volet de gestion d'une promotion (formateurs et fiches), porté par app-gestion-promotion. */
   gerer(p: Promotion): void {
     this.promotionSelectionnee.set(p);
   }
@@ -63,13 +74,10 @@ export class AdminComponent implements OnInit {
     if (!nom) {
       return;
     }
-    this.api.creerPromotion(nom).subscribe({
-      next: p => {
-        this.chargerPromotions([...this.promotions(), p].sort((a, b) => a.nom.localeCompare(b.nom)));
-        this.message.set(`Promotion « ${p.nom} » créée.`);
-        this.nomPromotionCreation = '';
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
+    this.ecriture.lancer(this.api.creerPromotion(nom), this.erreurPromotions, p => {
+      this.messagePromotions.set(`Promotion « ${p.nom} » créée.`);
+      this.nomPromotionCreation = '';
+      this.chargerPromotions();
     });
   }
 
@@ -78,59 +86,39 @@ export class AdminComponent implements OnInit {
     if (!nom || nom === p.nom) {
       return;
     }
-    this.api.renommerPromotion(p.id, nom).subscribe({
-      next: modifiee => {
-        this.chargerPromotions(this.promotions().map(x => (x.id === p.id ? modifiee : x)));
-        if (this.promotionSelectionnee()?.id === p.id) {
-          this.promotionSelectionnee.set(modifiee);
-        }
-        this.message.set(`Promotion renommée en « ${modifiee.nom} ».`);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
+    this.ecriture.lancer(this.api.renommerPromotion(p.id, nom), this.erreurPromotions, modifiee => {
+      this.messagePromotions.set(`Promotion renommée en « ${modifiee.nom} ».`);
+      if (this.promotionSelectionnee()?.id === p.id) {
+        this.promotionSelectionnee.set(modifiee);
+      }
+      this.chargerPromotions();
     });
   }
 
   supprimerPromotion(p: Promotion): void {
-    if (!confirm(`Supprimer la promotion « ${p.nom} » ? Elle doit être vide (RG28).`)) {
+    if (!confirm(`Supprimer la promotion « ${p.nom} » ? Elle doit n'avoir ni étudiant ni session.`)) {
       return;
     }
-    this.api.supprimerPromotion(p.id).subscribe({
-      next: () => {
-        this.chargerPromotions(this.promotions().filter(x => x.id !== p.id));
-        if (this.promotionSelectionnee()?.id === p.id) {
-          this.promotionSelectionnee.set(null);
-        }
-        this.message.set(`Promotion « ${p.nom} » supprimée.`);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-  }
-
-  private chargerComptes(): void {
-    this.api.utilisateurs(this.page()).subscribe({
-      next: p => {
-        this.comptes.set(p.contenu);
-        this.total.set(p.total);
-        // #106 : des données à jour effacent les messages d'erreur précédents
-        this.erreur.set(null);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
+    this.ecriture.lancer(this.api.supprimerPromotion(p.id), this.erreurPromotions, () => {
+      this.messagePromotions.set(`Promotion « ${p.nom} » supprimée.`);
+      if (this.promotionSelectionnee()?.id === p.id) {
+        this.promotionSelectionnee.set(null);
+      }
+      this.chargerPromotions();
     });
   }
 
   pageSuivante(): void {
-    this.page.set(this.page() + 1);
-    this.chargerComptes();
+    this.chargerComptes(this.page() + 1);
   }
 
   pagePrecedente(): void {
-    this.page.set(this.page() - 1);
-    this.chargerComptes();
+    this.chargerComptes(this.page() - 1);
   }
 
   /** #136 : le formulaire de création (app-creation-compte) a réussi ; la liste est relue sur le serveur. */
   compteCree(): void {
-    this.chargerComptes();
+    this.chargerComptes(this.page());
   }
 
   /** RG28 : désactivation, jamais de suppression physique. */
@@ -138,32 +126,29 @@ export class AdminComponent implements OnInit {
     if (!confirm(`Désactiver le compte « ${u.login} » ? Il ne pourra plus se connecter.`)) {
       return;
     }
-    this.api.desactiverUtilisateur(u.id).subscribe({
-      next: () => {
-        this.message.set(`Compte « ${u.login} » désactivé.`);
-        this.chargerComptes();
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
+    this.ecriture.lancer(this.api.desactiverUtilisateur(u.id), this.erreurComptes, () => {
+      this.messageComptes.set(`Compte « ${u.login} » désactivé.`);
+      this.chargerComptes(this.page());
     });
   }
 
-  /** RG23 : nouveau mot de passe provisoire ; redemandé à la prochaine connexion. */
+  /** RG23 : nouveau mot de passe provisoire ; sa solidité est jugée par le serveur (RG24). */
   reinitialiser(u: Utilisateur): void {
     const provisoire = prompt(`Mot de passe provisoire pour « ${u.login} » (8 caractères minimum) :`);
-    if (!provisoire || provisoire.length < 8) {
+    if (!provisoire) {
       return;
     }
-    this.api.reinitialiserMotDePasse(u.id, provisoire).subscribe({
-      next: () => {
-        this.message.set(`Mot de passe de « ${u.login} » réinitialisé ; à changer à la prochaine connexion.`);
-        this.chargerComptes();
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
+    this.ecriture.lancer(this.api.reinitialiserMotDePasse(u.id, provisoire), this.erreurComptes, () => {
+      this.messageComptes.set(`Mot de passe de « ${u.login} » réinitialisé ; à changer à la prochaine connexion.`);
+      this.chargerComptes(this.page());
     });
   }
 
-  private chargerPromotions(liste: Promotion[]): void {
-    this.promotions.set(liste);
-    this.erreur.set(null);
+  private chargerPromotions(): void {
+    this.lecturePromotions.charger(this.api.promotions());
+  }
+
+  private chargerComptes(page: number): void {
+    this.lectureComptes.charger(this.api.utilisateurs(page));
   }
 }
