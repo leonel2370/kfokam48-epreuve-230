@@ -3,6 +3,13 @@
 Toutes les évolutions notables de Présence48. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions : [SemVer](https://semver.org/lang/fr/).
 Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en est la source.
 
+## [Non publié]
+
+Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier avec la 1.1.0.
+
+### Sécurité
+- Un formateur ne peut plus modifier ni déplacer vers sa promotion la fiche d'un étudiant d'une autre promotion : le contrôle porte sur la promotion actuelle de la fiche et sur la promotion d'arrivée, RG26 (#129, PR #143).
+
 ## [1.1.0] — 2026-09-25/26
 
 ### Sécurité
