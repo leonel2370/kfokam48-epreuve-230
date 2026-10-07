@@ -1,10 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ErreurApi, Promotion, Role, Utilisateur } from '../../core/api/api.models';
+import { ErreurApi, Promotion, Utilisateur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { CHEMINS, PARAM_PROMOTION, cheminTableau } from '../../core/navigation/chemins';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { CreationCompteComponent } from './creation-compte/creation-compte.component';
 import { GestionPromotionComponent } from './gestion-promotion/gestion-promotion.component';
 
 /**
@@ -16,7 +17,8 @@ import { GestionPromotionComponent } from './gestion-promotion/gestion-promotion
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent, GestionPromotionComponent],
+  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent, GestionPromotionComponent,
+    CreationCompteComponent],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
@@ -30,18 +32,9 @@ export class AdminComponent implements OnInit {
   readonly comptes = signal<Utilisateur[]>([]);
   readonly total = signal(0);
   readonly page = signal(0);
-  readonly ROLES: Role[] = ['ADMIN', 'FORMATEUR', 'ETUDIANT'];
-
-  // formulaire de création (ngModel, comme les autres écrans)
-  login = '';
-  nomAffiche = '';
-  role: Role = 'ETUDIANT';
-  motDePasseInitial = '';
-  etudiantIdCreation: number | null = null;
 
   // confirmation d'action
   readonly message = signal<string | null>(null);
-  readonly enCours = signal(false);
 
   // --- #61 : référentiel ---
   readonly promotionSelectionnee = signal<Promotion | null>(null);
@@ -135,30 +128,9 @@ export class AdminComponent implements OnInit {
     this.chargerComptes();
   }
 
-  /** #60 : la fiche étudiant n'est demandée que pour le rôle ETUDIANT (HYP-15). */
-  creer(): void {
-    if (!this.login.trim() || !this.nomAffiche.trim() || this.motDePasseInitial.length < 8) {
-      return; // le formulaire exige déjà required/minlength
-    }
-    this.enCours.set(true);
-    this.api.creerUtilisateur({
-      login: this.login.trim(),
-      nomAffiche: this.nomAffiche.trim(),
-      role: this.role,
-      motDePasseInitial: this.motDePasseInitial,
-      etudiantId: this.role === 'ETUDIANT' ? this.etudiantIdCreation : null,
-    }).subscribe({
-      next: u => {
-        this.enCours.set(false);
-        this.message.set(`Compte « ${u.login} » créé ; il devra changer son mot de passe à la première connexion.`);
-        this.reinitialiserFormulaire();
-        this.chargerComptes();
-      },
-      error: (e: ErreurApi) => {
-        this.enCours.set(false);
-        this.erreur.set(e);
-      },
-    });
+  /** #136 : le formulaire de création (app-creation-compte) a réussi ; la liste est relue sur le serveur. */
+  compteCree(): void {
+    this.chargerComptes();
   }
 
   /** RG28 : désactivation, jamais de suppression physique. */
@@ -193,12 +165,5 @@ export class AdminComponent implements OnInit {
   private chargerPromotions(liste: Promotion[]): void {
     this.promotions.set(liste);
     this.erreur.set(null);
-  }
-
-  private reinitialiserFormulaire(): void {
-    this.login = '';
-    this.nomAffiche = '';
-    this.motDePasseInitial = '';
-    this.etudiantIdCreation = null;
   }
 }

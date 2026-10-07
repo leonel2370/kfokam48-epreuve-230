@@ -50,39 +50,5 @@
     }
   </section>
 
-  <section class="carte">
-    <h2>Créer un compte</h2>
-    <form (ngSubmit)="creer()">
-      <label>
-        Identifiant
-        <input name="login" [(ngModel)]="login" required maxlength="50" autocomplete="off" />
-      </label>
-      <label>
-        Nom affiché
-        <input name="nomAffiche" [(ngModel)]="nomAffiche" required maxlength="150" />
-      </label>
-      <label>
-        Rôle
-        <select name="role" [(ngModel)]="role" required>
-          @for (r of ROLES; track r) { <option [value]="r">{{ r }}</option> }
-        </select>
-      </label>
-      @if (role === 'ETUDIANT') {
-        <label>
-          Fiche étudiant (identifiant)
-          <input name="etudiantId" type="number" [(ngModel)]="etudiantIdCreation" required min="1" />
-        </label>
-      }
-      <label>
-        Mot de passe provisoire (8 caractères minimum)
-        <input name="motDePasseInitial" type="password" [(ngModel)]="motDePasseInitial" required minlength="8" />
-      </label>
-      <button type="submit" [disabled]="enCours()">Créer le compte</button>
-    </form>
-    <p class="discret">
-      Le mot de passe provisoire devra être changé à la première connexion (RG23). Un compte désactivé
-      ne peut plus se connecter (RG28) — jamais de suppression physique.
-    </p>
-    <app-erreur [erreur]="erreur()" />
-  </section>
+  <app-creation-compte [promotions]="promotions()" (cree)="compteCree()" />
 </main>

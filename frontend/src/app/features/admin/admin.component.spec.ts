@@ -79,45 +79,6 @@ describe('AdminComponent — gestion des comptes (#60)', () => {
     expect(texte.toLowerCase()).not.toContain('password');
     fixture.destroy();
   });
-
-  it('crée un compte étudiant et annonce le changement de mot de passe obligatoire (RG23)', () => {
-    const { page, http, fixture } = ouvrir();
-    const c = fixture.componentInstance;
-    c.login = 'clara';
-    c.nomAffiche = 'Clara Ndongo';
-    c.motDePasseInitial = 'MotDePasse9';
-    c.etudiantIdCreation = 5;
-    const boutonCreer = Array.from(page.querySelectorAll('button'))
-      .find(b => b.textContent?.includes('Créer le compte'))!;
-    boutonCreer.click();
-    const creation = http.expectOne('/api/utilisateurs');
-    expect(creation.request.method).toBe('POST');
-    expect(creation.request.body).toEqual({ login: 'clara', nomAffiche: 'Clara Ndongo', role: 'ETUDIANT',
-      motDePasseInitial: 'MotDePasse9', etudiantId: 5 });
-    creation.flush({ id: 9, login: 'clara', nomAffiche: 'Clara Ndongo', role: 'ETUDIANT', etudiantId: 5,
-      actif: true, doitChangerMotDePasse: true });
-    // la liste est rechargée après la création
-    http.expectOne('/api/utilisateurs?page=0&size=20').flush(PAGE);
-    fixture.detectChanges();
-    expect(page.textContent).toContain('il devra changer son mot de passe');
-    fixture.destroy();
-  });
-
-  it('affiche l’erreur du serveur quand le login est déjà pris (RG27)', () => {
-    const { page, http, fixture } = ouvrir();
-    const c = fixture.componentInstance;
-    c.login = 'awa';
-    c.nomAffiche = 'Double';
-    c.motDePasseInitial = 'MotDePasse9';
-    c.etudiantIdCreation = 5;
-    Array.from(page.querySelectorAll('button')).find(b => b.textContent?.includes('Créer le compte'))!.click();
-    http.expectOne('/api/utilisateurs').flush(
-      { code: 'LOGIN_DEJA_UTILISE', message: 'Cet identifiant est déjà pris.' },
-      { status: 409, statusText: 'Conflict' });
-    fixture.detectChanges();
-    expect(page.textContent).toContain('Cet identifiant est déjà pris.');
-    fixture.destroy();
-  });
 });
 
 describe('AdminComponent — promotions (#61)', () => {
