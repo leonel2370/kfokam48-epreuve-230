@@ -4,6 +4,7 @@ import com.k48.leonel.presence48.dto.request.ChangementMotDePasseRequete;
 import com.k48.leonel.presence48.dto.request.ConnexionRequete;
 import com.k48.leonel.presence48.dto.response.LigneTableauReponse;
 import com.k48.leonel.presence48.dto.response.ProfilReponse;
+import com.k48.leonel.presence48.securite.CompteAJourFiltre;
 import com.k48.leonel.presence48.securite.ControleAcces;
 import com.k48.leonel.presence48.securite.UtilisateurConnecte;
 import com.k48.leonel.presence48.service.AuthService;
@@ -18,11 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,10 +71,8 @@ public class AuthController {
     requete.getSession(true);
     // Nouvel identifiant de session : protection contre la fixation de session
     requete.changeSessionId();
-    var jeton = UsernamePasswordAuthenticationToken.authenticated(u, null,
-        List.of(new SimpleGrantedAuthority("ROLE_" + u.role().name())));
     var contexte = SecurityContextHolder.createEmptyContext();
-    contexte.setAuthentication(jeton);
+    contexte.setAuthentication(CompteAJourFiltre.jeton(u));
     SecurityContextHolder.setContext(contexte);
     depotDeContexte.saveContext(contexte, requete, reponse);
     return auth.profil(u.id());
