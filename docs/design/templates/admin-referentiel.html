@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Présence48 — Administration : promotions, formateurs, fiches</title>
+<!-- Template de maquette : Tailwind par CDN uniquement ici. Tokens = docs/design/DESIGN_SYSTEM.md §2 -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: {
+  fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+  borderRadius: { lg: 'var(--radius)', md: 'calc(var(--radius) - 2px)', sm: 'calc(var(--radius) - 4px)' },
+  colors: Object.fromEntries(['background','foreground','card','primary','primary-foreground','secondary','muted','muted-foreground','accent','destructive','destructive-foreground','border','input','ring','succes','attente']
+    .map(k => [k, 'hsl(var(--' + k + '))'])) } } };
+</script>
+<style>
+  :root { --background:0 0% 100%; --foreground:240 10% 3.9%; --card:0 0% 100%; --primary:240 5.9% 10%; --primary-foreground:0 0% 98%;
+    --secondary:240 4.8% 95.9%; --muted:240 4.8% 95.9%; --muted-foreground:240 3.8% 46.1%; --accent:240 4.8% 95.9%;
+    --destructive:0 84.2% 60.2%; --destructive-foreground:0 0% 98%; --border:240 5.9% 90%; --input:240 5.9% 90%; --ring:240 5.9% 10%;
+    --succes:142 71% 45%; --attente:38 92% 50%; --radius:0.5rem; }
+  .dark { --background:240 10% 3.9%; --foreground:0 0% 98%; --card:240 10% 3.9%; --primary:0 0% 98%; --primary-foreground:240 5.9% 10%;
+    --secondary:240 3.7% 15.9%; --muted:240 3.7% 15.9%; --muted-foreground:240 5% 64.9%; --accent:240 3.7% 15.9%;
+    --destructive:0 62.8% 30.6%; --border:240 3.7% 15.9%; --input:240 3.7% 15.9%; --ring:240 4.9% 83.9%; }
+  body { background:hsl(var(--background)); color:hsl(var(--foreground)); }
+</style>
+</head>
+<body class="font-sans antialiased">
+<header class="border-b border-border">
+  <div class="mx-auto max-w-5xl px-4 min-h-14 py-2 flex items-center justify-between gap-2">
+    <span class="font-semibold shrink-0">P48</span>
+    <nav class="flex gap-1 text-sm overflow-x-auto" aria-label="Écrans">
+      <button type="button" onclick="location.href='formateur-session.html'" class="px-3 py-2 rounded-md hover:bg-accent">Formateur</button>
+      <button type="button" onclick="location.href='tableau.html'" class="px-3 py-2 rounded-md hover:bg-accent">Tableau</button>
+      <button type="button" onclick="location.href='etudiant.html'" class="px-3 py-2 rounded-md hover:bg-accent">Étudiant</button>
+      <button type="button" onclick="location.href='relecteur.html'" class="px-3 py-2 rounded-md hover:bg-accent">Relecteur</button>
+      <button type="button" onclick="location.href='admin-utilisateurs.html'" class="px-3 py-2 rounded-md hover:bg-accent">Admin</button>
+      <button type="button" onclick="location.href='profil.html'" class="px-3 py-2 rounded-md hover:bg-accent whitespace-nowrap" title="Profil connecté">Administrateur · ADMIN</button>
+      <button type="button" onclick="location.href='login.html'" class="px-3 py-2 rounded-md border border-input hover:bg-accent whitespace-nowrap">Se déconnecter</button>
+      <button onclick="document.documentElement.classList.toggle('dark')" class="px-3 py-2 rounded-md border border-input hover:bg-accent" aria-label="Basculer le thème">◐</button>
+    </nav>
+  </div>
+</header>
+<main class="mx-auto max-w-5xl px-4 py-8 space-y-6">
+  <div><h1 class="text-2xl font-semibold">Administration</h1><p class="text-sm text-muted-foreground">Promotions, formateurs et fiches étudiants · réservé à l'administrateur</p></div>
+
+  <section class="rounded-lg border border-border p-6 space-y-4" aria-labelledby="promos">
+    <h2 id="promos" class="font-semibold">Promotions</h2>
+    <output class="block rounded-md border border-succes/50 px-4 py-3 text-sm text-succes">Promotion « P3-2026 » créée.</output>
+    <ul class="divide-y divide-border">
+      <li class="flex flex-wrap items-center gap-2 py-3"><strong class="mr-auto">P1-2026</strong>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Tableau</button><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Sessions</button>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent bg-accent" aria-expanded="true">Gérer</button>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Renommer</button><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Supprimer</button></li>
+      <li class="flex flex-wrap items-center gap-2 py-3"><strong class="mr-auto">P2-2026</strong>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Tableau</button><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Sessions</button>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent" aria-expanded="false">Gérer</button>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Renommer</button><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Supprimer</button></li>
+    </ul>
+    <form class="flex flex-wrap items-end gap-2">
+      <label class="grid gap-1.5 text-sm font-medium">Nouvelle promotion<input class="h-10 rounded-md border border-input bg-background px-3" placeholder="P3-2026"></label>
+      <button type="button" class="h-10 rounded-md border border-input px-4 text-sm">Créer la promotion</button>
+    </form>
+  </section>
+
+  <section class="rounded-lg border border-border p-6 space-y-4" aria-labelledby="gerer">
+    <h2 id="gerer" class="font-semibold">Gérer « P1-2026 »</h2>
+    <h3 class="text-sm font-medium text-muted-foreground">Formateurs de la promotion</h3>
+    <ul class="divide-y divide-border">
+      <li class="flex flex-wrap items-center gap-2 py-2"><span class="mr-auto"><strong>formateur</strong> — Jean Fokam</span>
+        <span class="rounded-md px-2 py-0.5 text-xs font-medium bg-succes/15 text-succes">Rattaché</span><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Détacher</button></li>
+      <li class="flex flex-wrap items-center gap-2 py-2"><span class="mr-auto"><strong>bruno</strong> — Bruno Essomba</span>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Rattacher</button></li>
+    </ul>
+    <h3 class="text-sm font-medium text-muted-foreground">Fiches étudiants</h3>
+    <ul class="divide-y divide-border">
+      <li class="flex flex-wrap items-center gap-2 py-2"><span class="mr-auto"><strong>Awa Ndiaye</strong> <span class="text-xs text-muted-foreground">compte : awa</span></span>
+        <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Renommer</button><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Supprimer / désactiver</button></li>
+      <li class="flex flex-wrap items-center gap-2 py-2 text-muted-foreground"><span class="mr-auto"><strong>Marc Tchoua</strong></span>
+        <span class="rounded-md px-2 py-0.5 text-xs font-medium bg-muted">Désactivée</span><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Renommer</button></li>
+    </ul>
+    <form class="flex flex-wrap items-end gap-2">
+      <label class="grid gap-1.5 text-sm font-medium">Nouvelle fiche étudiant<input class="h-10 rounded-md border border-input bg-background px-3"></label>
+      <button type="button" class="h-10 rounded-md border border-input px-4 text-sm">Créer la fiche</button>
+    </form>
+    <p class="text-xs text-muted-foreground">Une fiche sans aucune trace est supprimée. Sinon elle est désactivée avec son compte : ses présences et ses notes restent au tableau.</p>
+  </section>
+
+  <h2 class="text-lg font-semibold">Dialogues de l'écran (jamais ceux du navigateur)</h2>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div role="alertdialog" aria-labelledby="d1" aria-describedby="d1m" class="rounded-lg border border-border p-6 shadow-lg space-y-3">
+      <h3 id="d1" class="font-semibold">Retirer la fiche de « Awa Ndiaye » ?</h3>
+      <p id="d1m" class="text-sm text-muted-foreground">Elle a un historique : elle sera désactivée, avec son compte, et restera au tableau.</p>
+      <div class="flex justify-end gap-2"><button type="button" class="h-10 rounded-md border border-input px-4">Annuler</button><button type="button" class="h-10 rounded-md bg-destructive px-4 text-destructive-foreground">Désactiver</button></div>
+    </div>
+    <div role="dialog" aria-labelledby="d2" class="rounded-lg border border-border p-6 shadow-lg space-y-3">
+      <h3 id="d2" class="font-semibold">Renommer la promotion</h3>
+      <label class="grid gap-1.5 text-sm font-medium" for="n">Nouveau nom<input id="n" class="h-10 w-full rounded-md border border-input bg-background px-3" value="P1-2026"></label>
+      <div class="flex justify-end gap-2"><button type="button" class="h-10 rounded-md border border-input px-4">Annuler</button><button type="button" class="h-10 rounded-md bg-primary px-4 text-primary-foreground">Enregistrer</button></div>
+    </div>
+    <div role="dialog" aria-labelledby="d3" class="rounded-lg border border-border p-6 shadow-lg space-y-3">
+      <h3 id="d3" class="font-semibold">Mot de passe provisoire de « paul »</h3>
+      <label class="grid gap-1.5 text-sm font-medium" for="m">Mot de passe (8 caractères minimum)<input id="m" type="password" class="h-10 w-full rounded-md border border-input bg-background px-3" autocomplete="new-password"></label>
+      <p class="text-xs text-muted-foreground">Il devra le changer à sa prochaine connexion.</p>
+      <div class="flex justify-end gap-2"><button type="button" class="h-10 rounded-md border border-input px-4">Annuler</button><button type="button" class="h-10 rounded-md bg-primary px-4 text-primary-foreground">Réinitialiser</button></div>
+    </div>
+    <div role="dialog" aria-labelledby="d4" class="rounded-lg border border-border p-6 shadow-lg space-y-3">
+      <h3 id="d4" class="font-semibold">Modifier le compte « bruno »</h3>
+      <label class="grid gap-1.5 text-sm font-medium" for="ro">Rôle<select id="ro" class="h-10 w-full rounded-md border border-input bg-background px-3"><option>Formateur</option><option>Administrateur</option></select></label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" checked> Compte actif</label>
+      <div class="flex justify-end gap-2"><button type="button" class="h-10 rounded-md border border-input px-4">Annuler</button><button type="button" class="h-10 rounded-md bg-primary px-4 text-primary-foreground">Enregistrer</button></div>
+    </div>
+  </div>
+
+  <nav class="flex items-center gap-3 text-sm" aria-label="Pagination des comptes">
+    <button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Page précédente</button><span class="text-muted-foreground" aria-live="polite">42 comptes · page 2</span><button type="button" class="h-9 rounded-md border border-input px-3 text-sm hover:bg-accent">Page suivante</button>
+  </nav>
+</main>
+<section class="mx-auto max-w-5xl px-4 py-8 space-y-4" aria-labelledby="etats">
+  <h2 id="etats" class="text-lg font-semibold">États de l'écran</h2>
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-lg border border-border p-4 space-y-2"><p class="text-sm text-muted-foreground">Chargement</p>
+      <div class="h-4 w-3/4 rounded bg-muted animate-pulse"></div><div class="h-4 w-1/2 rounded bg-muted animate-pulse"></div><div class="h-4 w-2/3 rounded bg-muted animate-pulse"></div></div>
+    <div role="alert" class="rounded-lg border border-destructive/50 p-4 text-destructive"><p class="font-medium">Le code de présence a expiré.</p>
+      <p class="text-xs opacity-80 mt-1">CODE_EXPIRE · message affiché tel que renvoyé par l'API</p></div>
+    <div class="rounded-lg border border-dashed border-border p-4 text-center"><p class="font-medium">Rien à afficher</p>
+      <p class="text-sm text-muted-foreground">Texte d'état vide + action suivante.</p></div>
+  </div>
+</section>
+</body>
+</html>
