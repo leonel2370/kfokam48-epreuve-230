@@ -1,7 +1,7 @@
 # Cahier des charges — PRESENCE48 (présence et relecture par les pairs)
 
 **Auteur :** nono leonel · matricule 230
-**Version :** 3.1 · **Date :** 2026-09-25/26 (v3.1 : navigation #104 et état réel de la livraison, audit #110 ; v3 : double relecture #85 ; v2 : sécurité, rôles, CRUD, pièce jointe — issue #54)
+**Version :** 3.3 · **Date :** 2026-10-07 (v3.3 : administration lisible #134 et décisions du PO #140 ; v3.2 : état réel de la livraison #110 ; v3.1 : navigation #104 et état réel de la livraison, audit #110 ; v3 : double relecture #85 ; v2 : sécurité, rôles, CRUD, pièce jointe — issue #54)
 **Frontend choisi :** Angular 17, parce que son architecture imposée (services injectables, `HttpClient`, intercepteurs) isole naturellement la couche d'appels API exigée par F3.
 
 > Documents liés : [SPECIFICATIONS_FONCTIONNELLES.md](SPECIFICATIONS_FONCTIONNELLES.md) (fiches détaillées, flows, user stories) ·
@@ -184,6 +184,9 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG29 *(v2)* | Une session ayant des présences ou des exercices ne peut pas être supprimée → 409 SUPPRESSION_IMPOSSIBLE | [HYP-16] |
 | RG30 *(v2)* | Une pièce jointe par exercice, 10 Mo maximum, types pdf, zip, txt, md, java, ts, png, jpg ; remplaçable tant que l'exercice n'est pas RELU ; téléchargeable par l'auteur, le relecteur assigné, le formateur de la promotion et l'administrateur | PO 25/09, [HYP-19] |
 | RG31 *(v3)* | Tant qu'un seul des deux relecteurs a rendu, sa note est affichée comme note retenue **marquée provisoire** ; elle devient définitive quand les deux ont rendu (exercice `RELU`) | client, enveloppe étape 3 (#85) |
+| RG32 *(v3.3)* | Une fiche étudiant qui a un historique (présence, exercice, relecture, tentative de code ou compte lié) ne change plus de promotion : `409 DEPLACEMENT_IMPOSSIBLE`. Son nom reste modifiable | Décision PO #140 (07/10) |
+| RG33 *(v3.3)* | Une fiche étudiant désactivée n'est plus tirée au sort comme relectrice ; les relectures qui lui étaient déjà assignées restent rendables, pour ne pas bloquer la note de l'auteur | Décision PO #140 (07/10) |
+| RG34 *(v3.3)* | Désactiver une fiche étudiant désactive aussi le compte qui lui est lié. Désactiver seulement le compte laisse la fiche et son historique intacts | Décision PO #140 (07/10) |
 
 ## 7. Zones d'ombre, hypothèses et contradictions
 
@@ -239,6 +242,21 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 - **Données existantes (HYP-21)** : les exercices `RELU` avec une seule relecture (données v1) restent `RELU` avec cette note ; la règle s'applique aux dépôts postérieurs à V4. Aucune ligne n'est supprimée par la migration.
 - **Clôture (Q11)** : un exercice clôturé avec une seule note garde une note retenue provisoire, visible comme telle.
 - **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs. **v1.1 (#110) : #59 (connexion, gardes et menus par rôle) est livré — PR #100 ; voir BACKLOG.md.**
+
+### 7.2 quater Audit du 05/10 et décisions du PO (07/10, #134, #140)
+
+L'audit du travail fusionné entre le 25 et le 29/09 a montré que l'écran d'administration modifiait des données qu'il ne pouvait pas lire, et que trois comportements ne reposaient sur aucune règle. Ce qui est décidé :
+
+| Constat | Décision | Règle |
+|---|---|---|
+| Aucune lecture des formateurs rattachés ni des fiches désactivées ; liste des comptes non filtrable | Deux lectures de gestion et un filtre par rôle sont ajoutés (contrat 2.8). La liste publique des étudiants ne change pas (RG22) | SF-20 à SF-22 |
+| Déplacer un étudiant qui a un historique efface cet historique du tableau (compté par promotion) | Déplacement interdit dès qu'il y a un historique | RG32 |
+| Une fiche désactivée (#113) pouvait encore être tirée au sort | Exclue du tirage ; les relectures déjà assignées restent rendables | RG33 |
+| Désactiver une fiche laissait son compte actif | La désactivation de la fiche entraîne celle du compte, pas l'inverse | RG34 |
+| Une fiche liée à un compte mais sans autre trace renvoyait 409 à la suppression | Un compte lié compte comme historique : la fiche et le compte sont désactivés | RG28, RG34 |
+| Codes d'erreur renvoyés différents du catalogue | `MOT_DE_PASSE_TROP_FAIBLE` renvoyé ; nouveaux codes `FICHE_DEJA_LIEE`, `ROLE_INCOMPATIBLE`, `DEPLACEMENT_IMPOSSIBLE` | Spécifications §5 |
+
+Correctifs de sécurité du même audit, sans changement de règle : RG26 appliquée à la promotion actuelle d'une fiche (#129), dernier administrateur protégé à la modification (#130), session qui suit l'état du compte (#131).
 
 ### 7.3 Questions du client peu utiles au développement
 
@@ -399,3 +417,4 @@ Correspond à la migration `V1__init.sql` et au diagramme [D2](diagrammes/D2-mod
 | 3 | 2026-09-25 19h | **Enveloppe, étape 3 (#85)** : double relecture. RG6 remplacée (Q6 caduque), RG16 précisée (note retenue), RG31 (note provisoire), EF7/EF9, §7.2 ter (HYP-20, HYP-21, sacrifice de périmètre), dictionnaire (V4). Bug #83 corrigé sans changement d'analyse. |
 | 3.1 | 2026-09-25 | **Navigation par boutons et écran relecteur distinct (#104, demande du PO)** : l'espace étudiant devient trois écrans (`/etudiant/presence`, `/etudiant/notes`, `/etudiant/relectures`) pour respecter F2 sans ambiguïté ; toute navigation interne se fait par des boutons, le lien d'un exercice par un bouton « Ouvrir l'exercice ». Aucune règle métier ni endpoint modifié. Détail : spécifications §1.2 et §1.2 bis, DESIGN_SYSTEM §3. |
 | 3.2 | 2026-09-25/26 | **Mise à jour de l'analyse après la livraison (#110)** : hypothèses remplacées en v2 signalées (HYP-2, HYP-5, HYP-12, EF1) ; ajout de RG30a (code de session masqué à l'étudiant, #98) et de la ligne « Code de session » en §2 bis ; `GET /api/sessions` référencé vers SF-2/SF-4 ; #59 marqué livré (PR #100) ; cohérence avec le contrat 2.3 (#111) et le CHANGELOG [1.1.0]. |
+| 3.3 | 2026-10-07 | **Administration lisible et décisions du PO (#134, #140)**, après l'audit du 05/10 : RG32 (pas de déplacement d'une fiche avec historique), RG33 (fiche désactivée exclue du tirage), RG34 (fiche désactivée → compte désactivé), §7.2 quater, lectures de gestion et codes d'erreur (contrat 2.8). Correctifs de sécurité #129 à #133 sans changement de règle. |
