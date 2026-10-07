@@ -26,7 +26,8 @@ export class DialogueComponent {
       if (demande && !cadre.open) {
         this.valeur = demande.champ?.valeur ?? '';
         cadre.showModal();
-      } else if (!demande && cadre.open) {
+      }
+      if (!demande && cadre.open) {
         cadre.close();
       }
     });
