@@ -14,6 +14,7 @@ import com.k48.leonel.presence48.repository.PresenceRepository;
 import com.k48.leonel.presence48.repository.PromotionRepository;
 import com.k48.leonel.presence48.repository.RelectureRepository;
 import com.k48.leonel.presence48.repository.SessionCoursRepository;
+import com.k48.leonel.presence48.repository.TentativeCodeRepository;
 import com.k48.leonel.presence48.repository.UtilisateurRepository;
 import com.k48.leonel.presence48.securite.ControleAcces;
 import java.util.LinkedHashSet;
@@ -38,13 +39,14 @@ public class ReferentielAdminService {
   private final PresenceRepository presences;
   private final ExerciceRepository exercices;
   private final RelectureRepository relectures;
+  private final TentativeCodeRepository tentatives;
   private final UtilisateurRepository utilisateurs;
   private final FormateurPromotionRepository rattachements;
   private final ControleAcces acces;
 
   public ReferentielAdminService(PromotionRepository promotions, EtudiantRepository etudiants,
       SessionCoursRepository sessions, PresenceRepository presences, ExerciceRepository exercices,
-      RelectureRepository relectures, UtilisateurRepository utilisateurs,
+      RelectureRepository relectures, TentativeCodeRepository tentatives, UtilisateurRepository utilisateurs,
       FormateurPromotionRepository rattachements, ControleAcces acces) {
     this.promotions = promotions;
     this.etudiants = etudiants;
@@ -52,6 +54,7 @@ public class ReferentielAdminService {
     this.presences = presences;
     this.exercices = exercices;
     this.relectures = relectures;
+    this.tentatives = tentatives;
     this.utilisateurs = utilisateurs;
     this.rattachements = rattachements;
     this.acces = acces;
@@ -163,9 +166,10 @@ public class ReferentielAdminService {
     etudiants.save(e);
   }
 
+  /** Une tentative de code (RG4) est déjà une trace de l'étudiant : elle compte comme historique (#133). */
   private boolean aUnHistorique(Long etudiantId) {
     return presences.existsByEtudiantId(etudiantId) || exercices.existsByAuteurId(etudiantId)
-        || relectures.existsByRelecteurId(etudiantId);
+        || relectures.existsByRelecteurId(etudiantId) || tentatives.existsById(etudiantId);
   }
 
   /** #62 prévu sur GET /api/sessions?promotionId= — suffisant pour savoir si la promotion a des sessions. */

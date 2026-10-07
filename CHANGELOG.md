@@ -9,6 +9,7 @@ Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier ave
 
 ### Corrigé
 - La liste des comptes ne renvoie plus d'erreur 500 pour une page négative ou une taille nulle ; la taille est plafonnée à 100, comme le dit le contrat (#132, PR #146).
+- Une fiche étudiant qui n'a que des codes de présence erronés est désactivée au lieu de rester bloquée en 409 : une tentative de code compte comme historique, RG28 (#133, PR #147).
 
 ### Sécurité
 - Un formateur ne peut plus modifier ni déplacer vers sa promotion la fiche d'un étudiant d'une autre promotion : le contrôle porte sur la promotion actuelle de la fiche et sur la promotion d'arrivée, RG26 (#129, PR #143).
