@@ -86,6 +86,7 @@ public class SecuriteConfig {
             .deleteCookies("JSESSIONID"))
         .httpBasic(b -> b.disable())
         .formLogin(f -> f.disable())
+        .addFilterBefore(new CompteAJourFiltre(utilisateurs, depotDeContexte()), AuthorizationFilter.class)
         .addFilterAfter(new ChangementMotDePasseFiltre(utilisateurs), AuthorizationFilter.class);
     return http.build();
   }

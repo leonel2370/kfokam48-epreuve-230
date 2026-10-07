@@ -10,6 +10,7 @@ Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier ave
 ### Sécurité
 - Un formateur ne peut plus modifier ni déplacer vers sa promotion la fiche d'un étudiant d'une autre promotion : le contrôle porte sur la promotion actuelle de la fiche et sur la promotion d'arrivée, RG26 (#129, PR #143).
 - Le dernier administrateur actif ne peut plus être désactivé ni changé de rôle par une modification de compte (409 `SUPPRESSION_IMPOSSIBLE`), le comptage est verrouillé contre deux demandes simultanées ; un compte qui quitte le rôle FORMATEUR perd ses rattachements, RG28 et RG26 (#130, PR #144).
+- Une session ouverte suit l'état réel du compte : un compte désactivé est déconnecté à sa requête suivante (401), un changement de rôle s'applique aussitôt, sans attendre l'expiration de la session, RG25 et RG28 (#131, PR #145).
 
 ## [1.1.0] — 2026-09-25/26
 
