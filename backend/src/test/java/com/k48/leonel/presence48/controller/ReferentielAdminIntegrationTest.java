@@ -131,7 +131,7 @@ class ReferentielAdminIntegrationTest {
     // seuls des comptes FORMATEUR sont admis
     erreur(mvc.perform(put("/api/promotions/" + p2 + "/formateurs").session(s).with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"utilisateurIds\":[" + idUtilisateur("awa") + "]}")), 400, "CHAMP_MANQUANT");
+            .content("{\"utilisateurIds\":[" + idUtilisateur("awa") + "]}")), 400, "ROLE_INCOMPATIBLE");
   }
 
   @Test
