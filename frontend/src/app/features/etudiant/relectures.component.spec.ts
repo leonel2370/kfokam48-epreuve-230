@@ -48,10 +48,14 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
   });
 
   it("n'envoie rien si l'envoi définitif n'est pas confirmé (RG10)", () => {
-    spyOn(window, 'confirm').and.returnValue(false);
+    const confirmation = spyOn(window, 'confirm').and.returnValue(false);
     const fixture = ouvrir();
-    fixture.componentInstance.rendre(RELECTURE);
-    http.expectNone('/api/relectures/7');
+    const c = fixture.componentInstance;
+    c.notes[RELECTURE.id] = 14;
+    c.commentaires[RELECTURE.id] = 'Clair';
+    c.rendre(RELECTURE);
+    expect(confirmation).withContext('la confirmation est bien demandée').toHaveBeenCalledTimes(1);
+    expect(http.match('/api/relectures/7')).withContext('refus : aucune requête').toHaveSize(0);
     fixture.destroy();
   });
 
@@ -95,17 +99,20 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
 
   it('#106 — un rafraîchissement réussi efface l’erreur précédente', fakeAsync(() => {
     const fixture = ouvrir();
-    const c = fixture.componentInstance;
+    const alertes = () => (fixture.nativeElement as HTMLElement).querySelectorAll('.alerte');
     tick(RAFRAICHISSEMENT_MS);
     http.expectOne(A_FAIRE).flush({ code: 'ERREUR_INTERNE', message: 'Coupure passagère.' },
       { status: 500, statusText: 'Server Error' });
     http.expectOne(RENDUES).flush({ code: 'ERREUR_INTERNE', message: 'Coupure passagère.' },
       { status: 500, statusText: 'Server Error' });
-    expect(c.erreur()).not.toBeNull();
+    fixture.detectChanges();
+    // #137 : chaque liste affiche sa propre erreur
+    expect(alertes()).toHaveSize(2);
     tick(RAFRAICHISSEMENT_MS);
     http.expectOne(A_FAIRE).flush([]);
     http.expectOne(RENDUES).flush([]);
-    expect(c.erreur()).withContext('les listes sont à jour, l’erreur doit disparaître').toBeNull();
+    fixture.detectChanges();
+    expect(alertes()).withContext('les listes sont à jour, les erreurs doivent disparaître').toHaveSize(0);
     discardPeriodicTasks();
     fixture.destroy();
   }));

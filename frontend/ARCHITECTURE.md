@@ -11,6 +11,7 @@ src/app/
 │   ├── api/               api.models.ts (types du contrat) · api.service.ts (seul accès HTTP)
 │   ├── auth/              auth.service.ts (profil connecté) · acces.guard.ts (gardes par rôle)
 │   ├── interceptors/      erreur (toute erreur → { code, message }) · session (401 → connexion)
+│   ├── etat/              lecture.ts (données, chargement, erreur d'une lecture) · ecriture.ts (une écriture à la fois)
 │   └── navigation/        chemins.ts : seule source des adresses de l'application (#104)
 ├── shared/                composants réutilisables, un dossier chacun, sans appel HTTP :
 │                          bouton-navigation · barre-navigation · bouton-exercice · erreur
@@ -44,6 +45,10 @@ src/app/
   `[href]`. Navigation interne : `app-bouton-navigation` / `app-barre-navigation` ; adresse d'exercice :
   `app-bouton-exercice` (« Ouvrir l'exercice »). Les chemins viennent de `core/navigation/chemins.ts`, jamais d'une
   chaîne écrite dans un composant.
+- **Une erreur par zone** (#137) : chaque lecture du serveur est portée par une `Lecture` (`core/etat`), qui garde
+  ses données, son premier chargement et son erreur ; seule la réussite de cette même lecture efface l'erreur.
+  Les actions passent par une `Ecriture` : une seule à la fois, boutons inactifs pendant l'envoi. Après une
+  écriture, l'écran relit le serveur au lieu de corriger sa liste lui-même.
 - **États obligatoires** de chaque écran : chargement, erreur (message de l'API tel quel), vide, données
   (docs/design/DESIGN_SYSTEM.md).
 - **Styles** : tokens du système de design (thème shadcn « zinc ») en variables CSS dans `src/styles.scss`.

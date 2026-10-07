@@ -7,7 +7,7 @@
     <app-erreur [erreur]="erreur()" />
     @if (chargement()) {
       <p class="discret">Chargement…</p>
-    } @else if (lignes().length === 0 && !erreur()) {
+    } @else if (lignes().length === 0 && !erreur() && !adresseInvalide()) {
       <p class="discret">Aucun étudiant dans cette promotion.</p>
     } @else if (lignes().length > 0) {
       <table>
