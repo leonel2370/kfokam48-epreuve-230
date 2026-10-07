@@ -8,6 +8,8 @@ import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
 /** #101 : les listes se rafraîchissent seules, une relecture ou une note peut arriver pendant que la page est ouverte. */
 export const RAFRAICHISSEMENT_MS = 15_000;
+/** Durée d'affichage du message de succès après un envoi. */
+const DUREE_MESSAGE_MS = 5_000;
 const NOTE_MIN = 0;
 const NOTE_MAX = 20;
 
@@ -75,7 +77,7 @@ export class RelecturesComponent implements OnInit, OnDestroy {
         this.message.set('Relecture envoyée.');
         // #106 : le message s'efface tout seul, il ne doit pas rester au-dessus des listes rafraîchies.
         clearTimeout(this.minuterieMessage);
-        this.minuterieMessage = setTimeout(() => this.message.set(''), 5000);
+        this.minuterieMessage = setTimeout(() => this.message.set(''), DUREE_MESSAGE_MS);
         this.charger();
       },
       error: (e: ErreurApi) => { this.envoi.set(false); this.erreur.set(e); },

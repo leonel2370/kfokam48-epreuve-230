@@ -60,7 +60,7 @@ describe('PresenceComponent — écran étudiant (HYP-15, SF-3, SF-6)', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     // Trois zones d'erreur distinctes : chargement des sessions, présence, dépôt.
-    expect(el.querySelectorAll('app-erreur').length).toBe(3);
+    expect(el.querySelectorAll('app-erreur')).toHaveSize(3);
     expect(el.textContent).toContain('Base injoignable.');
   });
 
