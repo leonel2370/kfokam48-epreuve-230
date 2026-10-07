@@ -7,6 +7,7 @@ import { Lecture } from '../../core/etat/lecture';
 import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
 import { BadgeComponent } from '../../shared/badge/badge.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { EtatListeComponent } from '../../shared/etat-liste/etat-liste.component';
 import { RAFRAICHISSEMENT_MS } from './relectures.component';
 
 /**
@@ -16,7 +17,7 @@ import { RAFRAICHISSEMENT_MS } from './relectures.component';
 @Component({
   selector: 'app-mes-notes',
   standalone: true,
-  imports: [DecimalPipe, ErreurComponent, BoutonExerciceComponent, BadgeComponent],
+  imports: [DecimalPipe, ErreurComponent, BoutonExerciceComponent, BadgeComponent, EtatListeComponent],
   templateUrl: './mes-notes.component.html',
 })
 export class MesNotesComponent implements OnInit, OnDestroy {

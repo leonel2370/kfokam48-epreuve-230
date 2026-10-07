@@ -12,7 +12,6 @@
     </p>
   }
   <app-erreur [erreur]="monRecap.erreur()" />
-  @if (mesExercices.enAttente()) { <p class="discret">Chargement…</p> }
   @for (x of exercices(); track x.id) {
     <div class="ligne">
       <strong>{{ x.sessionTitre }}</strong>
@@ -27,6 +26,5 @@
     </div>
     @for (c of x.commentaires; track $index) { <p class="discret">« {{ c }} »</p> }
   }
-  @if (mesExercices.lue() && exercices().length === 0) { <p class="discret">Aucun exercice déposé.</p> }
-  <app-erreur [erreur]="mesExercices.erreur()" />
+  <app-etat-liste [lecture]="mesExercices" [nombre]="exercices().length" vide="Aucun exercice déposé." />
 </section>

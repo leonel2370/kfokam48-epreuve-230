@@ -7,6 +7,7 @@ import { DialogueService } from '../../core/dialogue/dialogue.service';
 import { Lecture } from '../../core/etat/lecture';
 import { BoutonExerciceComponent } from '../../shared/bouton-exercice/bouton-exercice.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { EtatListeComponent } from '../../shared/etat-liste/etat-liste.component';
 
 /** #101 : les listes se rafraîchissent seules ; une relecture ou une note peut arriver, page ouverte. */
 export const RAFRAICHISSEMENT_MS = 15_000;
@@ -27,7 +28,7 @@ function noteSaisieValide(note: number | null | undefined): note is number {
 @Component({
   selector: 'app-relectures',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, BoutonExerciceComponent],
+  imports: [FormsModule, ErreurComponent, BoutonExerciceComponent, EtatListeComponent],
   templateUrl: './relectures.component.html',
 })
 export class RelecturesComponent implements OnInit, OnDestroy {

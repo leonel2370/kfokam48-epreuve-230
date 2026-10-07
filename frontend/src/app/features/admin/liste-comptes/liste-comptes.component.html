@@ -1,0 +1,39 @@
+<section class="carte">
+  <h2>Comptes</h2>
+  @if (message(); as m) { <output class="succes">{{ m }}</output> }
+  @for (u of comptes(); track u.id) {
+    <p class="ligne">
+      <strong>{{ u.login }}</strong> — {{ u.nomAffiche }}
+      @if (u.actif && u.etudiantId === null) {
+        <label class="discret">
+          Rôle
+          <select [name]="'role-' + u.id" [ngModel]="u.role" (ngModelChange)="changerRole(u, $event)"
+                  [disabled]="ecriture.enCours()">
+            @for (r of rolesSansFiche; track r) { <option [ngValue]="r">{{ libelles[r] }}</option> }
+          </select>
+        </label>
+      } @else {
+        <app-badge>{{ libelles[u.role] }}</app-badge>
+      }
+      @if (u.actif) {
+        <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="desactiver(u)">
+          Désactiver
+        </button>
+        <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="reinitialiser(u)">
+          Réinitialiser le mot de passe
+        </button>
+      } @else {
+        <app-badge ton="inactif">Désactivé</app-badge>
+        <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="reactiver(u)">
+          Réactiver
+        </button>
+      }
+    </p>
+  }
+  <app-etat-liste [lecture]="lecture" [nombre]="comptes().length" vide="Aucun compte." />
+  @if (lecture.lue()) {
+    <app-pagination [page]="page()" [total]="total()" [aUneSuite]="aUneSuite()" elements="comptes"
+                    (aller)="charger($event)" />
+  }
+  <app-erreur [erreur]="erreur()" />
+</section>

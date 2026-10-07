@@ -1,0 +1,9 @@
+<nav class="ligne" [attr.aria-label]="'Pagination des ' + elements()">
+  @if (page() > 0) {
+    <button type="button" class="secondaire" (click)="aller.emit(page() - 1)">Page précédente</button>
+  }
+  <span class="discret" aria-live="polite">{{ total() }} {{ elements() }} · page {{ page() + 1 }}</span>
+  @if (aUneSuite()) {
+    <button type="button" class="secondaire" (click)="aller.emit(page() + 1)">Page suivante</button>
+  }
+</nav>

@@ -2,7 +2,6 @@
   <section class="carte">
     <h2>Promotions</h2>
     @if (messagePromotions(); as m) { <output class="succes">{{ m }}</output> }
-    @if (lecturePromotions.enAttente()) { <p class="discret">Chargement…</p> }
     @for (p of promotions(); track p.id) {
       <p class="ligne">
         <strong>{{ p.nom }}</strong>
@@ -19,8 +18,7 @@
         </button>
       </p>
     }
-    @if (lecturePromotions.lue() && promotions().length === 0) { <p class="discret">Aucune promotion.</p> }
-    <app-erreur [erreur]="lecturePromotions.erreur()" />
+    <app-etat-liste [lecture]="lecturePromotions" [nombre]="promotions().length" vide="Aucune promotion." />
     <form class="ligne" (ngSubmit)="creerPromotion()">
       <label>
         Nouvelle promotion
@@ -38,39 +36,7 @@
     <app-gestion-promotion [promotion]="p" />
   }
 
-  <section class="carte">
-    <h2>Comptes</h2>
-    @if (messageComptes(); as m) { <output class="succes">{{ m }}</output> }
-    @if (lectureComptes.enAttente()) { <p class="discret">Chargement…</p> }
-    @for (u of comptes(); track u.id) {
-      <p class="ligne">
-        <strong>{{ u.login }}</strong> — {{ u.nomAffiche }}
-        <span class="discret">({{ libelles[u.role] }}{{ u.actif ? '' : ', désactivé' }})</span>
-        @if (u.actif) {
-          <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="desactiver(u)">
-            Désactiver
-          </button>
-          <button type="button" class="secondaire" [disabled]="ecriture.enCours()" (click)="reinitialiser(u)">
-            Réinitialiser le mot de passe
-          </button>
-        }
-      </p>
-    }
-    @if (lectureComptes.lue() && comptes().length === 0) { <p class="discret">Aucun compte.</p> }
-    @if (lectureComptes.lue()) {
-      <p class="ligne">
-        @if (page() > 0) {
-          <button type="button" class="secondaire" (click)="pagePrecedente()">Page précédente</button>
-        }
-        <span class="discret" aria-live="polite">{{ total() }} comptes · page {{ page() + 1 }}</span>
-        @if (aUnePageSuivante()) {
-          <button type="button" class="secondaire" (click)="pageSuivante()">Page suivante</button>
-        }
-      </p>
-    }
-    <app-erreur [erreur]="lectureComptes.erreur()" />
-    <app-erreur [erreur]="erreurComptes()" />
-  </section>
+  <app-liste-comptes />
 
   <app-creation-compte [promotions]="promotions()" (cree)="compteCree()" />
 </main>
