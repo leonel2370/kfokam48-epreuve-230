@@ -55,7 +55,7 @@ public class TirageRelecteur {
   }
 
   /**
-   * Complète les relecteurs de l'exercice jusqu'à deux (RG6 v3), parmi les présents, auteur et relecteurs
+   * Complète les relecteurs de l'exercice jusqu'à deux (RG6 v3), parmi les présents actifs (RG33), auteur et relecteurs
    * déjà assignés exclus (RG5). #83 : la ligne de l'exercice est verrouillée puis relue avant le tirage ;
    * deux présences simultanées ne tirent donc jamais deux fois pour la même place.
    */
@@ -72,7 +72,7 @@ public class TirageRelecteur {
     }
     var exclus = new ArrayList<>(deja);
     exclus.add(exercice.getAuteurId());
-    var tires = choisir(presences.etudiantsPresents(exercice.getSessionId()), exclus, manquants, ALEATOIRE);
+    var tires = choisir(presences.candidatsAuTirage(exercice.getSessionId()), exclus, manquants, ALEATOIRE);
     tires.forEach(relecteurId -> relectures.save(new Relecture(exercice.getId(), relecteurId, horloge.instant())));
     if (!tires.isEmpty() && exercice.getStatut() == StatutExercice.DEPOSE) {
       exercice.attendreRelecture();

@@ -173,6 +173,11 @@ public class ReferentielAdminService {
     acces.verifierGestionPromotionStrict(e.getPromotionId());
     acces.verifierGestionPromotionStrict(promotionId);
     chargerPromotionDuCorps(promotionId);
+    if (!e.getPromotionId().equals(promotionId) && aUnHistorique(id)) {
+      // RG32 : le tableau compte l'historique par promotion ; un déplacement le ferait disparaître.
+      throw new MetierException(HttpStatus.CONFLICT, "DEPLACEMENT_IMPOSSIBLE",
+          "Cette fiche a un historique : elle ne peut pas changer de promotion.");
+    }
     e.setNom(nom);
     e.setPromotionId(promotionId);
     return new EtudiantReponse(e.getId(), e.getNom(), e.getPromotionId());
@@ -180,7 +185,8 @@ public class ReferentielAdminService {
 
   /**
    * RG28 : une fiche sans historique est supprimée ; sinon désactivée — présences et notes
-   * restent dans le tableau et la liste de sélection ne la montre plus.
+   * restent dans le tableau et la liste de sélection ne la montre plus. RG34 : le compte étudiant
+   * lié à une fiche désactivée est désactivé avec elle.
    */
   @Transactional
   public void supprimerOuDesactiverEtudiant(Long id) {
@@ -188,21 +194,23 @@ public class ReferentielAdminService {
         new MetierException(HttpStatus.NOT_FOUND, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas."));
     acces.verifierGestionPromotionStrict(e.getPromotionId());
     if (!aUnHistorique(id)) {
-      utilisateurs.findByEtudiantId(id).ifPresent(compte -> {
-        throw new MetierException(HttpStatus.CONFLICT, "SUPPRESSION_IMPOSSIBLE",
-            "Cette fiche est liée à un compte : désactivez d'abord le compte.");
-      });
       etudiants.delete(e);
       return;
     }
     e.setActif(false);
     etudiants.save(e);
+    utilisateurs.findByEtudiantId(id).filter(compte -> compte.getRole() == Role.ETUDIANT)
+        .ifPresent(compte -> compte.setActif(false));
   }
 
-  /** Une tentative de code (RG4) est déjà une trace de l'étudiant : elle compte comme historique (#133). */
+  /**
+   * Trace laissée par l'étudiant : présence, exercice, relecture, tentative de code (RG4, #133) ou
+   * compte lié (RG34).
+   */
   private boolean aUnHistorique(Long etudiantId) {
     return presences.existsByEtudiantId(etudiantId) || exercices.existsByAuteurId(etudiantId)
-        || relectures.existsByRelecteurId(etudiantId) || tentatives.existsById(etudiantId);
+        || relectures.existsByRelecteurId(etudiantId) || tentatives.existsById(etudiantId)
+        || utilisateurs.existsByEtudiantId(etudiantId);
   }
 
   /** #62 prévu sur GET /api/sessions?promotionId= — suffisant pour savoir si la promotion a des sessions. */

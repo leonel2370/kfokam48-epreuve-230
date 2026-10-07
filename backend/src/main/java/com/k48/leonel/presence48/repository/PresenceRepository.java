@@ -13,7 +13,8 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
   /** #61 / RG28 : historique de présence — la fiche n'est pas supprimable physiquement. */
   boolean existsByEtudiantId(Long etudiantId);
 
-  /** SF-7 : les candidats au tirage sont les présents de la session. */
-  @Query("SELECT p.etudiantId FROM Presence p WHERE p.sessionId = :sessionId")
-  List<Long> etudiantsPresents(Long sessionId);
+  /** SF-7 : les candidats au tirage sont les présents de la session dont la fiche est active (RG33). */
+  @Query("SELECT p.etudiantId FROM Presence p, Etudiant e "
+      + "WHERE e.id = p.etudiantId AND e.actif = true AND p.sessionId = :sessionId")
+  List<Long> candidatsAuTirage(Long sessionId);
 }

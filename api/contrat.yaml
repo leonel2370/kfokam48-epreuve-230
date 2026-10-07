@@ -27,8 +27,7 @@ info:
         fiche inexistante ; 409 FICHE_DEJA_LIEE (au lieu de LOGIN_DEJA_UTILISE) pour une fiche déjà liée.
       - Fiches étudiants : 409 DEPLACEMENT_IMPOSSIBLE si la fiche a un historique (RG32) ; la
         désactivation d'une fiche désactive aussi son compte (RG34) ; une fiche désactivée n'est plus
-        tirée au sort comme relectrice (RG33, sans effet sur les corps imposés). Ces trois règles sont
-        à venir (#149) : tant qu'elles ne sont pas fusionnées, le comportement reste celui de la v2.7.
+        tirée au sort comme relectrice (RG33, sans effet sur les corps imposés). Règles livrées (#149).
     v2.7 (#61) — GESTION DU RÉFÉRENTIEL (SF-21, SF-22, EF22, EF23)
       - Les 7 opérations de gestion du référentiel sont livrées : créer/renommer/supprimer une
         promotion (ADMIN, RG25 ; nom unique → 409 CONFLIT ; RG28 : suppression refusée si
