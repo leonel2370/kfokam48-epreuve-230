@@ -2,7 +2,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ErreurApi, FicheEtudiant, Promotion, Role, Utilisateur } from '../../../core/api/api.models';
 import { ApiService } from '../../../core/api/api.service';
-import { LIBELLES_ROLE } from '../../../core/navigation/libelles';
+import { LIBELLES_ROLE } from '../../../core/libelles/libelles';
 import { ErreurComponent } from '../../../shared/erreur/erreur.component';
 
 const ROLES: readonly Role[] = ['ETUDIANT', 'FORMATEUR', 'ADMIN'];

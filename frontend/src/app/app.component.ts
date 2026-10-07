@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth/auth.service';
 import { CHEMINS, EntreeNavigation } from './core/navigation/chemins';
-import { libelleRole } from './core/navigation/libelles';
+import { libelleRole } from './core/libelles/libelles';
 import { BarreNavigationComponent } from './shared/barre-navigation/barre-navigation.component';
 import { BoutonNavigationComponent } from './shared/bouton-navigation/bouton-navigation.component';
 

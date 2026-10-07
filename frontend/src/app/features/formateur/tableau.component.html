@@ -25,7 +25,7 @@
               <td class="nombre">{{ l.exercicesDeposes }}</td>
               <td class="nombre">{{ l.moyenne === null ? '—' : (l.moyenne | number: '1.2-2') }}</td>
               <td class="nombre">
-                @if (l.relecturesEnAttente > 0) { <span class="badge EN_ATTENTE_RELECTURE">{{ l.relecturesEnAttente }}</span> }
+                @if (l.relecturesEnAttente > 0) { <app-badge ton="attente">{{ l.relecturesEnAttente }}</app-badge> }
                 @else { 0 }
               </td>
             </tr>

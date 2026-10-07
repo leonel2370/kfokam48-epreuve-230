@@ -4,7 +4,8 @@ import { ErreurApi, ExerciceDepose, Session } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { CHEMINS } from '../../core/navigation/chemins';
-import { LIBELLES_STATUT_EXERCICE } from '../../core/navigation/libelles';
+import { LIBELLES_STATUT_EXERCICE, TONS_STATUT_EXERCICE } from '../../core/libelles/libelles';
+import { BadgeComponent } from '../../shared/badge/badge.component';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 
@@ -16,7 +17,7 @@ import { ErreurComponent } from '../../shared/erreur/erreur.component';
 @Component({
   selector: 'app-presence',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent],
+  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent, BadgeComponent],
   templateUrl: './presence.component.html',
 })
 export class PresenceComponent implements OnInit {
@@ -43,10 +44,8 @@ export class PresenceComponent implements OnInit {
   sessionId: number | null = null;
   lien = '';
 
-  /** #108 : libellés français des statuts — le code brut n'est plus affiché. */
-  libelleExercice(statut: string): string {
-    return LIBELLES_STATUT_EXERCICE[statut] ?? statut;
-  }
+  readonly libellesExercice = LIBELLES_STATUT_EXERCICE;
+  readonly tonsExercice = TONS_STATUT_EXERCICE;
 
   ngOnInit(): void {
     this.chargerSessions();

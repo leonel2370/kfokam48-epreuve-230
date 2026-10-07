@@ -48,7 +48,7 @@
               <td>{{ s.titre }}</td>
               <td>{{ s.ouvertureAt | date: 'dd/MM HH:mm' }}</td>
               <td><code>{{ s.code }}</code></td>
-              <td><span class="badge" [class.CLOTUREE]="s.statut === 'CLOTUREE'">{{ libelleSession(s.statut) }}</span></td>
+              <td><app-badge [ton]="tonsSession[s.statut]">{{ libellesSession[s.statut] }}</app-badge></td>
             </tr>
           }
         </tbody>

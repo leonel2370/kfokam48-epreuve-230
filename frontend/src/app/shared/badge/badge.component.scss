@@ -1,0 +1,5 @@
+:host { display: inline-block; }
+
+.succes { background: hsl(var(--succes) / .15); }
+.attente { background: hsl(var(--attente) / .2); }
+.inactif { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }

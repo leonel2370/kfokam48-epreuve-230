@@ -5,7 +5,7 @@ import { ApiService } from '../../core/api/api.service';
 import { Ecriture } from '../../core/etat/ecriture';
 import { Lecture } from '../../core/etat/lecture';
 import { CHEMINS, PARAM_PROMOTION, cheminTableau } from '../../core/navigation/chemins';
-import { LIBELLES_ROLE } from '../../core/navigation/libelles';
+import { LIBELLES_ROLE } from '../../core/libelles/libelles';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
 import { CreationCompteComponent } from './creation-compte/creation-compte.component';
