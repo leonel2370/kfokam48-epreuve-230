@@ -14,11 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 /** EF10 / SF-10 : GET /api/tableau sur les données de démonstration (V2). */
 @SpringBootTest
 @AutoConfigureMockMvc
+// Vérifie les données de démonstration exactes : part d'une base neuve, quel que soit l'ordre des classes.
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class TableauIntegrationTest {
 
   private static final Duration LIMITE_ENF2 = Duration.ofSeconds(2);
