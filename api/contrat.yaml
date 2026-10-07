@@ -16,7 +16,7 @@ info:
     Toutes les autres opérations (tag « complément ») sont propres à ce projet.
 
     v2.8 (#134, décisions PO #140) — L'ADMINISTRATION LIT CE QU'ELLE MODIFIE
-      - Nouvelles lectures, PRÉVUES (x-livre: false tant que le code n'est pas fusionné) :
+      - Nouvelles lectures, livrées :
         GET /api/promotions/{promotionId}/formateurs (ADMIN) et GET /api/promotions/{promotionId}/fiches
         (ADMIN, FORMATEUR de la promotion : toutes les fiches, désactivées comprises, avec leur compte).
         La liste publique GET /api/promotions/{promotionId}/etudiants ne change pas (RG22).
@@ -27,7 +27,8 @@ info:
         fiche inexistante ; 409 FICHE_DEJA_LIEE (au lieu de LOGIN_DEJA_UTILISE) pour une fiche déjà liée.
       - Fiches étudiants : 409 DEPLACEMENT_IMPOSSIBLE si la fiche a un historique (RG32) ; la
         désactivation d'une fiche désactive aussi son compte (RG34) ; une fiche désactivée n'est plus
-        tirée au sort comme relectrice (RG33, sans effet sur les corps imposés).
+        tirée au sort comme relectrice (RG33, sans effet sur les corps imposés). Ces trois règles sont
+        à venir (#149) : tant qu'elles ne sont pas fusionnées, le comportement reste celui de la v2.7.
     v2.7 (#61) — GESTION DU RÉFÉRENTIEL (SF-21, SF-22, EF22, EF23)
       - Les 7 opérations de gestion du référentiel sont livrées : créer/renommer/supprimer une
         promotion (ADMIN, RG25 ; nom unique → 409 CONFLIT ; RG28 : suppression refusée si
@@ -727,10 +728,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     get:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: listerFormateursDeLaPromotion
-      summary: "Non livré (#134) — Formateurs rattachés à une promotion (ADMIN, RG26)"
+      summary: "Formateurs rattachés à une promotion (ADMIN, RG26, #134)"
       responses:
         "200":
           description: Comptes FORMATEUR rattachés, triés par nom affiché
@@ -770,10 +771,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/PromotionId"
     get:
-      x-livre: false
+      x-livre: true
       tags: [administration]
       operationId: listerFichesDeLaPromotion
-      summary: "Non livré (#134) — Fiches étudiants d'une promotion pour la gestion (ADMIN, FORMATEUR de la promotion)"
+      summary: "Fiches étudiants d'une promotion pour la gestion (ADMIN, FORMATEUR de la promotion, #134)"
       description: >
         Toutes les fiches, désactivées comprises (RG28), avec l'état et le compte lié.
         La liste publique GET /api/promotions/{promotionId}/etudiants reste limitée aux fiches actives.

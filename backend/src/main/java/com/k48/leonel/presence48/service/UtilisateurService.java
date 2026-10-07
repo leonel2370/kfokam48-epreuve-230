@@ -7,6 +7,7 @@ import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
 import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.entity.Utilisateur;
 import com.k48.leonel.presence48.exception.MetierException;
+import com.k48.leonel.presence48.repository.EtudiantRepository;
 import com.k48.leonel.presence48.repository.FormateurPromotionRepository;
 import com.k48.leonel.presence48.repository.UtilisateurRepository;
 import java.time.Clock;
@@ -30,20 +31,24 @@ public class UtilisateurService {
 
   private final UtilisateurRepository utilisateurs;
   private final FormateurPromotionRepository rattachements;
+  private final EtudiantRepository etudiants;
   private final PasswordEncoder encodeur;
   private final Clock horloge;
 
   public UtilisateurService(UtilisateurRepository utilisateurs, FormateurPromotionRepository rattachements,
-      PasswordEncoder encodeur, Clock horloge) {
+      EtudiantRepository etudiants, PasswordEncoder encodeur, Clock horloge) {
     this.utilisateurs = utilisateurs;
     this.rattachements = rattachements;
+    this.etudiants = etudiants;
     this.encodeur = encodeur;
     this.horloge = horloge;
   }
 
   @Transactional(readOnly = true)
-  public PageUtilisateursReponse lister(int page, int taille) {
-    var resultat = utilisateurs.findAllByOrderByLoginAsc(PageRequest.of(page, taille));
+  public PageUtilisateursReponse lister(int page, int taille, Role role) {
+    var pagination = PageRequest.of(page, taille);
+    var resultat = role == null ? utilisateurs.findAllByOrderByLoginAsc(pagination)
+        : utilisateurs.findByRoleOrderByLoginAsc(role, pagination);
     return new PageUtilisateursReponse(resultat.getContent().stream().map(UtilisateurReponse::de).toList(),
         page, taille, resultat.getTotalElements());
   }
@@ -58,14 +63,8 @@ public class UtilisateurService {
     if (utilisateurs.findByLogin(requete.login()).isPresent()) {
       throw new MetierException(HttpStatus.CONFLICT, "LOGIN_DEJA_UTILISE", "Cet identifiant est déjà pris.");
     }
-    if (requete.role() == Role.ETUDIANT && requete.etudiantId() == null) {
-      throw new MetierException(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT",
-          "Un compte étudiant doit être lié à une fiche étudiant.");
-    }
-    if (requete.etudiantId() != null && utilisateurs.existsByEtudiantId(requete.etudiantId())) {
-      throw new MetierException(HttpStatus.CONFLICT, "LOGIN_DEJA_UTILISE",
-          "Cette fiche étudiant a déjà un compte.");
-    }
+    PolitiqueMotDePasse.exigerLongueur(requete.motDePasseInitial());
+    verifierFiche(requete.role(), requete.etudiantId(), null);
     var u = new Utilisateur(requete.login(), encodeur.encode(requete.motDePasseInitial()), requete.role(),
         requete.nomAffiche(), requete.etudiantId(), true, horloge.instant()); // RG23 : mot de passe provisoire
     return UtilisateurReponse.de(utilisateurs.save(u));
@@ -74,18 +73,7 @@ public class UtilisateurService {
   @Transactional
   public UtilisateurReponse modifier(Long id, ModificationUtilisateurRequete requete) {
     var u = charger(id);
-    if (requete.role() == Role.ETUDIANT && requete.etudiantId() == null) {
-      throw new MetierException(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT",
-          "Un compte étudiant doit être lié à une fiche étudiant.");
-    }
-    if (requete.etudiantId() != null) {
-      utilisateurs.findByEtudiantId(requete.etudiantId())
-          .filter(autre -> !autre.getId().equals(id))
-          .ifPresent(autre -> {
-            throw new MetierException(HttpStatus.CONFLICT, "LOGIN_DEJA_UTILISE",
-                "Cette fiche étudiant a déjà un compte.");
-          });
-    }
+    verifierFiche(requete.role(), requete.etudiantId(), id);
     var resteAdminActif = requete.role() == Role.ADMIN && requete.actif();
     if (!resteAdminActif) {
       refuserSiDernierAdminActif(u);
@@ -113,12 +101,34 @@ public class UtilisateurService {
   /** RG23 + RG24 : mot de passe provisoire, à changer à la connexion suivante. */
   @Transactional
   public void reinitialiserMotDePasse(Long id, String motDePasseInitial) {
+    PolitiqueMotDePasse.exigerLongueur(motDePasseInitial);
     var u = charger(id);
     u.setMotDePasseHash(encodeur.encode(motDePasseInitial));
     u.setDoitChangerMotDePasse(true);
     u.setEchecsConnexion(0);
     u.setBloqueJusquA(null);
     utilisateurs.save(u);
+  }
+
+  /**
+   * HYP-15 : un compte ETUDIANT a une fiche ; la fiche existe (400 ETUDIANT_INCONNU) et n'est liée à
+   * aucun autre compte (409 FICHE_DEJA_LIEE).
+   */
+  private void verifierFiche(Role role, Long etudiantId, Long compteId) {
+    if (etudiantId == null) {
+      if (role == Role.ETUDIANT) {
+        throw new MetierException(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT",
+            "Un compte étudiant doit être lié à une fiche étudiant.");
+      }
+      return;
+    }
+    if (!etudiants.existsById(etudiantId)) {
+      throw new MetierException(HttpStatus.BAD_REQUEST, "ETUDIANT_INCONNU", "Cet étudiant n'existe pas.");
+    }
+    var dejaLiee = utilisateurs.findByEtudiantId(etudiantId).filter(autre -> !autre.getId().equals(compteId));
+    if (dejaLiee.isPresent()) {
+      throw new MetierException(HttpStatus.CONFLICT, "FICHE_DEJA_LIEE", "Cette fiche étudiant a déjà un compte.");
+    }
   }
 
   private Utilisateur charger(Long id) {

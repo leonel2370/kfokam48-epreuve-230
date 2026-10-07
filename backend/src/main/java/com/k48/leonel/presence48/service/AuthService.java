@@ -20,7 +20,6 @@ public class AuthService {
 
   static final int ECHECS_MAX = 5;
   static final Duration DUREE_BLOCAGE = Duration.ofMinutes(2);
-  static final int LONGUEUR_MIN = 8;
 
   private static final String IDENTIFIANTS_INVALIDES = "IDENTIFIANTS_INVALIDES";
   private static final String MESSAGE_IDENTIFIANTS = "Identifiant ou mot de passe incorrect.";
@@ -85,7 +84,7 @@ public class AuthService {
       throw new MetierException(HttpStatus.UNAUTHORIZED, IDENTIFIANTS_INVALIDES,
           "Le mot de passe actuel est incorrect.");
     }
-    if (nouveau.length() < LONGUEUR_MIN || nouveau.equals(ancien)) {
+    if (nouveau.length() < PolitiqueMotDePasse.LONGUEUR_MIN || nouveau.equals(ancien)) {
       throw new MetierException(HttpStatus.BAD_REQUEST, "MOT_DE_PASSE_TROP_FAIBLE",
           "Le mot de passe doit contenir au moins 8 caractères et différer de l'actuel.");
     }

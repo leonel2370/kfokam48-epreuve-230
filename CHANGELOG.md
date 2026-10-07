@@ -7,6 +7,12 @@ Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en 
 
 Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier avec la 1.1.0.
 
+### Ajouté
+- Administration lisible (contrat 2.8) : formateurs rattachés à une promotion, fiches d'une promotion avec leur état et leur compte, liste des comptes filtrable par rôle ; le rattachement accepte une liste vide et refuse proprement un compte inconnu, désactivé ou non formateur (#134, PR #148 pour l'analyse, PR #150).
+
+### Modifié
+- Codes d'erreur de la gestion des comptes alignés sur le catalogue : `MOT_DE_PASSE_TROP_FAIBLE` pour un mot de passe provisoire trop court, `FICHE_DEJA_LIEE` pour une fiche qui a déjà un compte, `ETUDIANT_INCONNU` pour une fiche inexistante, `ROLE_INCOMPATIBLE` au rattachement (#134, PR #150).
+
 ### Corrigé
 - La liste des comptes ne renvoie plus d'erreur 500 pour une page négative ou une taille nulle ; la taille est plafonnée à 100, comme le dit le contrat (#132, PR #146).
 - Une fiche étudiant qui n'a que des codes de présence erronés est désactivée au lieu de rester bloquée en 409 : une tentative de code compte comme historique, RG28 (#133, PR #147).

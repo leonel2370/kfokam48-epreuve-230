@@ -3,6 +3,7 @@ package com.k48.leonel.presence48.repository;
 import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.entity.Utilisateur;
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,12 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
   boolean existsByEtudiantId(Long etudiantId);
 
   Optional<Utilisateur> findByEtudiantId(Long etudiantId);
+
+  /** #134 : comptes liés à un ensemble de fiches, en une requête. */
+  List<Utilisateur> findByEtudiantIdIn(Collection<Long> etudiantIds);
+
+  /** #134 : liste filtrée par rôle, triée par login, paginée. */
+  Page<Utilisateur> findByRoleOrderByLoginAsc(Role role, Pageable pageable);
 
   /**
    * RG28 : comptes actifs d'un rôle, verrouillés jusqu'à la fin de la transaction. Deux demandes

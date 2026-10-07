@@ -10,6 +10,6 @@ public record CreationUtilisateurRequete(
     @NotBlank @Size(max = 50) String login,
     @NotBlank @Size(max = 150) String nomAffiche,
     @NotNull Role role,
-    @NotBlank @Size(min = 8) String motDePasseInitial,
+    @NotBlank String motDePasseInitial,
     Long etudiantId) {
 }

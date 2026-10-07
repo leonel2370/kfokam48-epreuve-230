@@ -5,9 +5,11 @@ import com.k48.leonel.presence48.dto.request.ModificationUtilisateurRequete;
 import com.k48.leonel.presence48.dto.request.ReinitialisationMotDePasseRequete;
 import com.k48.leonel.presence48.dto.response.PageUtilisateursReponse;
 import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
+import com.k48.leonel.presence48.entity.Role;
 import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.UtilisateurService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -54,18 +56,20 @@ public class UtilisateurController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Page de comptes",
               content = @Content(schema = @Schema(implementation = PageUtilisateursReponse.class))),
-          @ApiResponse(responseCode = "400", description = "Page négative ou taille hors de 1 à 100",
+          @ApiResponse(responseCode = "400", description = "Page négative, taille hors de 1 à 100 ou rôle inconnu",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping
   @PreAuthorize("hasRole('ADMIN')")
   public PageUtilisateursReponse lister(@RequestParam(defaultValue = "0") @Min(0) int page,
-      @RequestParam(defaultValue = TAILLE_PAR_DEFAUT) @Min(1) @Max(TAILLE_MAX) int size) {
-    return service.lister(page, size);
+      @RequestParam(defaultValue = TAILLE_PAR_DEFAUT) @Min(1) @Max(TAILLE_MAX) int size,
+      @Parameter(description = "Ne garder que les comptes de ce rôle (#134)")
+      @RequestParam(required = false) Role role) {
+    return service.lister(page, size, role);
   }
 
   @Operation(summary = "Créer un compte (EF21, #60)",
@@ -76,9 +80,9 @@ public class UtilisateurController {
           @ApiResponse(responseCode = "201", description = "Compte créé",
               content = @Content(schema = @Schema(implementation = UtilisateurReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou fiche étudiant absente",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "LOGIN_DEJA_UTILISE (RG27)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"LOGIN_DEJA_UTILISE\","
                       + "\"message\":\"Cet identifiant est déjà pris.\"}"))),
       })
@@ -97,7 +101,7 @@ public class UtilisateurController {
           @ApiResponse(responseCode = "200", description = "Compte",
               content = @Content(schema = @Schema(implementation = UtilisateurReponse.class))),
           @ApiResponse(responseCode = "404", description = "UTILISATEUR_INTROUVABLE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/{utilisateurId}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -113,9 +117,9 @@ public class UtilisateurController {
           @ApiResponse(responseCode = "200", description = "Compte modifié",
               content = @Content(schema = @Schema(implementation = UtilisateurReponse.class))),
           @ApiResponse(responseCode = "404", description = "UTILISATEUR_INTROUVABLE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "Fiche étudiant déjà liée",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PutMapping("/{utilisateurId}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -131,7 +135,7 @@ public class UtilisateurController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Compte désactivé"),
           @ApiResponse(responseCode = "409", description = "Dernier admin actif (SUPPRESSION_IMPOSSIBLE)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @DeleteMapping("/{utilisateurId}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -147,9 +151,9 @@ public class UtilisateurController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Mot de passe réinitialisé"),
           @ApiResponse(responseCode = "400", description = "Mot de passe trop faible (RG24)",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "UTILISATEUR_INTROUVABLE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PostMapping("/{utilisateurId}/reinitialiser-mot-de-passe")
   @PreAuthorize("hasRole('ADMIN')")
