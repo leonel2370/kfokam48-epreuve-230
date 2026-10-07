@@ -5,6 +5,7 @@ import com.k48.leonel.presence48.dto.response.RelectureRelecteurReponse;
 import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.RelectureService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Relectures : liste du relecteur (SF-8) et envoi définitif de la note (imposé, EF9). */
 @RestController
-@Tag(name = "relecture", description = "Relecture par les pairs (#105 — EF8, EF9, SF-8, SF-9)")
+@Tag(name = "relecture")
 public class RelectureController {
 
   private final RelectureService relectures;
@@ -39,9 +40,8 @@ public class RelectureController {
       security = @SecurityRequirement(name = "cookieAuth"),
       responses = {
           @ApiResponse(responseCode = "200", description = "Relectures du relecteur",
-              content = @Content(schema = @Schema(implementation = RelectureRelecteurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+              content = @Content(array = @ArraySchema(
+                  schema = @Schema(implementation = RelectureRelecteurReponse.class)))),
           @ApiResponse(responseCode = "403", description = "Étudiant autre que soi, ou promotion hors des droits",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })

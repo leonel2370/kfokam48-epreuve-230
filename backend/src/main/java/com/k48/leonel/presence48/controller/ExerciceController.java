@@ -6,6 +6,7 @@ import com.k48.leonel.presence48.dto.response.ExerciceDeposeReponse;
 import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.ExerciceService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Dépôt d'exercice (imposé, EF6) et exercices de l'auteur (SF-14, protégé). */
 @RestController
-@Tag(name = "exercice", description = "Dépôt et consultation des exercices (#105 — EF6, SF-6, SF-14)")
+@Tag(name = "exercice")
 public class ExerciceController {
 
   private final ExerciceService exercices;
@@ -44,7 +45,13 @@ public class ExerciceController {
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"LIEN_INVALIDE\","
                       + "\"message\":\"Le lien doit être une adresse http ou https complète.\"}"))),
-          @ApiResponse(responseCode = "409", description = "Exercice déjà déposé (RG13) ou session clôturée (RG18)",
+          @ApiResponse(responseCode = "403",
+              description = "Fiche étudiant désactivée (RG28, #113), ou identité différente de l'étudiant connecté",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
+                  examples = @ExampleObject(value = "{\"code\":\"ETUDIANT_DESACTIVE\","
+                      + "\"message\":\"Cette fiche étudiant est désactivée.\"}"))),
+          @ApiResponse(responseCode = "409",
+              description = "Exercice déjà déposé (RG13) ou session clôturée (RG18)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"EXERCICE_DEJA_DEPOSE\","
                       + "\"message\":\"Vous avez déjà déposé un exercice pour cette session.\"}"))),
@@ -63,9 +70,7 @@ public class ExerciceController {
       security = @SecurityRequirement(name = "cookieAuth"),
       responses = {
           @ApiResponse(responseCode = "200", description = "Exercices, du plus récent",
-              content = @Content(schema = @Schema(implementation = ExerciceAuteurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+              content = @Content(array = @ArraySchema(schema = @Schema(implementation = ExerciceAuteurReponse.class)))),
           @ApiResponse(responseCode = "403", description = "Étudiant autre que soi, ou promotion hors des droits",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "Étudiant inconnu (formateur/admin seulement)",

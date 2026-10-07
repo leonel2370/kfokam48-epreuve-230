@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Opération imposée : présence par code (EF3, SF-3). */
 @RestController
-@Tag(name = "présence", description = "Marquage de la présence par code (#105 — EF3, SF-3)")
+@Tag(name = "présence")
 public class PresenceController {
 
   private final PresenceService presences;
@@ -30,7 +30,8 @@ public class PresenceController {
 
   /** Opération imposée (EF3) : publique sans session, identité vérifiée si l'appelant est connecté. */
   @Operation(operationId = "marquerPresence", summary = "L'étudiant marque sa présence avec le code (EF3)",
-      description = "Opération imposée, publique (RG22). Ordre des contrôles : blocage (RG4) → code (RG2) → "
+      description = "Opération imposée, publique (RG22). Ordre des contrôles : fiche active (RG28) → "
+          + "blocage (RG4) → code (RG2) → "
           + "clôture (RG18) → expiration (RG1) → promotion (RG19) → unicité (RG3). Une réussite remet le "
           + "compteur d'erreurs à zéro et peut déclencher un tirage de relecteur (RG7).",
       responses = {
@@ -40,6 +41,11 @@ public class PresenceController {
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"CODE_INCONNU\","
                       + "\"message\":\"Ce code ne correspond à aucune session.\"}"))),
+          @ApiResponse(responseCode = "403",
+              description = "Fiche étudiant désactivée (RG28, #113), ou identité différente de l'étudiant connecté",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
+                  examples = @ExampleObject(value = "{\"code\":\"ETUDIANT_DESACTIVE\","
+                      + "\"message\":\"Cette fiche étudiant est désactivée.\"}"))),
           @ApiResponse(responseCode = "409", description = "Déjà présent ou session clôturée",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"DEJA_PRESENT\","

@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/utilisateurs")
-@Tag(name = "administration", description = "CRUD des comptes (#60 — SF-20, EF21, RG27, RG28)")
+@Tag(name = "administration")
 public class UtilisateurController {
 
   /** Bornes de pagination du contrat (#132) : hors bornes, 400 CHAMP_MANQUANT. */
@@ -58,8 +58,6 @@ public class UtilisateurController {
           @ApiResponse(responseCode = "200", description = "Page de comptes",
               content = @Content(schema = @Schema(implementation = PageUtilisateursReponse.class))),
           @ApiResponse(responseCode = "400", description = "Page négative, taille hors de 1 à 100 ou rôle inconnu",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),

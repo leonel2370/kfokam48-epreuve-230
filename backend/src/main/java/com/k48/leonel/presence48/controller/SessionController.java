@@ -6,6 +6,7 @@ import com.k48.leonel.presence48.dto.response.SessionReponse;
 import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Opérations sur les sessions : ouverture (imposée, EF2) et liste (SF-4, protégée). */
 @RestController
 @RequestMapping("/api/sessions")
-@Tag(name = "session", description = "Sessions de cours : ouverture, liste (#105 — SF-2, SF-4)")
+@Tag(name = "session")
 public class SessionController {
 
   private final SessionService sessions;
@@ -60,13 +61,9 @@ public class SessionController {
       security = @SecurityRequirement(name = "cookieAuth"),
       responses = {
           @ApiResponse(responseCode = "200", description = "Sessions de la promotion, de la plus récente",
-              content = @Content(schema = @Schema(implementation = SessionReponse.class))),
+              content = @Content(array = @ArraySchema(schema = @Schema(implementation = SessionReponse.class)))),
           @ApiResponse(responseCode = "400", description = "Paramètre promotionId manquant ou non numérique",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
-                  examples = @ExampleObject(value = "{\"code\":\"NON_AUTHENTIFIE\","
-                      + "\"message\":\"Connectez-vous pour continuer.\"}"))),
           @ApiResponse(responseCode = "403", description = "Promotion hors des droits de l'appelant",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })

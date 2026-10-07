@@ -37,6 +37,8 @@ server:
 # Swagger UI (#96, #105) : http://localhost:8080/swagger-ui.html — le contrat de référence d'abord, puis la doc
 # générée. Le jeton CSRF est envoyé par l'intercepteur injecté dans swagger-initializer.js (#105, ENF11).
 springdoc:
+  # #139 : toute réponse est du JSON ; sans ce réglage la doc générée publie « */* ».
+  default-produces-media-type: application/json
   swagger-ui:
     urls:
       - name: Contrat (référence)

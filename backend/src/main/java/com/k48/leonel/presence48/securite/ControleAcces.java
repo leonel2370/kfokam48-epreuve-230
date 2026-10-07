@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ControleAcces {
 
-  private static final String ACCES_REFUSE = "Vous n'avez pas les droits pour cette action.";
 
   private final UtilisateurRepository utilisateurs;
 
@@ -35,7 +34,7 @@ public class ControleAcces {
       var autorise = u.role() == Role.ADMIN
           || (u.role() == Role.FORMATEUR && utilisateurs.promotionsDuFormateur(u.id()).contains(promotionId));
       if (!autorise) {
-        throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
+        throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", MessagesSecurite.ACCES_REFUSE);
       }
     });
   }
@@ -47,20 +46,20 @@ public class ControleAcces {
    */
   public void verifierGestionPromotionStrict(Long promotionId) {
     var u = connecte().orElseThrow(() ->
-        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", "Connectez-vous d'abord."));
+        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", MessagesSecurite.NON_AUTHENTIFIE));
     var autorise = u.role() == Role.ADMIN
         || (u.role() == Role.FORMATEUR && utilisateurs.promotionsDuFormateur(u.id()).contains(promotionId));
     if (!autorise) {
-      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
+      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", MessagesSecurite.ACCES_REFUSE);
     }
   }
 
   /** #112 : le récapitulatif personnel exige un compte étudiant lié à une fiche (RG25) ; renvoie son identifiant. */
   public Long exigerEtudiantConnecte() {
     var u = connecte().orElseThrow(() ->
-        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", "Connectez-vous d'abord."));
+        new MetierException(HttpStatus.UNAUTHORIZED, "NON_AUTHENTIFIE", MessagesSecurite.NON_AUTHENTIFIE));
     if (u.role() != Role.ETUDIANT || u.etudiantId() == null) {
-      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", ACCES_REFUSE);
+      throw new MetierException(HttpStatus.FORBIDDEN, "ACCES_REFUSE", MessagesSecurite.ACCES_REFUSE);
     }
     return u.etudiantId();
   }
