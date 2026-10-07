@@ -100,7 +100,7 @@ describe('États et erreurs des écrans (#137)', () => {
     http.expectOne('/api/promotions').flush([{ id: 1, nom: 'P1-2026' }, { id: 2, nom: 'P2-2026' }]);
     http.expectOne('/api/sessions?promotionId=1').flush(PANNE, EN_PANNE);
     fixture.detectChanges();
-    expect(alertes(page).length).toBe(1);
+    expect(alertes(page)).toHaveSize(1);
     fixture.componentInstance.choisir(2);
     http.expectOne('/api/sessions?promotionId=2').flush([]);
     fixture.detectChanges();
