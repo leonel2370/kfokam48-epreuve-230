@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ErreurApi, PageUtilisateurs, Promotion, Utilisateur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
+import { DialogueService } from '../../core/dialogue/dialogue.service';
 import { Ecriture } from '../../core/etat/ecriture';
 import { Lecture } from '../../core/etat/lecture';
 import { CHEMINS, PARAM_PROMOTION, cheminTableau } from '../../core/navigation/chemins';
@@ -11,6 +12,8 @@ import { ErreurComponent } from '../../shared/erreur/erreur.component';
 import { CreationCompteComponent } from './creation-compte/creation-compte.component';
 import { GestionPromotionComponent } from './gestion-promotion/gestion-promotion.component';
 
+/** Longueur maximale du nom d'une promotion (contrat PromotionEcriture). */
+const LONGUEUR_NOM_PROMOTION = 100;
 const AUCUN_COMPTE: PageUtilisateurs = { contenu: [], page: 0, taille: 0, total: 0 };
 
 /**
@@ -29,6 +32,7 @@ const AUCUN_COMPTE: PageUtilisateurs = { contenu: [], page: 0, taille: 0, total:
 })
 export class AdminComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly dialogue = inject(DialogueService);
   readonly cheminTableau = cheminTableau;
   readonly cheminSessions = CHEMINS.formateur;
   readonly ecriture = new Ecriture();
@@ -40,6 +44,7 @@ export class AdminComponent implements OnInit {
   readonly erreurPromotions = signal<ErreurApi | null>(null);
   readonly messagePromotions = signal<string | null>(null);
   readonly promotionSelectionnee = signal<Promotion | null>(null);
+  readonly longueurNomPromotion = LONGUEUR_NOM_PROMOTION;
   nomPromotionCreation = '';
 
   // --- Comptes : la page affichée est celle que le serveur a rendue ---
@@ -81,8 +86,13 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  renommerPromotion(p: Promotion): void {
-    const nom = prompt(`Nouveau nom de la promotion « ${p.nom} » :`, p.nom)?.trim();
+  async renommerPromotion(p: Promotion): Promise<void> {
+    const saisie = await this.dialogue.saisir({
+      titre: `Renommer la promotion « ${p.nom} »`,
+      confirmer: 'Enregistrer',
+      champ: { libelle: 'Nouveau nom', type: 'text', valeur: p.nom, longueurMax: LONGUEUR_NOM_PROMOTION },
+    });
+    const nom = saisie?.trim();
     if (!nom || nom === p.nom) {
       return;
     }
@@ -95,8 +105,14 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  supprimerPromotion(p: Promotion): void {
-    if (!confirm(`Supprimer la promotion « ${p.nom} » ? Elle doit n'avoir ni étudiant ni session.`)) {
+  async supprimerPromotion(p: Promotion): Promise<void> {
+    const confirme = await this.dialogue.confirmer({
+      titre: `Supprimer la promotion « ${p.nom} » ?`,
+      message: "Elle doit n'avoir ni étudiant ni session.",
+      confirmer: 'Supprimer',
+      danger: true,
+    });
+    if (!confirme) {
       return;
     }
     this.ecriture.lancer(this.api.supprimerPromotion(p.id), this.erreurPromotions, () => {
@@ -122,8 +138,14 @@ export class AdminComponent implements OnInit {
   }
 
   /** RG28 : désactivation, jamais de suppression physique. */
-  desactiver(u: Utilisateur): void {
-    if (!confirm(`Désactiver le compte « ${u.login} » ? Il ne pourra plus se connecter.`)) {
+  async desactiver(u: Utilisateur): Promise<void> {
+    const confirme = await this.dialogue.confirmer({
+      titre: `Désactiver le compte « ${u.login} » ?`,
+      message: 'Il ne pourra plus se connecter. Son historique est conservé.',
+      confirmer: 'Désactiver',
+      danger: true,
+    });
+    if (!confirme) {
       return;
     }
     this.ecriture.lancer(this.api.desactiverUtilisateur(u.id), this.erreurComptes, () => {
@@ -133,8 +155,13 @@ export class AdminComponent implements OnInit {
   }
 
   /** RG23 : nouveau mot de passe provisoire ; sa solidité est jugée par le serveur (RG24). */
-  reinitialiser(u: Utilisateur): void {
-    const provisoire = prompt(`Mot de passe provisoire pour « ${u.login} » (8 caractères minimum) :`);
+  async reinitialiser(u: Utilisateur): Promise<void> {
+    const provisoire = await this.dialogue.saisir({
+      titre: `Mot de passe provisoire de « ${u.login} »`,
+      confirmer: 'Réinitialiser',
+      champ: { libelle: 'Mot de passe (8 caractères minimum)', type: 'password',
+        aide: 'Il devra le changer à sa prochaine connexion.' },
+    });
     if (!provisoire) {
       return;
     }

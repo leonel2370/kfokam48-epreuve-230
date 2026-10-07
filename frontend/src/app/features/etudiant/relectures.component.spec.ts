@@ -1,6 +1,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
-import { TestBed, discardPeriodicTasks, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, discardPeriodicTasks, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { AuthService } from '../../core/auth/auth.service';
+import { DialogueService } from '../../core/dialogue/dialogue.service';
 import { FOURNISSEURS_TEST, PROFILS } from '../../testing';
 import { RAFRAICHISSEMENT_MS, RelecturesComponent } from './relectures.component';
 
@@ -29,14 +30,14 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
     return fixture;
   }
 
-  it('liste les relectures à faire et rend une note après confirmation', () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+  it('liste les relectures à faire et rend une note après confirmation', async () => {
+    spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(true);
     const fixture = ouvrir();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('TP JPA');
     const c = fixture.componentInstance;
     c.notes[7] = 15;
     c.commentaires[7] = ' Clair ';
-    c.rendre(RELECTURE);
+    await c.rendre(RELECTURE);
     const post = http.expectOne('/api/relectures/7');
     expect(post.request.headers.get('X-Etudiant-Id')).toBe('2');
     expect(post.request.body).toEqual({ note: 15, commentaire: 'Clair' });
@@ -47,13 +48,13 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
     fixture.destroy();
   });
 
-  it("n'envoie rien si l'envoi définitif n'est pas confirmé (RG10)", () => {
-    const confirmation = spyOn(window, 'confirm').and.returnValue(false);
+  it("n'envoie rien si l'envoi définitif n'est pas confirmé (RG10)", async () => {
+    const confirmation = spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(false);
     const fixture = ouvrir();
     const c = fixture.componentInstance;
     c.notes[RELECTURE.id] = 14;
     c.commentaires[RELECTURE.id] = 'Clair';
-    c.rendre(RELECTURE);
+    await c.rendre(RELECTURE);
     expect(confirmation).withContext('la confirmation est bien demandée').toHaveBeenCalledTimes(1);
     expect(http.match('/api/relectures/7')).withContext('refus : aucune requête').toHaveSize(0);
     fixture.destroy();
@@ -118,12 +119,13 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
   }));
 
   it('#106 — le message « Relecture envoyée » disparaît au bout de quelques secondes', fakeAsync(() => {
-    spyOn(window, 'confirm').and.returnValue(true);
+    spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(true);
     const fixture = ouvrir();
     const c = fixture.componentInstance;
     c.notes[7] = 15;
     c.commentaires[7] = 'ok';
-    c.rendre(RELECTURE);
+    void c.rendre(RELECTURE);
+    flushMicrotasks();
     http.expectOne('/api/relectures/7').flush(null);
     http.expectOne(A_FAIRE).flush([]);
     http.expectOne(RENDUES).flush([]);
@@ -134,13 +136,13 @@ describe('RelecturesComponent (SF-8, SF-9, #101)', () => {
     fixture.destroy();
   }));
 
-  it('#106 — le bouton Envoyer est désactivé pendant la requête (pas de double envoi)', () => {
-    spyOn(window, 'confirm').and.returnValue(true);
+  it('#106 — le bouton Envoyer est désactivé pendant la requête (pas de double envoi)', async () => {
+    spyOn(TestBed.inject(DialogueService), 'confirmer').and.resolveTo(true);
     const fixture = ouvrir();
     const c = fixture.componentInstance;
     c.notes[7] = 15;
     c.commentaires[7] = 'ok';
-    c.rendre(RELECTURE);
+    await c.rendre(RELECTURE);
     fixture.detectChanges();
     const bouton = (fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]') as HTMLButtonElement;
     expect(bouton.disabled).withContext('pendant la requête').toBeTrue();

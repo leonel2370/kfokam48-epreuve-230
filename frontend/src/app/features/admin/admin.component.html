@@ -24,7 +24,8 @@
     <form class="ligne" (ngSubmit)="creerPromotion()">
       <label>
         Nouvelle promotion
-        <input name="nomPromotionCreation" [(ngModel)]="nomPromotionCreation" required maxlength="100" />
+        <input name="nomPromotionCreation" [(ngModel)]="nomPromotionCreation" required
+               [attr.maxlength]="longueurNomPromotion" />
       </label>
       <button type="submit" class="secondaire" [disabled]="ecriture.enCours() || !nomPromotionCreation.trim()">
         Créer la promotion

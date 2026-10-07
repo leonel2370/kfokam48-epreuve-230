@@ -1,0 +1,23 @@
+<dialog #cadre aria-labelledby="dialogue-titre" (cancel)="annuler($event)">
+  @if (service.demande(); as d) {
+    <form class="formulaire" (ngSubmit)="valider()">
+      <h2 id="dialogue-titre">{{ d.titre }}</h2>
+      @if (d.message) { <p class="discret">{{ d.message }}</p> }
+      @if (d.champ; as champ) {
+        <label>
+          {{ champ.libelle }}
+          <input name="valeur" [type]="champ.type" [(ngModel)]="valeur" required
+                 [attr.maxlength]="champ.longueurMax ?? null"
+                 [attr.autocomplete]="champ.type === 'password' ? 'new-password' : 'off'" />
+        </label>
+        @if (champ.aide) { <p class="discret">{{ champ.aide }}</p> }
+      }
+      <div class="actions">
+        <button type="button" class="secondaire" (click)="annuler()">Annuler</button>
+        <button type="submit" [class.danger]="d.danger" [disabled]="d.champ !== undefined && valeur === ''">
+          {{ d.confirmer }}
+        </button>
+      </div>
+    </form>
+  }
+</dialog>

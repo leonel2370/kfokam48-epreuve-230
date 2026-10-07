@@ -31,7 +31,7 @@
   <form class="ligne" (ngSubmit)="creerFiche()">
     <label>
       Nouvelle fiche étudiant
-      <input name="nomFiche" [(ngModel)]="nomFiche" required maxlength="150" />
+      <input name="nomFiche" [(ngModel)]="nomFiche" required [attr.maxlength]="longueurNom" />
     </label>
     <button type="submit" class="secondaire" [disabled]="enCours() || !nomFiche.trim()">Créer la fiche</button>
   </form>

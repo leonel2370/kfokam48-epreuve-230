@@ -1,0 +1,10 @@
+dialog {
+  width: min(28rem, calc(100vw - 2rem)); padding: 1.5rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+}
+dialog::backdrop { background: hsl(var(--foreground) / .4); }
+
+h2 { margin: 0; font-size: 1.125rem; }
+.actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.danger { background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
