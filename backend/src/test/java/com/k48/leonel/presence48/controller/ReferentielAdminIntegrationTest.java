@@ -161,7 +161,8 @@ class ReferentielAdminIntegrationTest {
     long sara = jdbc.queryForObject("SELECT id FROM etudiant WHERE nom = 'Sara Ebode'", Long.class);
     mvc.perform(put("/api/etudiants/" + sara).session(s).with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"nom\":\"Sara Ebode-Meli\",\"promotionId\":" + idPromotion("P2-2026") + "}"))
+            // Sara a un historique : elle garde sa promotion (RG32, #149) ; seul son nom change.
+            .content("{\"nom\":\"Sara Ebode-Meli\",\"promotionId\":" + idPromotion("P1-2026") + "}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.nom").value("Sara Ebode-Meli"));
     erreur(mvc.perform(put("/api/etudiants/999999").session(s).with(csrf())
