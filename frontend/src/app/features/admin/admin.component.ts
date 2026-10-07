@@ -1,28 +1,22 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  ErreurApi,
-  EtudiantAdmin,
-  PageUtilisateurs,
-  Promotion,
-  Role,
-  Utilisateur,
-} from '../../core/api/api.models';
+import { ErreurApi, Promotion, Role, Utilisateur } from '../../core/api/api.models';
 import { ApiService } from '../../core/api/api.service';
 import { CHEMINS, PARAM_PROMOTION, cheminTableau } from '../../core/navigation/chemins';
 import { BoutonNavigationComponent } from '../../shared/bouton-navigation/bouton-navigation.component';
 import { ErreurComponent } from '../../shared/erreur/erreur.component';
+import { GestionPromotionComponent } from './gestion-promotion/gestion-promotion.component';
 
 /**
  * Espace ADMIN (cahier §2 bis) : toutes les promotions, avec un bouton vers leur tableau et vers leurs sessions.
  * #60 : gestion des comptes — liste, création (mot de passe provisoire RG23), désactivation (RG28),
  * réinitialisation de mot de passe. Aucune règle métier calculée ici (F3) : tout vient de l'API.
- * #61 : gestion du référentiel — promotions (SF-21), rattachement des formateurs (RG26), fiches étudiants (SF-22).
+ * #61 : promotions (SF-21) ; le volet d'une promotion (formateurs RG26, fiches SF-22) est app-gestion-promotion.
  */
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent],
+  imports: [FormsModule, ErreurComponent, BoutonNavigationComponent, GestionPromotionComponent],
   templateUrl: './admin.component.html',
 })
 export class AdminComponent implements OnInit {
@@ -51,13 +45,13 @@ export class AdminComponent implements OnInit {
 
   // --- #61 : référentiel ---
   readonly promotionSelectionnee = signal<Promotion | null>(null);
-  readonly formateursRattaches = signal<Utilisateur[]>([]);
-  readonly fiches = signal<EtudiantAdmin[]>([]);
   nomPromotionCreation = '';
-  nomFicheCreation = '';
 
   ngOnInit(): void {
-    this.api.promotions().subscribe({ next: p => this.chargerPromotions(p), error: (e: ErreurApi) => this.erreur.set(e) });
+    this.api.promotions().subscribe({
+      next: p => this.chargerPromotions(p),
+      error: (e: ErreurApi) => this.erreur.set(e),
+    });
     this.chargerComptes();
   }
 
@@ -66,45 +60,9 @@ export class AdminComponent implements OnInit {
     return { [PARAM_PROMOTION]: promotionId };
   }
 
-  /** #61 : ouvre le volet de gestion d'une promotion (formateurs + fiches étudiants). */
+  /** #61 : ouvre le volet de gestion d'une promotion (formateurs et fiches), porté par app-gestion-promotion. */
   gerer(p: Promotion): void {
     this.promotionSelectionnee.set(p);
-    this.nomFicheCreation = '';
-    this.api.etudiantsAdmin(p.id).subscribe({
-      next: f => {
-        this.fiches.set(f);
-        this.erreur.set(null);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-  }
-
-  /** #61 : les formateurs rattachables sont les comptes FORMATEUR actifs (RG26). */
-  formateurs(): Utilisateur[] {
-    return this.comptes().filter(u => u.role === 'FORMATEUR' && u.actif);
-  }
-
-  estRattache(u: Utilisateur): boolean {
-    return this.formateursRattaches().some(f => f.id === u.id);
-  }
-
-  basculerRattachement(u: Utilisateur): void {
-    const p = this.promotionSelectionnee();
-    if (!p) {
-      return;
-    }
-    const ids = this.estRattache(u)
-      ? this.formateursRattaches().filter(f => f.id !== u.id).map(f => f.id)
-      : [...this.formateursRattaches().map(f => f.id), u.id];
-    this.api.rattacherFormateurs(p.id, ids).subscribe({
-      next: () => {
-        this.formateursRattaches.set(
-          this.formateurs().filter(f => ids.includes(f.id)),
-        );
-        this.message.set(`Formateurs de « ${p.nom} » enregistrés.`);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
   }
 
   creerPromotion(): void {
@@ -130,6 +88,9 @@ export class AdminComponent implements OnInit {
     this.api.renommerPromotion(p.id, nom.trim()).subscribe({
       next: modifiee => {
         this.chargerPromotions(this.promotions().map(x => (x.id === p.id ? modifiee : x)));
+        if (this.promotionSelectionnee()?.id === p.id) {
+          this.promotionSelectionnee.set(modifiee);
+        }
         this.message.set(`Promotion renommée en « ${modifiee.nom} ».`);
       },
       error: (e: ErreurApi) => this.erreur.set(e),
@@ -148,51 +109,6 @@ export class AdminComponent implements OnInit {
         }
         this.message.set(`Promotion « ${p.nom} » supprimée.`);
       },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-  }
-
-  creerFiche(): void {
-    const p = this.promotionSelectionnee();
-    const nom = this.nomFicheCreation.trim();
-    if (!p || !nom) {
-      return;
-    }
-    this.api.creerEtudiant({ nom, promotionId: p.id }).subscribe({
-      next: f => {
-        // la réponse du contrat (Etudiant) ne porte pas actif : une fiche créée est active
-        this.fiches.set([...this.fiches(), { ...f, actif: true }].sort((a, b) => a.nom.localeCompare(b.nom)));
-        this.message.set(`Fiche « ${f.nom} » créée dans « ${p.nom} ».`);
-        this.nomFicheCreation = '';
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-  }
-
-  renommerFiche(f: EtudiantAdmin): void {
-    const nom = prompt(`Nouveau nom de l'étudiant « ${f.nom} » :`, f.nom);
-    const p = this.promotionSelectionnee();
-    if (!p || !nom || !nom.trim() || nom.trim() === f.nom) {
-      return;
-    }
-    this.api.modifierEtudiant(f.id, { nom: nom.trim(), promotionId: p.id }).subscribe({
-      next: modifiee => {
-        this.fiches.set(this.fiches().map(x => (x.id === f.id ? { ...modifiee, actif: f.actif } : x)));
-        this.message.set(`Fiche renommée en « ${modifiee.nom} ».`);
-      },
-      error: (e: ErreurApi) => this.erreur.set(e),
-    });
-  }
-
-  supprimerFiche(f: EtudiantAdmin): void {
-    if (!confirm(
-      `Supprimer la fiche de « ${f.nom} » ? Sans historique elle sera supprimée ; sinon elle sera ` +
-      'désactivée (RG28) et restera au tableau.',
-    )) {
-      return;
-    }
-    this.api.supprimerEtudiant(f.id).subscribe({
-      next: () => this.gerer(this.promotionSelectionnee()!),
       error: (e: ErreurApi) => this.erreur.set(e),
     });
   }

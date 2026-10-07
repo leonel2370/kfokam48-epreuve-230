@@ -23,44 +23,8 @@
     <app-erreur [erreur]="erreur()" />
   </section>
 
-  <!-- #61 (SF-21/SF-22) : gestion d'une promotion -->
   @if (promotionSelectionnee(); as p) {
-    <section class="carte">
-      <h2>Gérer « {{ p.nom }} »</h2>
-
-      <h3>Formateurs de la promotion (RG26)</h3>
-      @for (u of formateurs(); track u.id) {
-        <p class="ligne">
-          <strong>{{ u.login }}</strong> — {{ u.nomAffiche }}
-          <button type="button" class="secondaire" (click)="basculerRattachement(u)">
-            {{ estRattache(u) ? 'Détacher' : 'Rattacher' }}
-          </button>
-        </p>
-      } @empty { <p class="discret">Aucun compte formateur actif : créez-en un dans « Créer un compte ».</p> }
-
-      <h3>Fiches étudiants</h3>
-      @for (f of fiches(); track f.id) {
-        <p class="ligne">
-          <strong>{{ f.nom }}</strong>
-          @if (!f.actif) { <span class="discret">(désactivé)</span> }
-          <button type="button" class="secondaire" (click)="renommerFiche(f)">Renommer</button>
-          <button type="button" class="secondaire" (click)="supprimerFiche(f)">Supprimer / désactiver</button>
-        </p>
-      } @empty { <p class="discret">Aucune fiche dans cette promotion.</p> }
-      <form (ngSubmit)="creerFiche()">
-        <label>
-          Nouvelle fiche étudiant
-          <input name="nomFicheCreation" [(ngModel)]="nomFicheCreation" required maxlength="150" />
-        </label>
-        <button type="submit" class="secondaire">Créer la fiche</button>
-      </form>
-
-      <p class="discret">
-        RG28 : une fiche sans historique est supprimée ; avec historique elle est désactivée — présences
-        et notes restent au tableau et elle disparaît des listes de sélection.
-      </p>
-      <app-erreur [erreur]="erreur()" />
-    </section>
+    <app-gestion-promotion [promotion]="p" />
   }
 
   <!-- #60 (SF-20) : gestion des comptes -->

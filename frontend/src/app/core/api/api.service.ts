@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Etudiant,
-  EtudiantAdmin,
   ExerciceAuteur,
   ExerciceDepose,
+  FicheEtudiant,
   LigneTableau,
   PageUtilisateurs,
   Presence,
@@ -97,9 +97,13 @@ export class ApiService {
     return this.http.put<void>(`${this.url}/moi/mot-de-passe`, { ancien, nouveau });
   }
 
-  /** #60 (SF-20) : liste paginée des comptes, réservée à l'ADMIN. */
-  utilisateurs(page = 0, size = 20): Observable<PageUtilisateurs> {
-    return this.http.get<PageUtilisateurs>(`${this.url}/utilisateurs`, { params: { page, size } });
+  /** #60 (SF-20) : liste paginée des comptes, réservée à l'ADMIN ; filtrable par rôle (contrat 2.8, #134). */
+  utilisateurs(page = 0, size = 20, role?: Role): Observable<PageUtilisateurs> {
+    const params: Record<string, string | number> = { page, size };
+    if (role) {
+      params['role'] = role;
+    }
+    return this.http.get<PageUtilisateurs>(`${this.url}/utilisateurs`, { params });
   }
 
   /** #60 (EF21) : création par l'ADMIN — mot de passe provisoire (RG23), login unique (RG27). */
@@ -127,9 +131,14 @@ export class ApiService {
 
   // --- #61 (SF-21, SF-22) : gestion du référentiel ---
 
-  /** Vue ADMIN d'une promotion : toutes les fiches, désactivées comprises (RG28). */
-  etudiantsAdmin(promotionId: number): Observable<EtudiantAdmin[]> {
-    return this.http.get<EtudiantAdmin[]>(`${this.url}/promotions/${promotionId}/etudiants?admin=true`);
+  /** Toutes les fiches d'une promotion, désactivées comprises, avec leur compte (contrat 2.8, #134). */
+  fiches(promotionId: number): Observable<FicheEtudiant[]> {
+    return this.http.get<FicheEtudiant[]>(`${this.url}/promotions/${promotionId}/fiches`);
+  }
+
+  /** Formateurs rattachés à une promotion : la liste que rattacherFormateurs remplace (contrat 2.8, #134). */
+  formateursDe(promotionId: number): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.url}/promotions/${promotionId}/formateurs`);
   }
 
   creerPromotion(nom: string): Observable<Promotion> {
@@ -145,7 +154,7 @@ export class ApiService {
     return this.http.delete<void>(`${this.url}/promotions/${id}`);
   }
 
-  /** RG26 : remplace la liste des formateurs rattachés ; seuls des comptes FORMATEUR sont admis. */
+  /** RG26 : remplace la liste des formateurs rattachés (vide : plus aucun) ; seuls des FORMATEUR actifs sont admis. */
   rattacherFormateurs(promotionId: number, utilisateurIds: number[]): Observable<void> {
     return this.http.put<void>(`${this.url}/promotions/${promotionId}/formateurs`, { utilisateurIds });
   }

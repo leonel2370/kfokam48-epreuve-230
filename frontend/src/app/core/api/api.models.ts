@@ -116,7 +116,11 @@ export interface PageUtilisateurs {
   total: number;
 }
 
-/** #61 (SF-22) : la liste ADMIN montre aussi les fiches désactivées (RG28). */
-export interface EtudiantAdmin extends Etudiant {
+/**
+ * Contrat 2.8 (#134) : fiche étudiant vue par ceux qui la gèrent — état (RG28) et identifiant du compte lié,
+ * null si la fiche n'a pas de compte (HYP-15).
+ */
+export interface FicheEtudiant extends Etudiant {
   actif: boolean;
+  compteLogin: string | null;
 }

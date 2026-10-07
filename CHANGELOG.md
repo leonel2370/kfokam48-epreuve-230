@@ -15,6 +15,7 @@ Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier ave
 - Codes d'erreur de la gestion des comptes alignés sur le catalogue : `MOT_DE_PASSE_TROP_FAIBLE` pour un mot de passe provisoire trop court, `FICHE_DEJA_LIEE` pour une fiche qui a déjà un compte, `ETUDIANT_INCONNU` pour une fiche inexistante, `ROLE_INCOMPATIBLE` au rattachement (#134, PR #150).
 
 ### Corrigé
+- Administration, volet d'une promotion : les fiches ne sont plus toutes affichées « désactivé », rattacher un formateur ne détache plus les autres, le dernier formateur peut être détaché et tous les formateurs sont proposés ; l'écran relit le serveur après chaque action (#135, PR #152).
 - La liste des comptes ne renvoie plus d'erreur 500 pour une page négative ou une taille nulle ; la taille est plafonnée à 100, comme le dit le contrat (#132, PR #146).
 - Une fiche étudiant qui n'a que des codes de présence erronés est désactivée au lieu de rester bloquée en 409 : une tentative de code compte comme historique, RG28 (#133, PR #147).
 
