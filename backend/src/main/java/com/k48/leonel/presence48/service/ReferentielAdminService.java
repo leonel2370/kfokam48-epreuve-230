@@ -1,11 +1,14 @@
 package com.k48.leonel.presence48.service;
 
 import com.k48.leonel.presence48.dto.response.EtudiantReponse;
+import com.k48.leonel.presence48.dto.response.FicheEtudiantReponse;
 import com.k48.leonel.presence48.dto.response.PromotionReponse;
+import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
 import com.k48.leonel.presence48.entity.Etudiant;
 import com.k48.leonel.presence48.entity.FormateurPromotion;
 import com.k48.leonel.presence48.entity.Promotion;
 import com.k48.leonel.presence48.entity.Role;
+import com.k48.leonel.presence48.entity.Utilisateur;
 import com.k48.leonel.presence48.exception.MetierException;
 import com.k48.leonel.presence48.repository.EtudiantRepository;
 import com.k48.leonel.presence48.repository.ExerciceRepository;
@@ -17,8 +20,12 @@ import com.k48.leonel.presence48.repository.SessionCoursRepository;
 import com.k48.leonel.presence48.repository.TentativeCodeRepository;
 import com.k48.leonel.presence48.repository.UtilisateurRepository;
 import com.k48.leonel.presence48.securite.ControleAcces;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,31 +102,57 @@ public class ReferentielAdminService {
     promotions.deleteById(id);
   }
 
-  /** RG26 : définit la liste des formateurs d'une promotion ; seuls des comptes FORMATEUR sont admis. */
+  /** #134 : formateurs rattachés à une promotion, triés par nom affiché (ADMIN). */
+  @Transactional(readOnly = true)
+  public List<UtilisateurReponse> formateursDe(Long promotionId) {
+    chargerPromotion(promotionId);
+    var ids = rattachements.findByPromotionId(promotionId).stream()
+        .map(r -> r.getId().getUtilisateurId()).toList();
+    return utilisateurs.findAllById(ids).stream()
+        .sorted(Comparator.comparing(Utilisateur::getNomAffiche))
+        .map(UtilisateurReponse::de).toList();
+  }
+
+  /**
+   * RG26 : remplace la liste des formateurs d'une promotion ; vide, elle les retire tous (#134).
+   * Seul un compte FORMATEUR actif est admis (400 ROLE_INCOMPATIBLE) ; inconnu : 404.
+   */
   @Transactional
   public void rattacherFormateurs(Long promotionId, List<Long> utilisateurIds) {
     chargerPromotion(promotionId);
     var ids = new LinkedHashSet<>(utilisateurIds);
+    var comptes = utilisateurs.findAllById(ids).stream()
+        .collect(Collectors.toMap(Utilisateur::getId, Function.identity()));
     for (Long id : ids) {
-      var u = utilisateurs.findById(id).orElseThrow(() ->
-          new MetierException(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT", "Cet utilisateur n'existe pas."));
-      if (u.getRole() != Role.FORMATEUR) {
-        throw new MetierException(HttpStatus.BAD_REQUEST, "CHAMP_MANQUANT",
-            "Seuls des comptes FORMATEUR peuvent être rattachés.");
+      var u = comptes.get(id);
+      if (u == null) {
+        throw new MetierException(HttpStatus.NOT_FOUND, "UTILISATEUR_INTROUVABLE", "Cet utilisateur n'existe pas.");
+      }
+      if (u.getRole() != Role.FORMATEUR || !u.isActif()) {
+        throw new MetierException(HttpStatus.BAD_REQUEST, "ROLE_INCOMPATIBLE",
+            "Seul un compte FORMATEUR actif peut être rattaché à une promotion.");
       }
     }
-    rattachements.findByPromotionId(promotionId)
-        .stream().filter(r -> !ids.contains(r.getId().getUtilisateurId()))
-        .forEach(rattachements::delete);
-    ids.forEach(id -> {
-      var cle = new com.k48.leonel.presence48.entity.FormateurPromotionId(id, promotionId);
-      if (!rattachements.existsById(cle)) {
-        rattachements.save(new FormateurPromotion(id, promotionId));
-      }
-    });
+    var actuels = rattachements.findByPromotionId(promotionId);
+    rattachements.deleteAll(actuels.stream().filter(r -> !ids.contains(r.getId().getUtilisateurId())).toList());
+    var dejaRattaches = actuels.stream().map(r -> r.getId().getUtilisateurId()).collect(Collectors.toSet());
+    ids.stream().filter(id -> !dejaRattaches.contains(id))
+        .forEach(id -> rattachements.save(new FormateurPromotion(id, promotionId)));
   }
 
   // --- Fiches étudiants (ADMIN, FORMATEUR de la promotion) ---
+
+  /** #134 : toutes les fiches d'une promotion, désactivées comprises, avec le compte lié (HYP-15). */
+  @Transactional(readOnly = true)
+  public List<FicheEtudiantReponse> fichesDe(Long promotionId) {
+    acces.verifierGestionPromotionStrict(promotionId);
+    chargerPromotion(promotionId);
+    var fiches = etudiants.findByPromotionIdOrderByNomAsc(promotionId);
+    Map<Long, String> logins = utilisateurs.findByEtudiantIdIn(fiches.stream().map(Etudiant::getId).toList())
+        .stream().collect(Collectors.toMap(Utilisateur::getEtudiantId, Utilisateur::getLogin));
+    return fiches.stream().map(e -> new FicheEtudiantReponse(e.getId(), e.getNom(), e.getPromotionId(),
+        e.isActif(), logins.get(e.getId()))).toList();
+  }
 
   @Transactional
   public EtudiantReponse creerEtudiant(Long promotionId, String nom) {

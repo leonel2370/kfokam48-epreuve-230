@@ -3,10 +3,14 @@ package com.k48.leonel.presence48.controller;
 import com.k48.leonel.presence48.dto.request.PromotionEcriture;
 import com.k48.leonel.presence48.dto.request.RattachementFormateursRequete;
 import com.k48.leonel.presence48.dto.response.EtudiantReponse;
+import com.k48.leonel.presence48.dto.response.FicheEtudiantReponse;
 import com.k48.leonel.presence48.dto.response.PromotionReponse;
+import com.k48.leonel.presence48.dto.response.UtilisateurReponse;
+import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.ReferentielAdminService;
 import com.k48.leonel.presence48.service.ReferentielService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -61,11 +65,53 @@ public class ReferentielController {
           @ApiResponse(responseCode = "200", description = "Étudiants de la promotion",
               content = @Content(schema = @Schema(implementation = EtudiantReponse.class))),
           @ApiResponse(responseCode = "404", description = "Promotion inconnue",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/{promotionId}/etudiants")
   public List<EtudiantReponse> etudiants(@PathVariable Long promotionId) {
     return referentiel.etudiantsDeLaPromotion(promotionId);
+  }
+
+  // --- #134 / contrat 2.8 : lectures de gestion ---
+
+  @Operation(operationId = "listerFormateursDeLaPromotion",
+      summary = "Formateurs rattachés à une promotion (SF-21, #134)",
+      description = "Réservé à l'ADMIN (RG25). Rend la liste que PUT …/formateurs remplace (RG26).",
+      security = @SecurityRequirement(name = "cookieAuth"),
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Comptes FORMATEUR rattachés, triés par nom affiché",
+              content = @Content(array = @ArraySchema(schema = @Schema(implementation = UtilisateurReponse.class)))),
+          @ApiResponse(responseCode = "401", description = "Non connecté",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+          @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+          @ApiResponse(responseCode = "404", description = "PROMOTION_INCONNUE",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+      })
+  @GetMapping("/{promotionId}/formateurs")
+  @PreAuthorize("hasRole('ADMIN')")
+  public List<UtilisateurReponse> formateurs(@PathVariable Long promotionId) {
+    return admin.formateursDe(promotionId);
+  }
+
+  @Operation(operationId = "listerFichesDeLaPromotion",
+      summary = "Fiches étudiants d'une promotion pour la gestion (SF-22, #134)",
+      description = "ADMIN, ou FORMATEUR rattaché à la promotion (RG26). Toutes les fiches, désactivées comprises "
+          + "(RG28), avec leur état et le compte lié. La liste publique …/etudiants reste limitée aux fiches actives.",
+      security = @SecurityRequirement(name = "cookieAuth"),
+      responses = {
+          @ApiResponse(responseCode = "200", description = "Fiches triées par nom",
+              content = @Content(array = @ArraySchema(schema = @Schema(implementation = FicheEtudiantReponse.class)))),
+          @ApiResponse(responseCode = "401", description = "Non connecté",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+          @ApiResponse(responseCode = "403", description = "Ni ADMIN ni formateur de cette promotion",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+          @ApiResponse(responseCode = "404", description = "PROMOTION_INCONNUE",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+      })
+  @GetMapping("/{promotionId}/fiches")
+  public List<FicheEtudiantReponse> fiches(@PathVariable Long promotionId) {
+    return admin.fichesDe(promotionId);
   }
 
   // --- #61 / SF-21, EF22 : écritures, réservées à l'ADMIN (RG25) ---
@@ -77,13 +123,13 @@ public class ReferentielController {
           @ApiResponse(responseCode = "201", description = "Promotion créée",
               content = @Content(schema = @Schema(implementation = PromotionReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "CONFLIT — nom déjà pris",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
@@ -99,15 +145,15 @@ public class ReferentielController {
           @ApiResponse(responseCode = "200", description = "Promotion renommée",
               content = @Content(schema = @Schema(implementation = PromotionReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "PROMOTION_INCONNUE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "CONFLIT — nom déjà pris",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PutMapping("/{promotionId}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -123,13 +169,13 @@ public class ReferentielController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Promotion supprimée"),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "PROMOTION_INCONNUE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "409", description = "SUPPRESSION_IMPOSSIBLE — étudiants ou sessions",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @DeleteMapping("/{promotionId}")
   @PreAuthorize("hasRole('ADMIN')")
@@ -146,13 +192,13 @@ public class ReferentielController {
       responses = {
           @ApiResponse(responseCode = "204", description = "Rattachements enregistrés"),
           @ApiResponse(responseCode = "400", description = "CHAMP_MANQUANT — compte absent ou non formateur",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Pas le rôle ADMIN",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "PROMOTION_INCONNUE",
-              content = @Content(schema = @Schema(implementation = com.k48.leonel.presence48.exception.ErreurReponse.class))),
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @PutMapping("/{promotionId}/formateurs")
   @PreAuthorize("hasRole('ADMIN')")
