@@ -65,6 +65,31 @@ Chaque entrée répond aux trois mêmes questions :
 
 ---
 
+## Après la version 1.0 — vers la 1.1 (25/09 au 08/10)
+
+Travail fait après l'échéance, pour finir ce qui avait été sorti du périmètre et corriger ce qui était faux. Le dépôt a donc continué d'évoluer après la soumission.
+
+**Fait :**
+- **25 et 26/09** : Swagger UI (#96), code de session masqué aux étudiants (#98), relecture fiable (#101), connexion et menus par rôle (#59). Puis, après un audit des écrans : un composant = quatre fichiers (#103), navigation par boutons et écran relecteur distinct pour F2 (#104), cinq bugs (#105 à #109), analyse et contrat remis à jour (#110, #111).
+- **29/09** : fiche désactivée (#113), récapitulatif de l'étudiant (#112), comptes (#60), promotions, formateurs et fiches (#61).
+- **05/10, audit de tout ce qui précède** : relecture du code fusionné par les PR #116 à #127, contre le cahier, le contrat et les règles d'équipe. Résultat : **11 défauts bloquants** (5 au backend dont 3 de sécurité, 6 dans l'écran d'administration), une Quality Gate SonarQube non relancée depuis le 25/09 (57 violations au backend, 4 au frontend), et une documentation en retard.
+- **07 et 08/10, corrections** : un ticket par défaut (#128 à #141, #149), test rouge commité seul avant chaque correctif. Trois règles décidées et écrites avant d'être codées (RG32 à RG34, #140). Contrat 2.8. Écran d'administration refait en composants, vérifié dans un navigateur à chaque étape. Quality Gate revenue à 0 violation sur les deux projets. Version **1.1.0**.
+
+**Bloqué :**
+- **Tests qui passaient sur du faux.** Les écrans #60 et #61 avaient des tests verts qui simulaient des réponses que le serveur ne renvoie pas (un champ `actif` inexistant, une liste de formateurs jamais lue). À l'écran réel : toutes les fiches affichées « désactivé », et rattacher un formateur détachait tous les autres. Leçon : un test d'écran doit simuler la réponse **du contrat**, et l'écran doit être ouvert au moins une fois dans un navigateur avant la fusion.
+- **Tests rouges réécrits dans le commit du correctif** (#105, #109, #60) : l'assertion gênante avait été relâchée au lieu d'être satisfaite. Depuis l'audit, un test rouge n'est plus modifié ; quand il doit l'être, la PR dit quoi et pourquoi.
+- **SonarQube sur un réseau privé** : injoignable une partie du temps. Neuf PR ont été fusionnées sans analyse, avec la mention écrite dans chacune, puis l'analyse a été rattrapée (#128, puis PR #159) : elle a encore trouvé deux violations dans mon propre code.
+- **Un test dépendait de l'ordre d'exécution** (tableau de démonstration) : vert en CI, rouge sur mon poste. Corrigé en lui donnant une base neuve.
+- **Historique réécrit le 07/10.** Des lignes de co-auteur ajoutées automatiquement par les outils figuraient dans 13 messages de commit. Je les ai retirées (messages seulement, contenu identique, auteurs et dates inchangés), ce qui a demandé un `push --force` sur `main` : c'est le seul depuis la recréation du dépôt, et je l'assume. Une sauvegarde de l'ancien historique est conservée hors du dépôt.
+
+**IA :** deux assistants ont servi sur cette période : Claude (25 et 26/09, puis l'audit et les corrections à partir du 05/10) et Codebuff (26 au 29/09). Ce que j'ai appris en les faisant se relire l'un l'autre :
+- Un assistant produit vite du code et des tests **cohérents entre eux**, pas forcément avec le serveur : les tests de #60 et #61 validaient ses propres suppositions. La vérification qui a trouvé les défauts n'est pas une relecture, c'est l'exécution : requêtes réelles, navigateur réel, `./mvnw verify`, SonarQube.
+- Chaque défaut de l'audit a été **prouvé par un test rouge avant d'être corrigé** (par exemple `Status expected:<403> but was:<200>` pour le formateur qui s'approprie un étudiant), jamais corrigé sur la seule foi du diagnostic.
+- Les trois règles nouvelles (déplacement d'une fiche, fiche désactivée et tirage, fiche et compte) ne sont pas des choix de l'IA : elle a posé la question, j'ai tranché, la décision est dans le cahier §7.2 quater.
+- Les annonces « tests verts » et « Quality Gate OK » des descriptions de PR ne valent que si la commande a tourné : la Quality Gate affichée du 26 au 29/09 portait sur d'anciens commits.
+
+---
+
 ## Étape 5 — Épreuve Git
 
 **Fait :**
