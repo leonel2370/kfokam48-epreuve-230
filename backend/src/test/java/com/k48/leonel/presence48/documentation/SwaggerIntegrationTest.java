@@ -105,7 +105,7 @@ class SwaggerIntegrationTest {
     for (var code : List.of("400", "409", "410", "429")) {
       org.assertj.core.api.Assertions.assertThat(reponses.has(code)).as("réponse %s", code).isTrue();
     }
-    org.assertj.core.api.Assertions.assertThat(reponses.path("410").path("content").path("*/*")
+    org.assertj.core.api.Assertions.assertThat(reponses.path("410").path("content").path("application/json")
         .path("schema").path("$ref").asText()).contains("Erreur");
   }
 

@@ -4,6 +4,7 @@ import com.k48.leonel.presence48.dto.response.LigneTableauReponse;
 import com.k48.leonel.presence48.exception.ErreurReponse;
 import com.k48.leonel.presence48.service.TableauService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "tableau", description = "Tableau de la promotion (#105 — EF10, Q16)")
+@Tag(name = "tableau")
 public class TableauController {
 
   private final TableauService tableau;
@@ -30,7 +31,7 @@ public class TableauController {
           + "côté client (F3).",
       responses = {
           @ApiResponse(responseCode = "200", description = "Lignes du tableau",
-              content = @Content(schema = @Schema(implementation = LigneTableauReponse.class))),
+              content = @Content(array = @ArraySchema(schema = @Schema(implementation = LigneTableauReponse.class)))),
           @ApiResponse(responseCode = "400", description = "Paramètre promotionId manquant ou non numérique",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "Promotion inconnue",

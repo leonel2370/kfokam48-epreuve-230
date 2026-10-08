@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/etudiants")
-@Tag(name = "administration", description = "CRUD des fiches étudiants (#61 — SF-22, EF23, RG26, RG28)")
+@Tag(name = "administration")
 public class EtudiantAdminController {
 
   private final ReferentielAdminService admin;
@@ -45,8 +45,6 @@ public class EtudiantAdminController {
           @ApiResponse(responseCode = "201", description = "Fiche créée",
               content = @Content(schema = @Schema(implementation = EtudiantReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou promotion inconnue",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
@@ -66,8 +64,6 @@ public class EtudiantAdminController {
               content = @Content(schema = @Schema(implementation = EtudiantReponse.class))),
           @ApiResponse(responseCode = "400", description = "Champ manquant ou promotion inconnue",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "ETUDIANT_INCONNU",
@@ -86,8 +82,6 @@ public class EtudiantAdminController {
       security = @SecurityRequirement(name = "cookieAuth"),
       responses = {
           @ApiResponse(responseCode = "204", description = "Fiche supprimée ou désactivée"),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "FORMATEUR hors promotion (ACCES_REFUSE)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "404", description = "ETUDIANT_INCONNU",

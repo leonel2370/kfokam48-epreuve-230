@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Connexion, profil connecté et mot de passe (SF-15, SF-17, SF-18). La déconnexion est gérée par Spring Security. */
 @RestController
 @RequestMapping("/api")
-@Tag(name = "sécurité", description = "Connexion, profil, mot de passe (#105 — SF-15, SF-17, SF-18)")
+@Tag(name = "sécurité")
 public class AuthController {
 
   private final AuthService auth;
@@ -56,12 +56,18 @@ public class AuthController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Connecté, profil renvoyé",
               content = @Content(schema = @Schema(implementation = ProfilReponse.class))),
-          @ApiResponse(responseCode = "400", description = "Identifiants invalides",
+          @ApiResponse(responseCode = "400", description = "Identifiant ou mot de passe absent",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
+                  examples = @ExampleObject(value = "{\"code\":\"CHAMP_MANQUANT\","
+                      + "\"message\":\"Un champ obligatoire est manquant ou mal formé.\"}"))),
+          @ApiResponse(responseCode = "401", description = "Identifiant inconnu ou mot de passe incorrect",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"IDENTIFIANTS_INVALIDES\","
                       + "\"message\":\"Identifiant ou mot de passe incorrect.\"}"))),
-          @ApiResponse(responseCode = "403", description = "Compte désactivé",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+          @ApiResponse(responseCode = "403", description = "Compte désactivé (RG28)",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
+                  examples = @ExampleObject(value = "{\"code\":\"COMPTE_DESACTIVE\","
+                      + "\"message\":\"Ce compte est désactivé.\"}"))),
           @ApiResponse(responseCode = "429", description = "Bloqué après 5 échecs (RG24)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
@@ -85,8 +91,6 @@ public class AuthController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Profil connecté",
               content = @Content(schema = @Schema(implementation = ProfilReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
       })
   @GetMapping("/moi")
   public ProfilReponse moi(@AuthenticationPrincipal UtilisateurConnecte u) {
@@ -101,8 +105,6 @@ public class AuthController {
       responses = {
           @ApiResponse(responseCode = "200", description = "Récapitulatif personnel",
               content = @Content(schema = @Schema(implementation = LigneTableauReponse.class))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
           @ApiResponse(responseCode = "403", description = "Compte non étudiant",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"ACCES_REFUSE\","
@@ -122,9 +124,13 @@ public class AuthController {
           @ApiResponse(responseCode = "400", description = "Nouveau mot de passe trop faible (RG24)",
               content = @Content(schema = @Schema(implementation = ErreurReponse.class),
                   examples = @ExampleObject(value = "{\"code\":\"MOT_DE_PASSE_TROP_FAIBLE\","
-                      + "\"message\":\"Le mot de passe doit faire au moins 8 caractères.\"}"))),
-          @ApiResponse(responseCode = "401", description = "Non connecté",
-              content = @Content(schema = @Schema(implementation = ErreurReponse.class))),
+                      + "\"message\":\"Le mot de passe doit contenir au moins 8 caractères et différer "
+                      + "de l'actuel.\"}"))),
+          @ApiResponse(responseCode = "401", description = "Non connecté, ou mot de passe actuel incorrect",
+              content = @Content(schema = @Schema(implementation = ErreurReponse.class),
+                  examples = @ExampleObject(name = "mot-de-passe-actuel-incorrect",
+                      value = "{\"code\":\"IDENTIFIANTS_INVALIDES\","
+                          + "\"message\":\"Le mot de passe actuel est incorrect.\"}"))),
       })
   @PutMapping("/moi/mot-de-passe")
   public ResponseEntity<Void> changerMotDePasse(@AuthenticationPrincipal UtilisateurConnecte u,

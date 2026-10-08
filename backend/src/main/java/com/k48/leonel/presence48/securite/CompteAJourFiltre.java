@@ -53,7 +53,7 @@ public class CompteAJourFiltre extends OncePerRequestFilter {
         return;
       }
       ReponseErreurJson.ecrire(reponse, HttpServletResponse.SC_UNAUTHORIZED, "NON_AUTHENTIFIE",
-          GestionnairesErreurSecurite.NON_AUTHENTIFIE);
+          MessagesSecurite.NON_AUTHENTIFIE);
       return;
     }
     var aJour = new UtilisateurConnecte(connecte.id(), compte.get().getLogin(), compte.get().getRole(),
