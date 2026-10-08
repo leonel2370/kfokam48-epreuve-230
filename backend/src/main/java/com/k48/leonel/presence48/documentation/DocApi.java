@@ -38,7 +38,7 @@ public class DocApi {
 
   static final String JSON = "application/json";
   private static final String SCHEMA_ERREUR = "#/components/schemas/ErreurReponse";
-  private static final Pattern VERSION_DU_CONTRAT = Pattern.compile("(?m)^  version: \"([0-9.]+)\"");
+  private static final Pattern VERSION_DU_CONTRAT = Pattern.compile("(?m)^ {2}version: \"([0-9.]+)\"");
 
   private static final String DESCRIPTION = """
       Documentation générée depuis le code (springdoc). Le contrat qui fait foi reste \

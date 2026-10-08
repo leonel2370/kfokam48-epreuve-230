@@ -28,7 +28,7 @@ class DocGenereeExacteIntegrationTest {
 
   private static final List<String> VERBES = List.of("get", "post", "put", "delete");
   private static final String JSON = "application/json";
-  private static final Pattern VERSION_CONTRAT = Pattern.compile("(?m)^  version: \"([0-9.]+)\"");
+  private static final Pattern VERSION_CONTRAT = Pattern.compile("(?m)^ {2}version: \"([0-9.]+)\"");
 
   @Autowired
   private MockMvc mvc;
