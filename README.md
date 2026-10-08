@@ -50,7 +50,10 @@ Chacun se connecte sur **http://localhost:4200** et arrive dans l'espace de son 
 3. **Awa** dépose un lien `https://…` en choisissant la session : deux relecteurs parmi les présents (Paul et Lina) sont tirés au sort (statut `EN_ATTENTE_RELECTURE`).
 4. **Paul** puis **Lina** : la relecture apparaît dans « Mes relectures à faire » → note, commentaire, envoi définitif. Après la première note, Awa voit une note **provisoire** ; après la seconde, la moyenne **définitive**.
 5. **Tableau** (formateur) : présences, exercices, moyenne calculée par le serveur (« — » sans note) et relectures en attente.
-6. **Administrateur** (`admin` / `admin`) : changement de mot de passe imposé au premier accès, puis **Administration** : toutes les promotions et leurs tableaux.
+6. **Administrateur** (`admin` / `admin`) : changement de mot de passe imposé au premier accès, puis **Administration** :
+   - **Promotions** : tableau, sessions, créer, renommer, supprimer ; **Gérer** ouvre les formateurs rattachés et les fiches étudiants d'une promotion ;
+   - **Comptes** : désactiver, réactiver, changer le rôle, donner un mot de passe provisoire ;
+   - **Créer un compte** : pour un étudiant, choisir sa promotion puis sa fiche.
 
 Un étudiant qui tape l'adresse d'un autre espace est renvoyé dans le sien. Les 5 opérations imposées par le contrat restent appelables sans session (RG22, pour la correction automatique). Les autres routes exigent une session (cookie HttpOnly, SameSite=Strict, jeton XSRF).
 
@@ -76,10 +79,11 @@ cd frontend && npx ng test --watch=false --browsers=ChromeHeadless
 ## Structure
 
 ```text
-api/contrat.yaml      Contrat OpenAPI 3 (v2.3) — les opérations imposées sont inchangées ; x-livre : état de la livraison
+api/contrat.yaml      Contrat OpenAPI 3 (v2.8) — les opérations imposées sont inchangées ; x-livre : état de la livraison
 backend/              Spring Boot : controller / service / repository / entity / dto / exception / securite
-frontend/             Angular 17 : core (api, auth, navigation, intercepteurs), features (connexion, formateur,
-                      etudiant : presence, notes, relectures, profil, admin), shared (navigation, erreurs)
+frontend/             Angular 17 : core (api, auth, navigation, états, dialogue, libellés, intercepteurs), features (connexion, formateur,
+                      etudiant : presence, notes, relectures, profil, admin), shared (boutons, dialogue,
+                      pagination, états de liste, badge, erreur) — règles : frontend/ARCHITECTURE.md
 docs/                 Cahier des charges, spécifications, diagrammes D1–D5, plans, backlog, journal
 docker-compose.yml    PostgreSQL + backend + frontend (nginx, même origine)
 ```
