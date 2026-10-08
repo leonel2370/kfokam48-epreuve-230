@@ -3,13 +3,21 @@
 Toutes les évolutions notables de Présence48. Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions : [SemVer](https://semver.org/lang/fr/).
 Chaque entrée renvoie à son issue et à sa pull request : l'historique Git en est la source.
 
-## [Non publié]
+## [1.1.0] — 2026-10-08
 
-Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier avec la 1.1.0.
+Navigation par boutons, administration (comptes, promotions, formateurs, fiches), documentation Swagger, puis
+correctifs de l'audit du 05/10 : la revue des PR #116 à #127 a trouvé onze défauts bloquants, tous corrigés ici.
 
 ### Ajouté
 - Administration : réactiver un compte désactivé et changer le rôle d'un compte sans fiche étudiant (#138, PR #158).
 - Administration lisible (contrat 2.8) : formateurs rattachés à une promotion, fiches d'une promotion avec leur état et leur compte, liste des comptes filtrable par rôle ; le rattachement accepte une liste vide et refuse proprement un compte inconnu, désactivé ou non formateur (#134, PR #148 pour l'analyse, PR #150).
+- **Swagger UI** : documentation de l'API générée, annotée (descriptions, codes d'erreur réels, authentification cookieAuth), avec deux définitions (contrat de référence et implémentation) et guide `docs/GUIDE_API.md` (#96, PR #97 ; annotations #105, PR #121).
+- **Connexion et menus par rôle** (frontend de la sécurité v2) : login/logout, gardes de routes, navigation par rôle (#59, PR #100).
+- **Navigation par boutons et écran relecteur distinct** (#104, PR #116) : l'espace étudiant devient trois écrans (`presence`, `notes`, `relectures`), bouton « Ouvrir l'exercice », composants partagés `bouton-navigation`.
+- Contrat d'API **2.3** : `x-livre` sur chaque opération (les non livrées préfixées « Non livré (backlog #n) »), réponses 400/401/403 manquantes, descriptions à jour (#111, PR #122).
+- **CRUD des comptes** (ADMIN, contrat 2.6) : liste paginée, création (mot de passe provisoire à changer à la première connexion, RG23 ; login unique RG27), modification, désactivation RG28 avec protection du dernier admin actif, réinitialisation de mot de passe ; écran « Comptes » dans l'espace ADMIN (#60, PR #126).
+- **Gestion du référentiel** (contrat 2.7) : promotions par l'ADMIN — créer, renommer, supprimer (RG28 : refusée si étudiants ou sessions ; nom unique → 409 CONFLIT), rattachement des formateurs (RG26 : seuls des comptes FORMATEUR, le rattachement ouvre la promotion) ; fiches étudiants par l'ADMIN et le formateur de la promotion (RG26) — créer, modifier, supprimer sans historique ou désactiver (RG28, l'historique reste au tableau) ; volet « Gérer » dans l'écran ADMIN (#61, PR #127).
+- **Récapitulatif de l'étudiant connecté** : `GET /api/moi/recap` (contrat 2.5) renvoie sa ligne de tableau — présences, exercices, moyenne des notes retenues (RG16), relectures en attente ; encart « Récapitulatif » dans « Mes notes » (#112, PR #125).
 
 ### Modifié
 - Écran d'administration découpé en composants (volet d'une promotion, liste des comptes, création de compte) ; composants partagés `dialogue`, `pagination`, `etat-liste` et `badge` ; les dialogues de l'écran remplacent `confirm` et `prompt` du navigateur, et le mot de passe provisoire n'est plus saisi en clair ; libellés typés sur le contrat (#138, PR #157 pour la maquette, PR #158).
@@ -23,41 +31,22 @@ Correctifs issus de l'audit du 05/10 (revue des PR #116 à #127), à publier ave
 - Administration, volet d'une promotion : les fiches ne sont plus toutes affichées « désactivé », rattacher un formateur ne détache plus les autres, le dernier formateur peut être détaché et tous les formateurs sont proposés ; l'écran relit le serveur après chaque action (#135, PR #152).
 - La liste des comptes ne renvoie plus d'erreur 500 pour une page négative ou une taille nulle ; la taille est plafonnée à 100, comme le dit le contrat (#132, PR #146).
 - Une fiche étudiant qui n'a que des codes de présence erronés est désactivée au lieu de rester bloquée en 409 : une tentative de code compte comme historique, RG28 (#133, PR #147).
+- Relecture : les listes se mettent à jour, les relectures rendues restent visibles, l'envoi est bloqué sans note valide (#101, PR #102).
+- Espace étudiant : la liste des sessions se recharge après une présence ou un dépôt, avec une zone d'erreur dédiée (#107, PR #118).
+- Les erreurs sont effacées après un rafraîchissement réussi et les boutons ne peuvent plus envoyer deux fois (#106, PR #119) ; les messages de succès s'effacent aussi (5 s).
+- Libellés trompeurs : statuts et rôle en français, texte honnête après expiration du code, tableau titré avec sa promotion, adresse de promotion invalide gérée sans appel serveur (#108, PR #120).
+- L'analyse (cahier, spécifications, D2, README) est à jour de la livraison réelle : migrations V1–V4, #59 livré, hypothèses remplacées en v2 signalées, contrat 2.3 (#110, PR #123).
 
 ### Sécurité
 - Un formateur ne peut plus modifier ni déplacer vers sa promotion la fiche d'un étudiant d'une autre promotion : le contrôle porte sur la promotion actuelle de la fiche et sur la promotion d'arrivée, RG26 (#129, PR #143).
 - Le dernier administrateur actif ne peut plus être désactivé ni changé de rôle par une modification de compte (409 `SUPPRESSION_IMPOSSIBLE`), le comptage est verrouillé contre deux demandes simultanées ; un compte qui quitte le rôle FORMATEUR perd ses rattachements, RG28 et RG26 (#130, PR #144).
 - Une session ouverte suit l'état réel du compte : un compte désactivé est déconnecté à sa requête suivante (401), un changement de rôle s'applique aussitôt, sans attendre l'expiration de la session, RG25 et RG28 (#131, PR #145).
-
-## [1.1.0] — 2026-09-25/26
-
-### Sécurité
 - La liste des sessions ne révèle plus le code de présence aux étudiants (#98, PR #99) : le code est réservé au formateur.
 - Un étudiant connecté ne peut plus savoir si un autre identifiant d'étudiant existe : le contrôle d'identité passe avant le contrôle d'existence (#109, PR #117) ; le contrat documente ces réponses (2.3).
-
-### Corrigé
-- Relecture : les listes se mettent à jour, les relectures rendues restent visibles, l'envoi est bloqué sans note valide (#101, PR #102).
-- Espace étudiant : la liste des sessions se recharge après une présence ou un dépôt, avec une zone d'erreur dédiée (#107, PR #118).
-- Les erreurs sont effacées après un rafraîchissement réussi et les boutons ne peuvent plus envoyer deux fois (#106, PR #119) ; les messages de succès s'effacent aussi (5 s).
-- Libellés trompeurs : statuts et rôle en français, texte honnête après expiration du code, tableau titré avec sa promotion, adresse de promotion invalide gérée sans appel serveur (#108, PR #120).
-- L'analyse (cahier, spécifications, D2, README) est à jour de la livraison réelle : migrations V1–V4, #59 livré, hypothèses remplacées en v2 signalées, contrat 2.3 (#110).
-
-### Ajouté
-- **Swagger UI** : documentation de l'API générée, annotée (descriptions, codes d'erreur réels, authentification cookieAuth), avec deux définitions (contrat de référence et implémentation) et guide `docs/GUIDE_API.md` (#96, PR #97 ; annotations #105, PR #121).
-- **Connexion et menus par rôle** (frontend de la sécurité v2) : login/logout, gardes de routes, navigation par rôle (#59, PR #100).
-- **Navigation par boutons et écran relecteur distinct** (#104, PR #116) : l'espace étudiant devient trois écrans (`presence`, `notes`, `relectures`), bouton « Ouvrir l'exercice », composants partagés `bouton-navigation`.
-- Contrat d'API **2.3** : `x-livre` sur chaque opération (les non livrées préfixées « Non livré (backlog #n) »), réponses 400/401/403 manquantes, descriptions à jour (#111, PR #122).
+- Une fiche étudiant désactivée ne peut plus marquer sa présence ni déposer : `403 ETUDIANT_DESACTIVE` sur les opérations publiques `POST /api/presences` et `POST /api/exercices`, avant tout autre contrôle (RG28, décision PO — #113, PR #124, contrat 2.4).
 
 ### Refactoré
 - Chaque composant a son template et ses styles dans des fichiers séparés (#103, PR #114).
-
-### Sécurité
-- Une fiche étudiant désactivée ne peut plus marquer sa présence ni déposer : `403 ETUDIANT_DESACTIVE` sur les opérations publiques `POST /api/presences` et `POST /api/exercices`, avant tout autre contrôle (RG28, décision PO — #113, contrat 2.4).
-
-### Ajouté
-- **CRUD des comptes** (ADMIN, contrat 2.6) : liste paginée, création (mot de passe provisoire à changer à la première connexion, RG23 ; login unique RG27), modification, désactivation RG28 avec protection du dernier admin actif, réinitialisation de mot de passe ; écran « Comptes » dans l'espace ADMIN (#60).
-- **Gestion du référentiel** (contrat 2.7) : promotions par l'ADMIN — créer, renommer, supprimer (RG28 : refusée si étudiants ou sessions ; nom unique → 409 CONFLIT), rattachement des formateurs (RG26 : seuls des comptes FORMATEUR, le rattachement ouvre la promotion) ; fiches étudiants par l'ADMIN et le formateur de la promotion (RG26) — créer, modifier, supprimer sans historique ou désactiver (RG28, l'historique reste au tableau) ; volet « Gérer » dans l'écran ADMIN (#61).
-- **Récapitulatif de l'étudiant connecté** : `GET /api/moi/recap` (contrat 2.5) renvoie sa ligne de tableau — présences, exercices, moyenne des notes retenues (RG16), relectures en attente ; encart « Récapitulatif » dans « Mes notes » (#112).
 
 ## [1.0.0] — 2026-09-25
 

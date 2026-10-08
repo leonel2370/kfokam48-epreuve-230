@@ -6,7 +6,7 @@
 ## Sommaire
 
 1. [Vue d'ensemble et navigation](#1-vue-densemble-et-navigation)
-2. [Fiches de spécification (SF-1 à SF-14)](#2-fiches-de-spécification)
+2. [Fiches de spécification (SF-1 à SF-24)](#2-fiches-de-spécification)
 3. [Flows (parcours utilisateur)](#3-flows)
 4. [User stories par épopée](#4-user-stories)
 5. [Catalogue des codes d'erreur](#5-catalogue-des-codes-derreur)
@@ -50,8 +50,11 @@ Remplace l'arborescence v1 (accueil « Je suis formateur / étudiant » et choix
 ├── /etudiant/presence      Écran ÉTUDIANT : présence par code (SF-3), dépôt dans une session ouverte (SF-6)
 ├── /etudiant/notes         Mes notes : note retenue, provisoire ou définitive (SF-14, RG31)
 └── /etudiant/relectures    Écran RELECTEUR : relectures à faire et rendues (SF-8, SF-9) — le relecteur est un étudiant
-/admin                      ADMIN : promotions, accès à leur tableau et à leurs sessions ; gestion des comptes
-                            (SF-20 à SF-22) reportée (#60–#62, cahier §7.2 ter)
+/admin                      ADMIN, un seul écran en quatre parties (SF-20 à SF-22, livrées #60, #61, #134 à #138) :
+                            · promotions : tableau, sessions, créer, renommer, supprimer
+                            · volet « Gérer » d'une promotion : formateurs rattachés, fiches étudiants
+                            · comptes : liste paginée, désactiver, réactiver, rôle, mot de passe provisoire
+                            · créer un compte (pour un étudiant : promotion puis fiche sans compte)
 ```
 
 En-tête : nom et rôle de la personne connectée, **menus de son rôle uniquement**, « Se déconnecter » (SF-16). Une adresse d'un autre rôle renvoie à son propre espace ; une session perdue (401) renvoie à `/connexion`.
@@ -253,7 +256,7 @@ Format de chaque fiche : **acteur · priorité · préconditions · flux nominal
 - **Acteur :** ADMIN. `GET /api/utilisateurs?page&size&role` (page ≥ 0, taille de 1 à 100, `role` facultatif pour ne lister qu'un rôle — v3.3) · `GET /api/utilisateurs/{id}` · `POST /api/utilisateurs {login, nomAffiche, role, motDePasseInitial, etudiantId?}` (compte créé avec `doitChangerMotDePasse=true`) · `PUT /api/utilisateurs/{id} {nomAffiche, role, actif, etudiantId?}` · `POST /api/utilisateurs/{id}/reinitialiser-mot-de-passe {motDePasseInitial}` · `DELETE /api/utilisateurs/{id}` = désactivation (RG28).
 - **Erreurs :** `409 LOGIN_DEJA_UTILISE` · `409 FICHE_DEJA_LIEE` (la fiche a déjà un compte — v3.3) · `400 MOT_DE_PASSE_TROP_FAIBLE` · `400 CHAMP_MANQUANT` (ETUDIANT sans fiche, pagination hors bornes) · `400 ETUDIANT_INCONNU` (fiche inexistante — v3.3) · `404 UTILISATEUR_INTROUVABLE` · `409 SUPPRESSION_IMPOSSIBLE` (désactiver **ou rétrograder** le dernier admin actif, #130).
 - **Effets (v3.3) :** un compte désactivé ou dont le rôle change perd ou change ses droits dès sa requête suivante (#131) ; un compte qui quitte le rôle FORMATEUR perd ses rattachements (#130).
-- **Livrée (#60) :** les 6 opérations + écran ADMIN (liste, création, désactivation, réinitialisation). Traçabilité réelle : `UtilisateurIntegrationTest` — `testRg27LoginDejaUtiliseRenvoie409`, `testRg28DesactiverUnCompteCoupeSaConnexion`, `testRg28LeDernierAdminActifNePeutPasSeDesactiver`, `testRg23LeCompteCreeDoitChangerSonMotDePasseAvantTout`.
+- **Livrée (#60, puis #130 à #138) :** les 6 opérations + écran ADMIN (liste paginée, création, désactivation, réactivation, changement de rôle, réinitialisation). Traçabilité réelle : `UtilisateurIntegrationTest` — `testRg27LoginDejaUtiliseRenvoie409`, `testRg28DesactiverUnCompteCoupeSaConnexion`, `testRg28LeDernierAdminActifNePeutPasSeDesactiver`, `testRg23LeCompteCreeDoitChangerSonMotDePasseAvantTout`.
 
 ### SF-21 — Gérer promotions et rattachements · EF22 · Should *(v2, livrée #61)*
 
@@ -706,7 +709,7 @@ Scénario: tiers non autorisé
 
 ## 6. Matrice de traçabilité
 
-| EF | US | RG | Endpoint | Fiche | Test prévu (le nom cite la RG) |
+| EF | US | RG | Endpoint | Fiche | Test (le nom cite la RG ; « prévu » tant que la fiche n'est pas livrée) |
 |---|---|---|---|---|---|
 | EF1 | US-01 | RG19 | GET /promotions, /promotions/{id}/etudiants | SF-1 | IT `testListeEtudiantsPromotionInconnue404` |
 | EF2 | US-02 | RG1, RG20 | POST /sessions | SF-2 | UT `testRg1ExpirationEgaleOuverturePlus15min` · IT `testOuvrirSessionTitreManquant400` |
@@ -739,7 +742,7 @@ Tests minimaux exigés (B6) : **UT `testRg5AutoRelectureRefusee`** (règle méti
 
 ## 7. Scénarios de recette
 
-Données de démonstration : P1 = Awa, Paul, Lina, Marc, … ; P2 = 6 étudiants ; une session P1 clôturée avec des notes ; une session P1 ouverte.
+Données de démonstration : P1 = Awa, Paul, Lina, Marc, … ; P2 = 4 étudiants ; une session P1 clôturée avec des notes (aucune session ouverte au démarrage : le formateur en ouvre une).
 
 | # | Scénario | Résultat attendu |
 |---|---|---|
@@ -753,7 +756,7 @@ Données de démonstration : P1 = Awa, Paul, Lina, Marc, … ; P2 = 6 étudiants
 | R8 | Le formateur clôture, puis Lina tente de déposer | 409 SESSION_CLOTUREE |
 | R9 | Tableau P1 | La moyenne d'Awa inclut 16 ; les relectures non rendues sont comptées |
 | R10 *(v2)* | Première connexion `admin`/`admin` | Changement de mot de passe exigé, puis accès à l'administration |
-| R11 *(v2)* | L'admin crée le compte formateur et le rattache à P1 | Le formateur ne voit que P1 |
+| R11 *(v2, jouable depuis la v1.1)* | L'admin crée le compte formateur et le rattache à P1 | Le formateur ne voit que P1 ; rattacher un second formateur conserve le premier (#135) |
 | R12 *(v2)* | Awa connectée ouvre une route formateur | 403 ACCES_REFUSE ; le menu formateur n'est pas affiché |
 | R13 *(v2)* | Appel de POST /api/presences sans session (comme le correcteur) | Codes du contrat, jamais 401 |
 | R14 *(v2)* | Awa joint un .zip de 2 Mo ; Marc tente de le télécharger | 200 pour Awa et son relecteur ; 403 pour Marc |

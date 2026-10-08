@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.k48.leonel</groupId>
   <artifactId>presence48</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.1.0</version>
   <name>presence48</name>
   <description>PRESENCE48 - presence et relecture par les pairs</description>
   <properties>

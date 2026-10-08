@@ -4,9 +4,9 @@ Chaque ligne est une issue GitHub : `Bxx · #n` donne l'identifiant de backlog e
 
 Priorités : **Must** = `priority :: high` (milestone `v0.1`) · **Should** = `priority :: medium` (`v1.0`) · **Could** = `priority :: low`.
 
-## Backlog restant après v1.0 — trié (25/09, 19h30)
+## Backlog restant après v1.1 — trié (08/10)
 
-Ordre de reprise, du plus utile au correcteur et au client au moins utile. Les tickets livrés sont fermés sur GitHub.
+Ordre de reprise, du plus utile au correcteur et au client au moins utile. Les tickets livrés sont fermés sur GitHub ; ceux de ce tableau sont dans le jalon `v1.2`, sauf mention.
 
 | Rang | Issue | Pourquoi à ce rang |
 |---|---|---|
@@ -16,14 +16,22 @@ Ordre de reprise, du plus utile au correcteur et au client au moins utile. Les t
 | 4 | #33 Remplacement du lien avant relecture | Confort (Q13, RG14) |
 | 5 | #35 CI : lint du contrat | Backend et frontend déjà vérifiés en CI ; reste `redocly lint` |
 | 6 | #36 Collection Bruno | Les codes d'erreur sont déjà couverts par les tests d'intégration |
-| 7 | #62, #61, #60 CRUD sessions, promotions/étudiants, comptes | Sacrifiés pour la double relecture (cahier §7.2 ter) ; les données de démonstration suffisent |
-| 8 | #63 Pièce jointe | Sacrifiée (§7.2 ter) ; demandera une migration **V5** |
-| 9 | #37, #38 | Could, hors engagement |
+| 7 | #156 Délai du proxy quand le backend est arrêté | Une panne met 45 s à s'afficher ; réglage nginx |
+| 8 | #62 CRUD sessions | Jalon « Backlog » ; les sessions se créent déjà, modification et suppression restent |
+| 9 | #63 Pièce jointe | Jalon « Backlog » ; demandera une migration **V5** |
+| 10 | #37, #38 | Could, hors engagement |
 
-### État de la reprise (mis à jour le 25/09, après v1.0 — audit #110)
+### Ce qui a été livré depuis la v1.0
 
-- **Livré depuis ce tri** : #59 connexion et menus par rôle (PR #100) ; la correction du bug #98 (PR #99) ; le refactoring #103 (PR #114) ; le jalon **v1.1** (#104–#111 : navigation, sécurité, bugs frontend, doc Swagger, contrat 2.3, analyse à jour).
-- **Décision de reprise (post-v1.0)** : les restants du v1.0 — #30, #31, #32, #33, #35, #36 ci-dessus — sont **ramenés dans le jalon GitHub `v1.1`** et traités dans l'ordre de ce tableau (démarré avec #30). « v1.1 » désigne donc tout ce qui est livré après v1.0 ; les sacrifiés (#60–#63) et les Could (#37, #38) restent hors jalon.
+| Version | Tickets | Contenu |
+|---|---|---|
+| 1.1.0 | #96, #98, #101, #59 | Swagger UI, code de session masqué aux étudiants, relecture fiable, connexion et menus par rôle |
+| 1.1.0 | #103, #104 | Un composant = quatre fichiers ; navigation par boutons, écran relecteur distinct (F2) |
+| 1.1.0 | #105 à #111 | Documentation Swagger annotée, bugs d'écran, énumération d'identifiants, analyse et contrat 2.3 |
+| 1.1.0 | #112, #113, #60, #61 | Récapitulatif de l'étudiant, fiche désactivée, comptes, promotions, formateurs et fiches |
+| 1.1.0 | #128 à #141, #149 | Audit du 05/10 : 11 défauts bloquants corrigés, décisions du PO (RG32 à RG34), contrat 2.8, écran d'administration en composants, Quality Gate rattrapée |
+
+Le détail de chaque ticket est dans [CHANGELOG.md](../CHANGELOG.md), avec sa pull request.
 
 ## Cadre et analyse (étape 1)
 
@@ -101,4 +109,4 @@ Re-priorisation écrite : voir [PLANNING_SPRINTS.md](PLANNING_SPRINTS.md#re-prio
 | B35 · #37 | Détail des présences session par session dans le tableau | HYP-11 |
 | B36 · #38 | Réassignation manuelle d'un relecteur par le formateur | Exclu §3, à valider avec le client |
 
-Une fois l'enveloppe ouverte (étape 3), ses tickets sont ajoutés ici avec le modèle `evolution.md` ou `bug.md`, et ce backlog est **re-priorisé par écrit**.
+Les tickets ouverts après la v1.0 (enveloppe, audit) sont résumés dans « Ce qui a été livré depuis la v1.0 » en tête de ce fichier ; à l'origine, il était prévu que avec le modèle `evolution.md` ou `bug.md`, et ce backlog est **re-priorisé par écrit**.

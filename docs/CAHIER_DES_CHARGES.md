@@ -53,9 +53,8 @@ Les **5 opérations imposées** par le contrat restent **publiques** (décision 
 | Ressource | ADMIN | FORMATEUR | ETUDIANT |
 |---|---|---|---|
 | Comptes utilisateurs (CRUD, rôle, désactivation, réinitialisation du mot de passe) | CRUD | — | — |
-| Promotions + rattachement des formateurs | CRUD | lecture des siennes | lecture de la sienne |
-| Fiches étudiants | CRUD | lecture ; création et modification dans ses promotions | lecture de sa fiche |
-| Promotions | tout | CRUD (admin) · rattachement des formateurs (admin) | lecture des siennes (formateur, RG26) · lecture de la sienne (étudiant) |
+| Promotions + rattachement des formateurs | CRUD ; lecture des formateurs rattachés | lecture des siennes (RG26) | lecture de la sienne |
+| Fiches étudiants | CRUD ; lecture de toutes les fiches, désactivées comprises | dans ses promotions : lecture (désactivées comprises), création, modification, suppression ou désactivation (RG26, RG28) | lecture de sa fiche |
 | Sessions | tout | CRUD dans ses promotions (suppression seulement sans présence ni exercice) | lecture des sessions de sa promotion |
 | Code de session | tout | — | jamais renvoyé à un étudiant : `GET /api/sessions` masque le code (règle ajoutée en v1.1, #98) |
 | Présences | lecture | lecture ; ajout manuel ; suppression d'une présence manuelle | créer la sienne (opération imposée) ; lire les siennes |
@@ -174,7 +173,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 | RG20 | Le code est unique parmi les sessions dont le code n'a pas expiré | [HYP-6] |
 | RG21 *(v2)* | La présence est **validée automatiquement** : un code valide soumis par l'étudiant crée immédiatement la présence (source ETUDIANT) ; aucune validation par le formateur n'existe | PO 25/09 (confirme SF-3) |
 | RG22 *(v2)* | Sont publiques : les 5 opérations imposées, la connexion, et les deux listes de sélection `GET /api/promotions` et `GET /api/promotions/{id}/etudiants` (identifiants et noms seulement, nécessaires pour appeler les opérations imposées sans session). Toute autre route exige une session, sinon 401 NON_AUTHENTIFIE | PO 25/09, B2 |
-| RG30a *(v1.1, #98)* | Le code d'une session n'est jamais renvoyé à un étudiant : `GET /api/sessions` masque le `code` (et son expiration) pour le rôle ETUDIANT ; seul le formateur de la promotion (ou l'admin) voit le code | Bug sécurité #98, PR #97 |
+| RG30a *(v1.1, #98)* | Le code d'une session n'est jamais renvoyé à un étudiant : `GET /api/sessions` masque le `code` (et son expiration) pour le rôle ETUDIANT ; seul le formateur de la promotion (ou l'admin) voit le code | Bug sécurité #98, PR #99 |
 | RG23 *(v2)* | Un compte `admin` existe par défaut ; tant que son mot de passe initial n'est pas changé, toute route autre que profil, changement de mot de passe et déconnexion renvoie 403 CHANGEMENT_MOT_DE_PASSE_REQUIS | PO 25/09, [HYP-18] |
 | RG24 *(v2)* | Un mot de passe fait au moins 8 caractères ; 5 échecs de connexion consécutifs bloquent le compte 2 minutes (même logique que RG4) | [HYP-17] |
 | RG25 *(v2)* | Un utilisateur n'accède qu'aux ressources de son rôle (§2 bis) → sinon 403 ACCES_REFUSE | PO 25/09 |
@@ -241,7 +240,7 @@ Priorité MoSCoW. **Must** = requis pour `v0.1`. Le détail de chaque exigence (
 - **Seul présent / un seul candidat (HYP-20)** : un relecteur est assigné tout de suite, le second est tiré à la présence suivante (même mécanisme que HYP-3).
 - **Données existantes (HYP-21)** : les exercices `RELU` avec une seule relecture (données v1) restent `RELU` avec cette note ; la règle s'applique aux dépôts postérieurs à V4. Aucune ligne n'est supprimée par la migration.
 - **Clôture (Q11)** : un exercice clôturé avec une seule note garde une note retenue provisoire, visible comme telle.
-- **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs. **v1.1 (#110) : #59 (connexion, gardes et menus par rôle) est livré — PR #100 ; voir BACKLOG.md.**
+- **Sacrifice de périmètre** : ce `Must` arrive après l'échéance. Sortent du périmètre v1.0 : #63 pièce jointe (V4 lui était réservée ; elle passera en V5 si elle revient), #60/#61/#62 CRUD, Should #30–#33, #35, #36. On garantit d'abord les parcours imposés, corrects avec deux relecteurs. **v1.1 (#110) : #59 (connexion, gardes et menus par rôle) est livré — PR #100 ; voir BACKLOG.md.** **État au 08/10 (v1.1) :** #59, #60 et #61 sont livrés (PR #100, #126, #127, puis correctifs de l'audit) ; restent hors périmètre #62 (modifier ou supprimer une session), #63 (pièce jointe) et les Should #30 à #33, #35, #36, reportés en v1.2.
 
 ### 7.2 quater Audit du 05/10 et décisions du PO (07/10, #134, #140)
 
@@ -295,7 +294,7 @@ Correctifs de sécurité du même audit, sans changement de règle : RG26 appliq
 |---|---|
 | Cahier des charges (ce document) | `docs/CAHIER_DES_CHARGES.md` |
 | Spécifications fonctionnelles, flows et user stories | `docs/SPECIFICATIONS_FONCTIONNELLES.md` |
-| Diagrammes D1 à D4 (Mermaid) | `docs/diagrammes/` |
+| Diagrammes D1 à D5 (Mermaid) | `docs/diagrammes/` |
 | Plan technique (stack justifiée, qualité Sonar, tests), conventions | `docs/PLAN_TECHNIQUE_EQUIPES.md`, `docs/CONTRIBUTING.md` |
 | Planning horodaté par sprint et par équipe | `docs/PLANNING_SPRINTS.md` |
 | Coordination et communication entre équipes | `docs/COORDINATION_EQUIPES.md` |
